@@ -1,0 +1,42 @@
+{
+  "name": "hehehe",
+  "version": "0.1.0",
+  "description": "Codex-first AI development workflow with Claude as an independent reviewer.",
+  "author": {
+    "name": "Hehehe",
+    "email": "contact@example.com",
+    "url": "https://example.com"
+  },
+  "homepage": "https://example.com/hehehe",
+  "repository": "https://github.com/example/hehehe",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "claude",
+    "workflow",
+    "development",
+    "review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "hehehe",
+    "shortDescription": "Codex-first build and review workflow",
+    "longDescription": "hehehe is a Codex-first AI development workflow. Codex owns planning, implementation, fixes, and final decisions, while Claude is used as an independent secondary reviewer for evaluation, challenge review, and security checks when available.",
+    "developerName": "Hehehe",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write",
+      "Review"
+    ],
+    "websiteURL": "https://example.com/hehehe",
+    "privacyPolicyURL": "https://example.com/privacy",
+    "termsOfServiceURL": "https://example.com/terms",
+  "defaultPrompt": [
+      "Use $hehehe:auto-resolve to build this feature end to end.",
+      "Use $hehehe:preflight to verify this is ready to ship.",
+      "Use $hehehe:ideate to turn this idea into a build spec."
+    ],
+    "brandColor": "#111827"
+  }
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "hehehe"
+  short_description: "Codex-first workflow with Claude review"
+  default_prompt: "Use $hehehe to build this feature end to end with Codex as the main agent and Claude as reviewer."
+policy:
+  allow_implicit_invocation: true
