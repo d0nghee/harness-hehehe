@@ -30,13 +30,39 @@ chmod +x install.sh uninstall.sh
 ./install.sh
 ```
 
-설치 스크립트는 아래 경로로 플러그인을 복사합니다.
+기본 설치는 사용자 계정 전체에 적용됩니다. 설치 스크립트는 아래 경로로 플러그인을 복사합니다.
 
 ```text
 ~/.codex/plugins/hehehe
 ```
 
 설치 후 Codex를 재시작해야 새 플러그인과 스킬이 인식됩니다.
+
+## 프로젝트별 설치
+
+특정 프로젝트에서만 쓰고 싶다면, 대상 프로젝트 폴더에서 `--project` 옵션으로 설치합니다.
+
+### Windows PowerShell
+
+```powershell
+cd C:\path\to\your-project
+C:\path\to\hehehe\install.ps1 -Project
+```
+
+### macOS / Linux
+
+```bash
+cd /path/to/your-project
+/path/to/hehehe/install.sh --project
+```
+
+프로젝트별 설치는 아래 경로에 복사합니다.
+
+```text
+<your-project>/.codex/plugins/hehehe
+```
+
+이 방식은 해당 프로젝트 폴더에서 실행하는 Codex에만 hehehe를 적용하고 싶을 때 사용합니다.
 
 ## 삭제
 
@@ -56,6 +82,22 @@ chmod +x install.sh uninstall.sh
 
 ```text
 ~/.codex/plugins/hehehe
+```
+
+프로젝트별 설치를 삭제하려면 대상 프로젝트 폴더에서 같은 옵션을 사용합니다.
+
+Windows:
+
+```powershell
+cd C:\path\to\your-project
+C:\path\to\hehehe\uninstall.ps1 -Project
+```
+
+macOS/Linux:
+
+```bash
+cd /path/to/your-project
+/path/to/hehehe/uninstall.sh --project
 ```
 
 삭제 후에도 Codex를 재시작해야 반영됩니다.

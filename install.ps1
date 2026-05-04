@@ -1,5 +1,6 @@
 param(
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$Project
 )
 
 $ErrorActionPreference = "Stop"
@@ -7,7 +8,11 @@ $ErrorActionPreference = "Stop"
 $PluginName = "hehehe"
 $RepoRoot = $PSScriptRoot
 $SourcePluginDir = Join-Path $RepoRoot "plugins\$PluginName"
-$TargetPluginDir = Join-Path $HOME ".codex\plugins\$PluginName"
+if ($Project) {
+    $TargetPluginDir = Join-Path (Get-Location).Path ".codex\plugins\$PluginName"
+} else {
+    $TargetPluginDir = Join-Path $HOME ".codex\plugins\$PluginName"
+}
 
 if (-not (Test-Path -LiteralPath $SourcePluginDir)) {
     throw "Missing bundled plugin directory: $SourcePluginDir"
@@ -16,6 +21,7 @@ if (-not (Test-Path -LiteralPath $SourcePluginDir)) {
 Write-Host "$(if ($DryRun) { '[dry-run] ' })Installing hehehe Codex plugin"
 Write-Host "Source: $SourcePluginDir"
 Write-Host "Plugin target: $TargetPluginDir"
+Write-Host "Scope: $(if ($Project) { 'project' } else { 'user' })"
 
 if (-not $DryRun) {
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $TargetPluginDir) | Out-Null

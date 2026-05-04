@@ -7,11 +7,18 @@ SOURCE_PLUGIN_DIR="$SCRIPT_DIR/plugins/$PLUGIN_NAME"
 TARGET_PLUGIN_DIR="$HOME/.codex/plugins/$PLUGIN_NAME"
 
 DRY_RUN=0
+SCOPE=user
 for arg in "$@"; do
   if [ "$arg" = "--dry-run" ]; then
     DRY_RUN=1
+  elif [ "$arg" = "--project" ]; then
+    SCOPE=project
   fi
 done
+
+if [ "$SCOPE" = "project" ]; then
+  TARGET_PLUGIN_DIR="$(pwd)/.codex/plugins/$PLUGIN_NAME"
+fi
 
 if [ ! -d "$SOURCE_PLUGIN_DIR" ]; then
   echo "Missing bundled plugin directory: $SOURCE_PLUGIN_DIR" >&2
@@ -25,6 +32,7 @@ else
 fi
 echo "Source: $SOURCE_PLUGIN_DIR"
 echo "Plugin target: $TARGET_PLUGIN_DIR"
+echo "Scope: $SCOPE"
 
 if [ "$DRY_RUN" != "1" ]; then
   mkdir -p "$(dirname "$TARGET_PLUGIN_DIR")"
