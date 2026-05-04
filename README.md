@@ -1,104 +1,129 @@
-# hehehe
+# hehehe 설치 매뉴얼
 
-hehehe는 Codex를 메인 개발 에이전트로 쓰고, Claude는 보조 리뷰어/비판자/보안 검토자 역할로 두는 Codex 플러그인입니다.
+hehehe는 Codex를 주 실행자로 두고, Claude를 선택적 보조 리뷰어로 쓰는 Codex 플러그인입니다.
 
-원본 devlyn 워크플로우를 반전한 구조입니다.
+이 README는 GitHub 첫 화면에서 보이는 설치 전용 매뉴얼입니다. 사용법은 [USAGE.md](USAGE.md)를 확인하세요.
 
-```text
-Codex = 계획, 구현, 검증, 수정, 최종 판단
-Claude = 선택적 독립 평가, challenge review, security review
-```
-
-## 설치
-
-이 저장소를 clone한 뒤 설치 스크립트를 실행합니다.
+## 빠른 설치
 
 ### Windows PowerShell
 
 ```powershell
-git clone <your-repo-url>
+git clone https://github.com/d0nghee/harness-hehehe.git hehehe
 cd hehehe
-.\install.ps1
+powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
 ### macOS / Linux
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/d0nghee/harness-hehehe.git hehehe
 cd hehehe
 chmod +x install.sh uninstall.sh
 ./install.sh
 ```
 
-기본 설치는 사용자 계정 전체에 적용됩니다. 설치 스크립트는 아래 경로로 플러그인을 복사합니다.
+기본 설치 대상은 Codex 사용자 홈입니다.
+
+```text
+$CODEX_HOME/plugins/hehehe
+```
+
+`CODEX_HOME`이 없으면 다음 경로를 사용합니다.
 
 ```text
 ~/.codex/plugins/hehehe
 ```
 
-설치 후 Codex를 재시작해야 새 플러그인과 스킬이 인식됩니다.
+설치 후 Codex를 재시작해야 플러그인과 스킬이 다시 스캔됩니다.
 
-## 프로젝트별 설치
+## 프로젝트에 설치
 
-특정 프로젝트에서만 쓰고 싶다면, 대상 프로젝트 폴더에서 `--project` 옵션으로 설치합니다.
+특정 프로젝트에서만 hehehe를 쓰려면 프로젝트 루트에 설치합니다.
 
-### Windows PowerShell
+### 현재 디렉터리에 설치
+
+Windows:
 
 ```powershell
 cd C:\path\to\your-project
 C:\path\to\hehehe\install.ps1 -Project
 ```
 
-### macOS / Linux
+macOS/Linux:
 
 ```bash
 cd /path/to/your-project
 /path/to/hehehe/install.sh --project
 ```
 
-또는 hehehe 저장소 안에서 대상 프로젝트 경로를 지정해도 됩니다. 이 방식이 긴 명령을 줄일 때 편합니다.
+### 대상 경로를 지정해서 설치
 
 Windows:
 
 ```powershell
-.\install.ps1 -Target C:\path\to\your-project
+C:\path\to\hehehe\install.ps1 -Target C:\path\to\your-project
 ```
 
 macOS/Linux:
 
 ```bash
-./install.sh --target /path/to/your-project
+/path/to/hehehe/install.sh --target /path/to/your-project
 ```
 
-프로젝트별 설치는 아래 경로에 복사합니다.
+프로젝트 설치 결과는 다음 구조가 됩니다.
 
 ```text
-<your-project>/.codex/plugins/hehehe
+<your-project>/plugins/hehehe
+<your-project>/.agents/plugins/marketplace.json
 ```
 
-이 방식은 해당 프로젝트 폴더에서 실행하는 Codex에만 hehehe를 적용하고 싶을 때 사용합니다.
+## 설치 확인
 
-## 삭제
+변경 없이 설치 대상만 확인하려면 dry run을 사용합니다.
 
-### Windows PowerShell
+Windows:
+
+```powershell
+.\install.ps1 -DryRun
+.\install.ps1 -Project -DryRun
+.\install.ps1 -Target C:\path\to\your-project -DryRun
+```
+
+macOS/Linux:
+
+```bash
+./install.sh --dry-run
+./install.sh --project --dry-run
+./install.sh --target /path/to/your-project --dry-run
+```
+
+출력에서 다음 값을 확인합니다.
+
+```text
+Source: 플러그인 원본 경로
+Plugin target: 복사될 플러그인 경로
+Marketplace target: 생성될 marketplace.json 경로
+Scope: user 또는 project
+```
+
+## 제거
+
+### 사용자 홈에서 제거
+
+Windows:
 
 ```powershell
 .\uninstall.ps1
 ```
 
-### macOS / Linux
+macOS/Linux:
 
 ```bash
 ./uninstall.sh
 ```
 
-삭제 스크립트는 아래 경로를 제거합니다.
-
-```text
-~/.codex/plugins/hehehe
-```
-
-프로젝트별 설치를 삭제하려면 대상 프로젝트 폴더에서 같은 옵션을 사용합니다.
+### 프로젝트에서 제거
 
 Windows:
 
@@ -114,7 +139,7 @@ cd /path/to/your-project
 /path/to/hehehe/uninstall.sh --project
 ```
 
-hehehe 저장소 안에서 대상 프로젝트를 지정해 삭제할 수도 있습니다.
+대상 경로를 직접 지정할 수도 있습니다.
 
 Windows:
 
@@ -128,142 +153,68 @@ macOS/Linux:
 ./uninstall.sh --target /path/to/your-project
 ```
 
-삭제 후에도 Codex를 재시작해야 반영됩니다.
-
-## 사용법
-
-Codex에서 `$hehehe:<skill>` 형태로 호출합니다.
-
-대표 명령:
-
-```text
-$hehehe:ideate
-$hehehe:auto-resolve
-$hehehe:preflight
-$hehehe:review
-```
-
-예시:
-
-```text
-$hehehe:ideate 새 SaaS 대시보드 기능 아이디어를 구현 가능한 스펙으로 정리해줘
-```
-
-```text
-$hehehe:auto-resolve .hehehe/implementation-spec.md 기준으로 기능을 끝까지 구현해줘
-```
-
-```text
-$hehehe:preflight 지금 구현이 완료 기준을 만족하는지 출하 전 점검해줘
-```
-
-```text
-$hehehe:review 현재 변경사항을 코드 리뷰해줘
-```
-
-## 주요 스킬
-
-### 메인 파이프라인
-
-- `hehehe:ideate`: 아이디어를 로드맵, 완료 기준, 구현 스펙으로 정리
-- `hehehe:auto-resolve`: 구현, 검증, 리뷰, 수정, 정리까지 자동 진행
-- `hehehe:preflight`: 출하 전 완료 기준 대비 구현 상태 점검
-
-### 문제 해결과 리뷰
-
-- `hehehe:resolve`: 단일 버그 수정
-- `hehehe:team-resolve`: 복잡한 버그 해결
-- `hehehe:evaluate`: 구현 결과 평가
-- `hehehe:review`: 코드 리뷰
-- `hehehe:team-review`: 다관점 리뷰
-- `hehehe:browser-validate`: 브라우저 기반 UI 검증
-
-### UI/UX
-
-- `hehehe:design-ui`: UI 시안 생성
-- `hehehe:team-design-ui`: 다관점 UI 시안 생성
-- `hehehe:design-system`: 선택한 UI 방향에서 디자인 시스템 추출
-- `hehehe:implement-ui`: 디자인 시스템 기반 UI 구현
-
-### 제품 기획
-
-- `hehehe:discover-product`: 제품 발견 인터뷰와 요구사항 정리
-- `hehehe:product-spec`: 제품 단위 스펙 작성
-- `hehehe:feature-spec`: 기능 단위 구현 스펙 작성
-- `hehehe:recommend-features`: 다음 기능 추천
-
-### 유지보수
-
-- `hehehe:clean`: 코드 위생 정리
-- `hehehe:update-docs`: 문서 동기화
-
-## 작업 파일
-
-복잡한 작업에서는 `.hehehe/` 폴더를 사용합니다.
-
-```text
-.hehehe/done-criteria.md
-.hehehe/implementation-spec.md
-.hehehe/checks.md
-.hehehe/claude-review.md
-.hehehe/final-report.md
-```
-
-이 파일들은 단계 간 상태 공유용입니다. 사용자 문서라기보다 Codex가 작업을 안정적으로 이어가기 위한 내부 기록입니다.
-
-## 설계 원칙
-
-- Codex가 메인입니다.
-- Claude는 선택적 보조 리뷰어입니다.
-- Claude 결과는 조언일 뿐이며 Codex가 코드와 테스트로 검증해야 합니다.
-- 구현, 수정, 최종 판단은 Codex가 맡습니다.
-- 작은 작업에는 Claude를 호출하지 않아도 됩니다.
+제거 후에도 Codex를 재시작해야 스킬 목록이 갱신됩니다.
 
 ## 저장소 구조
 
 ```text
 hehehe/
-├─ install.ps1
-├─ uninstall.ps1
-├─ install.sh
-├─ uninstall.sh
-└─ plugins/
-   └─ hehehe/
-      ├─ .codex-plugin/
-      │  └─ plugin.json
-      ├─ skills/
-      └─ templates/
+  README.md
+  USAGE.md
+  install.ps1
+  uninstall.ps1
+  install.sh
+  uninstall.sh
+  .agents/
+    plugins/
+      marketplace.json
+  plugins/
+    hehehe/
+      .codex-plugin/
+        plugin.json
+      skills/
+      templates/
 ```
 
 ## 문제 해결
 
-### 설치했는데 Codex에서 안 보일 때
+### PowerShell 실행 정책 오류
 
-1. Codex를 완전히 종료했다가 다시 실행합니다.
-2. 아래 경로에 플러그인이 복사됐는지 확인합니다.
-
-```text
-~/.codex/plugins/hehehe
-```
-
-3. `plugins/hehehe/.codex-plugin/plugin.json` 파일이 있는지 확인합니다.
-
-### macOS에서 실행 권한 오류가 날 때
-
-```bash
-chmod +x install.sh uninstall.sh
-```
-
-### Windows에서 스크립트 실행 정책 오류가 날 때
-
-PowerShell을 열고 아래처럼 실행합니다.
+Windows에서 스크립트 실행 정책 오류가 나면 다음 방식으로 실행합니다.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-삭제는:
+제거도 동일합니다.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 ```
+
+### 설치했는데 Codex에 스킬이 보이지 않음
+
+1. 설치 출력의 `Plugin target` 경로가 의도한 위치인지 확인합니다.
+2. `plugins/hehehe/.codex-plugin/plugin.json` 파일이 설치 대상에 있는지 확인합니다.
+3. `.agents/plugins/marketplace.json` 파일이 설치 대상에 있는지 확인합니다.
+4. Codex를 완전히 재시작합니다.
+
+### 프로젝트 설치와 사용자 홈 설치가 헷갈림
+
+- 모든 프로젝트에서 쓰려면 기본 설치를 사용합니다.
+- 특정 프로젝트에서만 쓰려면 `-Project` 또는 `--project`를 사용합니다.
+- 다른 프로젝트 경로에 설치하려면 `-Target` 또는 `--target`을 사용합니다.
+
+### 기존 설치를 새 버전으로 갱신
+
+설치 스크립트는 기존 `plugins/hehehe` 폴더를 지우고 새 번들을 복사합니다.
+
+```powershell
+.\install.ps1
+```
+
+```bash
+./install.sh
+```
+
+프로젝트 설치도 같은 방식으로 다시 실행하면 갱신됩니다.

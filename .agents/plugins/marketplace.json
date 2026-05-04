@@ -1,0 +1,20 @@
+{
+  "name": "hehehe-local",
+  "interface": {
+    "displayName": "hehehe Local Plugins"
+  },
+  "plugins": [
+    {
+      "name": "hehehe",
+      "source": {
+        "source": "local",
+        "path": "./plugins/hehehe"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

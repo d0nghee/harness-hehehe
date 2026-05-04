@@ -9,22 +9,29 @@ $ErrorActionPreference = "Stop"
 $PluginName = "hehehe"
 if ($Target) {
     $TargetRoot = (Resolve-Path -LiteralPath $Target).Path
-    $TargetPluginDir = Join-Path $TargetRoot ".codex\plugins\$PluginName"
     $Scope = "project"
 } elseif ($Project) {
-    $TargetPluginDir = Join-Path (Get-Location).Path ".codex\plugins\$PluginName"
+    $TargetRoot = (Get-Location).Path
     $Scope = "project"
 } else {
-    $TargetPluginDir = Join-Path $HOME ".codex\plugins\$PluginName"
+    $TargetRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
     $Scope = "user"
 }
 
+$TargetPluginDir = Join-Path $TargetRoot "plugins\$PluginName"
+$MarketplacePath = Join-Path $TargetRoot ".agents\plugins\marketplace.json"
+
 Write-Host "$(if ($DryRun) { '[dry-run] ' })Uninstalling hehehe Codex plugin"
 Write-Host "Plugin target: $TargetPluginDir"
+Write-Host "Marketplace target: $MarketplacePath"
 Write-Host "Scope: $Scope"
 
 if (-not $DryRun -and (Test-Path -LiteralPath $TargetPluginDir)) {
     Remove-Item -LiteralPath $TargetPluginDir -Recurse -Force
+}
+
+if (-not $DryRun -and (Test-Path -LiteralPath $MarketplacePath)) {
+    Remove-Item -LiteralPath $MarketplacePath -Force
 }
 
 Write-Host "Uninstalled hehehe."

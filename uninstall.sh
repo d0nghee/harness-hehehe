@@ -1,9 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PLUGIN_NAME=hehehe
-TARGET_PLUGIN_DIR="$HOME/.codex/plugins/$PLUGIN_NAME"
 
 DRY_RUN=0
 SCOPE=user
@@ -29,10 +27,15 @@ if [ "$PREV" = "--target" ]; then
 fi
 
 if [ -n "$TARGET_ROOT" ]; then
-  TARGET_PLUGIN_DIR="$(cd "$TARGET_ROOT" && pwd)/.codex/plugins/$PLUGIN_NAME"
+  TARGET_ROOT=$(cd "$TARGET_ROOT" && pwd)
 elif [ "$SCOPE" = "project" ]; then
-  TARGET_PLUGIN_DIR="$(pwd)/.codex/plugins/$PLUGIN_NAME"
+  TARGET_ROOT=$(pwd)
+else
+  TARGET_ROOT=${CODEX_HOME:-"$HOME/.codex"}
 fi
+
+TARGET_PLUGIN_DIR="$TARGET_ROOT/plugins/$PLUGIN_NAME"
+MARKETPLACE_PATH="$TARGET_ROOT/.agents/plugins/marketplace.json"
 
 if [ "$DRY_RUN" = "1" ]; then
   echo "[dry-run] Uninstalling hehehe Codex plugin"
@@ -40,10 +43,12 @@ else
   echo "Uninstalling hehehe Codex plugin"
 fi
 echo "Plugin target: $TARGET_PLUGIN_DIR"
+echo "Marketplace target: $MARKETPLACE_PATH"
 echo "Scope: $SCOPE"
 
 if [ "$DRY_RUN" != "1" ]; then
   rm -rf "$TARGET_PLUGIN_DIR"
+  rm -f "$MARKETPLACE_PATH"
 fi
 
 echo "Uninstalled hehehe."
