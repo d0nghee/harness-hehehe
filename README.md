@@ -56,6 +56,20 @@ cd /path/to/your-project
 /path/to/hehehe/install.sh --project
 ```
 
+또는 hehehe 저장소 안에서 대상 프로젝트 경로를 지정해도 됩니다. 이 방식이 긴 명령을 줄일 때 편합니다.
+
+Windows:
+
+```powershell
+.\install.ps1 -Target C:\path\to\your-project
+```
+
+macOS/Linux:
+
+```bash
+./install.sh --target /path/to/your-project
+```
+
 프로젝트별 설치는 아래 경로에 복사합니다.
 
 ```text
@@ -98,6 +112,20 @@ macOS/Linux:
 ```bash
 cd /path/to/your-project
 /path/to/hehehe/uninstall.sh --project
+```
+
+hehehe 저장소 안에서 대상 프로젝트를 지정해 삭제할 수도 있습니다.
+
+Windows:
+
+```powershell
+.\uninstall.ps1 -Target C:\path\to\your-project
+```
+
+macOS/Linux:
+
+```bash
+./uninstall.sh --target /path/to/your-project
 ```
 
 삭제 후에도 Codex를 재시작해야 반영됩니다.

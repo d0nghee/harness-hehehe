@@ -1,6 +1,7 @@
 param(
     [switch]$DryRun,
-    [switch]$Project
+    [switch]$Project,
+    [string]$Target
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,10 +9,16 @@ $ErrorActionPreference = "Stop"
 $PluginName = "hehehe"
 $RepoRoot = $PSScriptRoot
 $SourcePluginDir = Join-Path $RepoRoot "plugins\$PluginName"
-if ($Project) {
+if ($Target) {
+    $TargetRoot = (Resolve-Path -LiteralPath $Target).Path
+    $TargetPluginDir = Join-Path $TargetRoot ".codex\plugins\$PluginName"
+    $Scope = "project"
+} elseif ($Project) {
     $TargetPluginDir = Join-Path (Get-Location).Path ".codex\plugins\$PluginName"
+    $Scope = "project"
 } else {
     $TargetPluginDir = Join-Path $HOME ".codex\plugins\$PluginName"
+    $Scope = "user"
 }
 
 if (-not (Test-Path -LiteralPath $SourcePluginDir)) {
@@ -21,7 +28,7 @@ if (-not (Test-Path -LiteralPath $SourcePluginDir)) {
 Write-Host "$(if ($DryRun) { '[dry-run] ' })Installing hehehe Codex plugin"
 Write-Host "Source: $SourcePluginDir"
 Write-Host "Plugin target: $TargetPluginDir"
-Write-Host "Scope: $(if ($Project) { 'project' } else { 'user' })"
+Write-Host "Scope: $Scope"
 
 if (-not $DryRun) {
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $TargetPluginDir) | Out-Null
