@@ -54,6 +54,43 @@ $CODEX_HOME/plugins/hehehe
 
 설치 후 Codex를 재시작해야 플러그인과 스킬이 다시 스캔됩니다.
 
+## 한국어 답변 지시 적용 범위
+
+hehehe 플러그인에는 다음 지시문이 포함되어 있습니다.
+
+```text
+Reason internally in English.
+Always write the final response to the user in Korean.
+```
+
+이 지시문은 `$hehehe:...` 스킬을 사용할 때 적용됩니다. hehehe를 쓰지 않는 일반 Codex 대화에도 항상 적용하려면 사용자 전역 지시 파일에 같은 내용을 추가합니다.
+
+macOS/Linux:
+
+```bash
+mkdir -p ~/.codex
+cat > ~/.codex/AGENTS.md <<'EOF'
+# Global Instructions
+
+- Reason internally in English.
+- Always write the final response to the user in Korean.
+EOF
+```
+
+Windows PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$HOME\.codex" | Out-Null
+@'
+# Global Instructions
+
+- Reason internally in English.
+- Always write the final response to the user in Korean.
+'@ | Set-Content -Encoding utf8 "$HOME\.codex\AGENTS.md"
+```
+
+전역 지시를 바꾼 뒤에도 Codex를 재시작해야 새 설정이 확실히 반영됩니다.
+
 ## 수동 설치
 
 ### Windows PowerShell
