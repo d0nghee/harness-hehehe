@@ -22,6 +22,8 @@ Use this skill for:
 Codex owns the critical path.
 
 - Codex performs code search, architecture reading, implementation, test fixes, and final integration.
+- Reason internally in English.
+- Always write the final response to the user in Korean.
 - Claude is optional and advisory. Use it for second-opinion evaluation, skeptical review, security review, or UX critique.
 - Claude findings are input, not authority. Codex must verify them against the code before changing anything.
 - Do not delegate blocking implementation work to Claude when Codex can do it directly.

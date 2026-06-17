@@ -6,6 +6,56 @@ hehehe는 Codex를 주 실행자로 두고, Claude를 선택적 보조 리뷰어
 
 ## 빠른 설치
 
+저장소가 public이면 원격 설치 스크립트를 바로 사용할 수 있습니다.
+
+### Windows PowerShell
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "iwr -UseBasicParsing https://raw.githubusercontent.com/d0nghee/harness-hehehe/main/install-remote.ps1 -OutFile $env:TEMP\install-hehehe.ps1; & $env:TEMP\install-hehehe.ps1"
+```
+
+### macOS / Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/d0nghee/harness-hehehe/main/install-remote.sh | sh
+```
+
+저장소가 private이면 `raw.githubusercontent.com` 다운로드가 404로 막힙니다. 이 경우 GitHub CLI 로그인 권한으로 clone 후 설치합니다.
+
+Windows:
+
+```powershell
+$tmp = Join-Path $env:TEMP "hehehe-install"
+if (Test-Path $tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force }
+gh repo clone d0nghee/harness-hehehe $tmp
+powershell -ExecutionPolicy Bypass -File "$tmp\install.ps1"
+```
+
+macOS/Linux:
+
+```bash
+tmp="${TMPDIR:-/tmp}/hehehe-install"
+rm -rf "$tmp"
+gh repo clone d0nghee/harness-hehehe "$tmp"
+sh "$tmp/install.sh"
+```
+
+기본 설치 대상은 Codex 사용자 홈입니다.
+
+```text
+$CODEX_HOME/plugins/hehehe
+```
+
+`CODEX_HOME`이 없으면 다음 경로를 사용합니다.
+
+```text
+~/.codex/plugins/hehehe
+```
+
+설치 후 Codex를 재시작해야 플러그인과 스킬이 다시 스캔됩니다.
+
+## 수동 설치
+
 ### Windows PowerShell
 
 ```powershell
@@ -22,20 +72,6 @@ cd hehehe
 chmod +x install.sh uninstall.sh
 ./install.sh
 ```
-
-기본 설치 대상은 Codex 사용자 홈입니다.
-
-```text
-$CODEX_HOME/plugins/hehehe
-```
-
-`CODEX_HOME`이 없으면 다음 경로를 사용합니다.
-
-```text
-~/.codex/plugins/hehehe
-```
-
-설치 후 Codex를 재시작해야 플러그인과 스킬이 다시 스캔됩니다.
 
 ## 프로젝트에 설치
 
