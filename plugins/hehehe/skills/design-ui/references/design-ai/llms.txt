@@ -1,0 +1,53 @@
+# Design AI Systems
+
+> DESIGN.md examples for AI coding agents, AI UI generation, and website-inspired design systems.
+
+Design AI Systems is a GitHub repository of reusable `DESIGN.md` files extracted from public websites. Each file helps an AI model understand a specific company's visual style, including colors, typography, spacing, component patterns, responsive behavior, and prompt-ready guidance.
+
+Primary use cases:
+- give an AI coding agent a concrete design system before generating UI
+- study popular website design systems in markdown form
+- reuse a known visual language for prototypes and product exploration
+- compare design patterns across brands
+
+Core files:
+- `README.md`: human-readable project overview and company index
+- `AGENTS.md`: instructions for repository agents
+- `design-md/<company>/DESIGN.md`: one design-system file per company
+
+Top examples:
+- `design-md/stripe/DESIGN.md`
+- `design-md/figma/DESIGN.md`
+- `design-md/apple/DESIGN.md`
+- `design-md/slack/DESIGN.md`
+- `design-md/netflix/DESIGN.md`
+- `design-md/airbnb/DESIGN.md`
+- `design-md/coinbase/DESIGN.md`
+- `design-md/paypal/DESIGN.md`
+- `design-md/asana/DESIGN.md`
+- `design-md/zoom/DESIGN.md`
+
+Keywords:
+- DESIGN.md examples
+- AI design system prompts
+- AI coding agent UI prompts
+- website design system markdown
+- Stitch DESIGN.md examples
+- design system prompts for AI
+- website-inspired UI generation
+
+How to use:
+1. Choose a company file in `design-md/`.
+2. Copy its `DESIGN.md` into your own project.
+3. Instruct your AI agent to follow that file as the visual source of truth.
+4. Modify the file if you want a looser or stricter match.
+
+Audience:
+- developers
+- designers
+- founders
+- AI prototyping teams
+- prompt engineers
+
+License:
+- MIT

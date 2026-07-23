@@ -35,6 +35,14 @@ $hehehe:preflight 현재 구현이 done criteria를 만족하는지 출시 전 �
 $hehehe:review 이번 변경사항을 버그와 회귀 위험 중심으로 리뷰해줘
 ```
 
+```text
+$hehehe:doctor 현재 전역 플러그인과 프로젝트 설정을 진단해줘
+```
+
+```text
+$hehehe:resume 중단된 hehehe 실행을 이어서 진행해줘
+```
+
 ## 주요 워크플로우
 
 아이디어에서 구현까지 한 번에 진행할 때:
@@ -77,6 +85,8 @@ $hehehe:team-resolve
 - `hehehe:hehehe`: 아이디어, 버그, UI 요청을 Codex-first 자동 개발 흐름으로 처리
 - `hehehe:auto-resolve`: 구현, 빌드 게이트, 브라우저 검증, 선택적 Claude 리뷰, 수정 루프, 문서 정리
 - `hehehe:preflight`: 로드맵, done criteria, 요청 동작 기준 출시 전 점검
+- `hehehe:doctor`: Codex, Claude, 플러그인, 프로젝트 상태를 읽기 전용으로 진단
+- `hehehe:resume`: `.hehehe/runs/`에 기록된 활성 실행 상태를 확인하고 이어서 진행
 
 ### 기획과 스펙
 
@@ -92,6 +102,7 @@ $hehehe:team-resolve
 - `hehehe:team-resolve`: 복잡한 버그를 Codex 주도와 선택적 Claude 비평으로 해결
 - `hehehe:evaluate`: 명시 기준에 따라 구현을 평가
 - `hehehe:browser-validate`: 웹 UI 또는 로컬 앱 워크플로우를 브라우저로 검증
+- `hehehe:browser-tool-test`: 인앱 브라우저로 로컬 경로와 사용자 흐름을 직접 테스트
 - `hehehe:clean`: 구현 후 코드 위생 정리
 - `hehehe:update-docs`: 완료된 코드 변경과 관련 문서 동기화
 
@@ -119,6 +130,8 @@ hehehe 워크플로우는 프로젝트 안에 `.hehehe/` 폴더를 사용할 수
 .hehehe/checks.md
 .hehehe/claude-review.md
 .hehehe/final-report.md
+.hehehe/current.json
+.hehehe/runs/<run-id>/state.json
 ```
 
 템플릿은 플러그인 번들에 들어 있습니다.

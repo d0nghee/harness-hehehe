@@ -1,0 +1,43 @@
+{
+  "name": "harness-hehehe",
+  "version": "0.3.1",
+  "description": "Install the hehehe Codex workflow plugin globally or in one project.",
+  "type": "module",
+  "bin": {
+    "harness-hehehe": "bin/hehehe.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "plugins/hehehe/",
+    "README.md",
+    "USAGE.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "validate": "node --check bin/hehehe.mjs && node --check lib/installer.mjs && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d0nghee/harness-hehehe.git"
+  },
+  "homepage": "https://github.com/d0nghee/harness-hehehe#readme",
+  "bugs": {
+    "url": "https://github.com/d0nghee/harness-hehehe/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "codex",
+    "plugin",
+    "workflow",
+    "claude",
+    "development"
+  ],
+  "license": "MIT"
+}

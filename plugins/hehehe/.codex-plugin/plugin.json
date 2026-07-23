@@ -1,11 +1,9 @@
 {
   "name": "hehehe",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "description": "Codex-first AI development workflow with Claude as an independent reviewer.",
   "author": {
-    "name": "Hehehe",
-    "email": "contact@example.com",
-    "url": "https://example.com"
+    "name": "Hehehe"
   },
   "homepage": "https://github.com/d0nghee/harness-hehehe",
   "repository": "https://github.com/d0nghee/harness-hehehe",
@@ -32,8 +30,8 @@
     "websiteURL": "https://github.com/d0nghee/harness-hehehe",
     "defaultPrompt": [
       "Use $hehehe:auto-resolve to build this feature end to end.",
-      "Use $hehehe:preflight to verify this is ready to ship.",
-      "Use $hehehe:ideate to turn this idea into a build spec."
+      "Use $hehehe:doctor to diagnose the plugin and project setup.",
+      "Use $hehehe:resume to continue the active workflow run."
     ],
     "brandColor": "#111827"
   }
