@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hehehe Resume"
+  short_description: "Resume a durable hehehe workflow run"
+  default_prompt: "Use $hehehe:resume to inspect and continue the active hehehe workflow run."

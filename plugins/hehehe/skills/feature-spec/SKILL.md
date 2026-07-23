@@ -7,13 +7,16 @@ description: Create a feature-level implementation spec with acceptance criteria
 
 Use before implementing a discrete feature.
 
-Write `.hehehe/feature-spec.md` and `.hehehe/done-criteria.md` with:
+Initialize a run with the run-state script bundled with `hehehe:resume`, or reuse the active run only when its goal matches. Write `feature-spec.md` and `done-criteria.md` inside that run directory with:
 
 - user story
 - behavior
+- invariants and observed evidence
+- in-scope and out-of-scope behavior
 - affected routes/APIs/components
+- dependencies and integration points
 - edge cases
-- test plan
+- acceptance criteria mapped to verification
 - rollout notes
 
-This should be ready for `hehehe:auto-resolve`.
+Resolve decisions that would change scope, contracts, or authority before marking the spec ready. This should be decision-complete for `hehehe:auto-resolve` without another planning pass.

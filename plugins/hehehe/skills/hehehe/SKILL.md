@@ -33,13 +33,16 @@ Codex owns the critical path.
 
 Use `.hehehe/` for pipeline state when the task is more than a small one-off fix.
 
-- `.hehehe/done-criteria.md`: the concrete success criteria Codex will verify
-- `.hehehe/build-log.md`: implementation notes and commands run
-- `.hehehe/checks.md`: typecheck, lint, test, build, and browser validation results
-- `.hehehe/claude-review.md`: advisory Claude findings, if Claude was used
-- `.hehehe/final-report.md`: final summary, risks, and remaining gaps
+- `.hehehe/current.json`: pointer to the latest active or completed run
+- `.hehehe/runs/<run-id>/state.json`: goal, phase, next step, status, and artifact paths
+- `.hehehe/runs/<run-id>/done-criteria.md`: the concrete success criteria Codex will verify
+- `.hehehe/runs/<run-id>/build-log.md`: implementation notes and commands run
+- `.hehehe/runs/<run-id>/checks.md`: typecheck, lint, test, build, and browser validation results
+- `.hehehe/runs/<run-id>/claude-review.md`: advisory Claude findings, if Claude was used
+- `.hehehe/runs/<run-id>/final-report.md`: final summary, risks, and remaining gaps
 
 Keep these files concise. They are coordination artifacts, not documentation dumps.
+Use the deterministic script bundled with `hehehe:resume` to initialize, inspect, advance, block, or complete run state. Preserve legacy singleton `.hehehe/*.md` files as history and do not append new runs to them.
 
 ## Pipeline
 
@@ -47,7 +50,7 @@ Keep these files concise. They are coordination artifacts, not documentation dum
 
 Clarify the task only when a risky ambiguity cannot be resolved from the repo. Otherwise make a conservative assumption and proceed.
 
-Write `.hehehe/done-criteria.md` for non-trivial work with:
+Initialize run-scoped state first and write `done-criteria.md` in the active run directory with:
 
 - user goal
 - files or subsystems likely affected
@@ -55,17 +58,22 @@ Write `.hehehe/done-criteria.md` for non-trivial work with:
 - verification commands
 - known constraints
 
-### 2. Build
+### 2. Plan Gate
+
+Before editing, require a decision-complete plan when the task touches auth or security, migrations or backfills, destructive or billable effects, public API contracts, or multiple deployable subsystems. Confirm invariants, scope, integration points, dependencies, acceptance criteria, and verification. Skip this gate for a small, well-understood change.
+
+### 3. Build
 
 Codex implements the change directly.
 
 - Prefer existing project patterns.
+- Treat security as a first-order coding priority: avoid data exposure, unsafe inputs, secret leakage, injection paths, and destructive actions while designing and editing code.
 - Keep edits scoped.
 - Avoid unrelated refactors.
 - Preserve user changes already present in the worktree.
 - Add tests when the behavior or blast radius justifies them.
 
-### 3. Build Gate
+### 4. Build Gate
 
 Run the strongest local checks that apply to the repo:
 
@@ -76,9 +84,9 @@ Run the strongest local checks that apply to the repo:
 - production build
 - framework-specific validation
 
-Record command outcomes in `.hehehe/checks.md`. If checks fail, fix the underlying issue and rerun the relevant check.
+Record command outcomes in the active run's `checks.md`. If checks fail, fix the underlying issue and rerun the relevant check.
 
-### 4. Product Validation
+### 5. Product Validation
 
 For UI or browser-facing work, validate in a browser when available.
 
@@ -89,7 +97,7 @@ Check:
 - responsive layout does not overlap or clip
 - loading and error states are usable
 
-### 5. Claude Advisory Pass
+### 6. Claude Advisory Pass
 
 Use Claude only when the task benefits from an independent pass.
 
@@ -116,17 +124,17 @@ When using Claude, provide a narrow prompt with:
 
 Then Codex must inspect each material finding before accepting it.
 
-### 6. Fix Loop
+### 7. Fix Loop
 
 For each confirmed issue:
 
 1. Patch the smallest responsible area.
 2. Rerun the check that would catch the issue.
-3. Update `.hehehe/checks.md` or `.hehehe/claude-review.md`.
+3. Update the active run's `checks.md` or `claude-review.md`.
 
 Stop when remaining issues are either resolved or explicitly documented as out of scope.
 
-### 7. Final Report
+### 8. Final Report
 
 End with a concise final response:
 
@@ -135,6 +143,8 @@ End with a concise final response:
 - what verification passed
 - any checks that could not be run
 - any remaining risk
+
+Mark run state complete only after required evidence passes. Use `hehehe:resume` to continue an interrupted active run and `hehehe:doctor` to diagnose plugin or project setup problems.
 
 Do not over-report internal pipeline files unless the user asks for them.
 
@@ -148,6 +158,8 @@ Use these user-facing modes when helpful:
 - `preflight`: compare implementation against done criteria
 - `harden`: run review, security, and edge-case passes
 - `docs`: update docs after code changes
+- `doctor`: diagnose global plugin and project readiness without mutation
+- `resume`: continue a matching active run from durable state
 
 If the user does not specify a mode, infer it from the request.
 

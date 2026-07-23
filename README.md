@@ -1,293 +1,223 @@
-# hehehe 설치 매뉴얼
+# hehehe
 
-hehehe는 Codex를 주 실행자로 두고, Claude를 선택적 보조 리뷰어로 쓰는 Codex 플러그인입니다.
+Codex가 계획·구현·검증·수정을 끝까지 맡고, Claude는 필요할 때만 독립 리뷰어로 참여하는 개발 워크플로우 플러그인입니다.
 
-이 README는 GitHub 첫 화면에서 보이는 설치 전용 매뉴얼입니다. 사용법은 [USAGE.md](USAGE.md)를 확인하세요.
+아이디어 정리부터 구현, 브라우저 테스트, 출시 전 점검까지 하나의 흐름으로 연결하며 중단된 작업은 실행 상태를 기록해 이어서 진행할 수 있습니다.
 
-## 빠른 설치
+## 주요 기능
 
-저장소가 public이면 원격 설치 스크립트를 바로 사용할 수 있습니다.
+- **Codex-first 실행**: 기획, 구현, 디버깅, 테스트와 최종 판단을 Codex가 담당
+- **선택적 Claude 리뷰**: 코드·보안·마이그레이션 같은 고위험 변경을 읽기 전용으로 교차 검토
+- **전 과정 자동화**: 스펙 작성 → 구현 → 빌드 게이트 → 브라우저 검증 → 정리 → 문서화
+- **실제 브라우저 테스트**: 인앱 브라우저로 클릭, 입력, 네트워크·콘솔 오류와 반응형 화면 확인
+- **실행 상태 복구**: `.hehehe/runs/`에 진행 상태를 보존하고 중단 지점부터 재개
+- **설치 진단**: 플러그인, Codex, 선택적 Claude와 프로젝트 상태를 읽기 전용으로 점검
+- **UI 설계 지원**: 제품 성격에 맞는 UI 방향, 디자인 시스템과 구현 흐름 제공
 
-### Windows PowerShell
+전체 스킬 목록은 [USAGE.md](USAGE.md)에서 확인할 수 있습니다.
 
-```powershell
-powershell -ExecutionPolicy Bypass -Command "iwr -UseBasicParsing https://raw.githubusercontent.com/d0nghee/harness-hehehe/main/install-remote.ps1 -OutFile $env:TEMP\install-hehehe.ps1; & $env:TEMP\install-hehehe.ps1"
-```
+## 요구 사항
 
-### macOS / Linux
+- Node.js 20 이상
+- Codex CLI
+- Claude CLI는 선택 사항이며 독립 교차 리뷰를 요청할 때만 필요
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/d0nghee/harness-hehehe/main/install-remote.sh | sh
-```
+## 빠른 시작
 
-저장소가 private이면 `raw.githubusercontent.com` 다운로드가 404로 막힙니다. 이 경우 GitHub CLI 로그인 권한으로 clone 후 설치합니다.
-
-Windows:
-
-```powershell
-$tmp = Join-Path $env:TEMP "hehehe-install"
-if (Test-Path $tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force }
-gh repo clone d0nghee/harness-hehehe $tmp
-powershell -ExecutionPolicy Bypass -File "$tmp\install.ps1"
-```
-
-macOS/Linux:
+### 모든 프로젝트에서 사용
 
 ```bash
-tmp="${TMPDIR:-/tmp}/hehehe-install"
-rm -rf "$tmp"
-gh repo clone d0nghee/harness-hehehe "$tmp"
-sh "$tmp/install.sh"
+npx harness-hehehe install --global
 ```
 
-기본 설치 대상은 Codex 사용자 홈입니다.
+### 현재 프로젝트에서만 사용
+
+```bash
+npx harness-hehehe install --project .
+```
+
+설치 후 Codex를 재시작하거나 새 스레드를 시작한 다음 스킬을 호출합니다.
 
 ```text
-$CODEX_HOME/plugins/hehehe
+$hehehe:auto-resolve 사용자 프로필 편집 기능을 구현하고 검증해줘
 ```
 
-`CODEX_HOME`이 없으면 다음 경로를 사용합니다.
+## 설치 범위
+
+| 범위 | 명령 | 플러그인 위치 | 동작 |
+|---|---|---|---|
+| 사용자 전역 | `npx harness-hehehe install --global` | `~/plugins/hehehe` | 개인 마켓플레이스 등록 후 자동 활성화 |
+| 현재 프로젝트 | `npx harness-hehehe install --project .` | `<project>/plugins/hehehe` | 해당 프로젝트에서만 기본 로드 |
+| 지정 프로젝트 | `npx harness-hehehe install --project <path>` | `<path>/plugins/hehehe` | 지정한 프로젝트에서만 기본 로드 |
+
+전역 설치는 `~/.agents/plugins/marketplace.json`의 다른 플러그인을 보존하고 `hehehe` 항목만 추가하거나 갱신합니다. 프로젝트 설치도 기존 프로젝트 마켓플레이스의 다른 항목을 덮어쓰지 않습니다.
+
+Windows와 macOS/Linux 모두 같은 명령을 사용합니다.
+
+```bash
+npx harness-hehehe install --project "D:\work\my-app"
+npx harness-hehehe install --project /work/my-app
+```
+
+### CLI를 전역 설치
+
+매번 `npx`를 사용하지 않으려면 설치 프로그램 자체를 전역으로 설치합니다.
+
+```bash
+npm install -g harness-hehehe
+harness-hehehe install --global
+harness-hehehe install --project .
+```
+
+전역 설치 후 실행 명령은 패키지명과 동일한 `harness-hehehe`입니다.
+
+## 대표 워크플로우
+
+### 아이디어에서 구현까지
 
 ```text
-~/.codex/plugins/hehehe
+$hehehe:ideate 관리자 주문 처리 아이디어를 MVP 스펙으로 정리해줘
+$hehehe:feature-spec 주문 상태 변경 기능의 인수 조건을 작성해줘
+$hehehe:auto-resolve 스펙을 구현하고 빌드와 브라우저 검증까지 완료해줘
+$hehehe:preflight 출시 가능한 상태인지 최종 확인해줘
 ```
 
-설치 후 Codex를 재시작해야 플러그인과 스킬이 다시 스캔됩니다.
-
-## 한국어 답변 지시 적용 범위
-
-hehehe 플러그인에는 다음 지시문이 포함되어 있습니다.
+### 버그 해결과 리뷰
 
 ```text
-Reason internally in English.
-Always write the final response to the user in Korean.
+$hehehe:resolve 로그인 후 리다이렉트가 반복되는 원인을 찾아서 고쳐줘
+$hehehe:review 현재 변경을 버그와 회귀 위험 중심으로 검토해줘
+$hehehe:team-review 인증 변경을 독립 관점까지 포함해 검토해줘
 ```
 
-이 지시문은 `$hehehe:...` 스킬을 사용할 때 적용됩니다. hehehe를 쓰지 않는 일반 Codex 대화에도 항상 적용하려면 사용자 전역 지시 파일에 같은 내용을 추가합니다.
-
-macOS/Linux:
-
-```bash
-mkdir -p ~/.codex
-cat > ~/.codex/AGENTS.md <<'EOF'
-# Global Instructions
-
-- Reason internally in English.
-- Always write the final response to the user in Korean.
-EOF
-```
-
-Windows PowerShell:
-
-```powershell
-New-Item -ItemType Directory -Force -Path "$HOME\.codex" | Out-Null
-@'
-# Global Instructions
-
-- Reason internally in English.
-- Always write the final response to the user in Korean.
-'@ | Set-Content -Encoding utf8 "$HOME\.codex\AGENTS.md"
-```
-
-전역 지시를 바꾼 뒤에도 Codex를 재시작해야 새 설정이 확실히 반영됩니다.
-
-## 수동 설치
-
-### Windows PowerShell
-
-```powershell
-git clone https://github.com/d0nghee/harness-hehehe.git hehehe
-cd hehehe
-powershell -ExecutionPolicy Bypass -File .\install.ps1
-```
-
-### macOS / Linux
-
-```bash
-git clone https://github.com/d0nghee/harness-hehehe.git hehehe
-cd hehehe
-chmod +x install.sh uninstall.sh
-./install.sh
-```
-
-## 프로젝트에 설치
-
-특정 프로젝트에서만 hehehe를 쓰려면 프로젝트 루트에 설치합니다.
-
-### 현재 디렉터리에 설치
-
-Windows:
-
-```powershell
-cd C:\path\to\your-project
-C:\path\to\hehehe\install.ps1 -Project
-```
-
-macOS/Linux:
-
-```bash
-cd /path/to/your-project
-/path/to/hehehe/install.sh --project
-```
-
-### 대상 경로를 지정해서 설치
-
-Windows:
-
-```powershell
-C:\path\to\hehehe\install.ps1 -Target C:\path\to\your-project
-```
-
-macOS/Linux:
-
-```bash
-/path/to/hehehe/install.sh --target /path/to/your-project
-```
-
-프로젝트 설치 결과는 다음 구조가 됩니다.
+### UI 설계와 실제 화면 검증
 
 ```text
-<your-project>/plugins/hehehe
-<your-project>/.agents/plugins/marketplace.json
+$hehehe:design-ui 분석 대시보드의 UI 방향을 제안해줘
+$hehehe:implement-ui 선택한 방향으로 기존 프론트엔드에 구현해줘
+$hehehe:browser-tool-test 데스크톱과 모바일에서 주요 흐름을 직접 테스트해줘
 ```
 
-## 설치 확인
+`browser-tool-test`는 코드를 읽거나 빌드만 확인하는 테스트가 아닙니다. 인앱 브라우저로 실제 페이지를 열고 클릭·입력·이동을 수행하며 콘솔 오류, 실패한 네트워크 요청과 레이아웃 회귀를 확인합니다.
 
-변경 없이 설치 대상만 확인하려면 dry run을 사용합니다.
-
-Windows:
-
-```powershell
-.\install.ps1 -DryRun
-.\install.ps1 -Project -DryRun
-.\install.ps1 -Target C:\path\to\your-project -DryRun
-```
-
-macOS/Linux:
-
-```bash
-./install.sh --dry-run
-./install.sh --project --dry-run
-./install.sh --target /path/to/your-project --dry-run
-```
-
-출력에서 다음 값을 확인합니다.
+### 진단과 작업 재개
 
 ```text
-Source: 플러그인 원본 경로
-Plugin target: 복사될 플러그인 경로
-Marketplace target: 생성될 marketplace.json 경로
-Scope: user 또는 project
+$hehehe:doctor 전역 설치와 현재 프로젝트 상태를 진단해줘
+$hehehe:resume 중단된 hehehe 실행을 이어서 진행해줘
 ```
+
+`doctor`는 파일을 수정하지 않고 `PASS`, `DEGRADED`, `BLOCKED` 상태와 근거를 보고합니다. `resume`은 저장된 목표와 실제 작업 트리를 다시 대조한 후 다음 단계부터 진행합니다.
+
+## CLI 명령
+
+```text
+harness-hehehe install --global [--dry-run]
+harness-hehehe install --project [path] [--dry-run]
+harness-hehehe uninstall --global [--dry-run]
+harness-hehehe uninstall --project [path] [--dry-run]
+```
+
+변경 없이 설치 경로와 범위만 확인할 수 있습니다.
+
+```bash
+npx harness-hehehe install --global --dry-run
+npx harness-hehehe install --project . --dry-run
+```
+
+설치기는 번들 매니페스트와 기존 마켓플레이스 JSON을 먼저 검증합니다. 기존 플러그인은 임시 경로에서 새 번들을 준비한 뒤 교체하며, 잘못된 마켓플레이스 파일을 조용히 덮어쓰지 않습니다.
+
+## 업데이트
+
+같은 설치 명령을 다시 실행하면 현재 설치를 최신 배포본으로 교체합니다.
+
+```bash
+npx harness-hehehe@latest install --global
+npx harness-hehehe@latest install --project .
+```
+
+업데이트 후 Codex를 재시작하거나 새 스레드를 시작하세요.
 
 ## 제거
 
-### 사용자 홈에서 제거
-
-Windows:
-
-```powershell
-.\uninstall.ps1
-```
-
-macOS/Linux:
-
 ```bash
-./uninstall.sh
+npx harness-hehehe uninstall --global
+npx harness-hehehe uninstall --project .
 ```
 
-### 프로젝트에서 제거
+기존 마켓플레이스의 다른 플러그인은 유지하고 `hehehe` 항목과 해당 설치 경로만 제거합니다.
 
-Windows:
+## 작업 상태 파일
 
-```powershell
-cd C:\path\to\your-project
-C:\path\to\hehehe\uninstall.ps1 -Project
-```
-
-macOS/Linux:
-
-```bash
-cd /path/to/your-project
-/path/to/hehehe/uninstall.sh --project
-```
-
-대상 경로를 직접 지정할 수도 있습니다.
-
-Windows:
-
-```powershell
-.\uninstall.ps1 -Target C:\path\to\your-project
-```
-
-macOS/Linux:
-
-```bash
-./uninstall.sh --target /path/to/your-project
-```
-
-제거 후에도 Codex를 재시작해야 스킬 목록이 갱신됩니다.
-
-## 저장소 구조
+장기 실행 워크플로우는 프로젝트의 `.hehehe/`에 상태와 검증 결과를 저장할 수 있습니다.
 
 ```text
-hehehe/
-  README.md
-  USAGE.md
-  install.ps1
-  uninstall.ps1
-  install.sh
-  uninstall.sh
-  .agents/
-    plugins/
-      marketplace.json
-  plugins/
-    hehehe/
-      .codex-plugin/
-        plugin.json
-      skills/
-      templates/
+.hehehe/done-criteria.md
+.hehehe/implementation-spec.md
+.hehehe/checks.md
+.hehehe/final-report.md
+.hehehe/current.json
+.hehehe/runs/<run-id>/state.json
+```
+
+## 언어 설정
+
+hehehe 스킬은 내부적으로 영어로 추론하고 사용자에게 보내는 최종 답변은 한국어로 작성하도록 구성되어 있습니다. 이 규칙은 `$hehehe:...` 스킬을 사용할 때 적용됩니다.
+
+일반 Codex 대화에도 같은 규칙을 적용하려면 사용자 전역 `AGENTS.md`에 추가합니다.
+
+```markdown
+# Global Instructions
+
+- Reason internally in English.
+- Always write the final response to the user in Korean.
 ```
 
 ## 문제 해결
 
-### PowerShell 실행 정책 오류
+### 설치했는데 스킬이 보이지 않음
 
-Windows에서 스크립트 실행 정책 오류가 나면 다음 방식으로 실행합니다.
+1. 설치 출력의 `Plugin target`을 확인합니다.
+2. 대상의 `.codex-plugin/plugin.json`이 존재하는지 확인합니다.
+3. 전역 설치는 `codex plugin list`에서 `hehehe`가 활성화됐는지 확인합니다.
+4. Codex를 재시작하거나 새 스레드를 시작합니다.
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1
+### 설치 상태가 의심됨
+
+```text
+$hehehe:doctor 현재 설치와 프로젝트 상태를 진단해줘
 ```
 
-제거도 동일합니다.
+### 설치 범위가 헷갈림
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
-```
+- 모든 프로젝트: `--global`
+- 현재 프로젝트만: `--project .`
+- 지정 프로젝트만: `--project <path>`
 
-### 설치했는데 Codex에 스킬이 보이지 않음
-
-1. 설치 출력의 `Plugin target` 경로가 의도한 위치인지 확인합니다.
-2. `plugins/hehehe/.codex-plugin/plugin.json` 파일이 설치 대상에 있는지 확인합니다.
-3. `.agents/plugins/marketplace.json` 파일이 설치 대상에 있는지 확인합니다.
-4. Codex를 완전히 재시작합니다.
-
-### 프로젝트 설치와 사용자 홈 설치가 헷갈림
-
-- 모든 프로젝트에서 쓰려면 기본 설치를 사용합니다.
-- 특정 프로젝트에서만 쓰려면 `-Project` 또는 `--project`를 사용합니다.
-- 다른 프로젝트 경로에 설치하려면 `-Target` 또는 `--target`을 사용합니다.
-
-### 기존 설치를 새 버전으로 갱신
-
-설치 스크립트는 기존 `plugins/hehehe` 폴더를 지우고 새 번들을 복사합니다.
-
-```powershell
-.\install.ps1
-```
+## 개발 및 검증
 
 ```bash
-./install.sh
+npm test
+npm run validate
+npm pack --dry-run
 ```
 
-프로젝트 설치도 같은 방식으로 다시 실행하면 갱신됩니다.
+저장소 구조:
+
+```text
+hehehe/
+  bin/hehehe.mjs
+  lib/installer.mjs
+  plugins/hehehe/
+    .codex-plugin/plugin.json
+    skills/
+    templates/
+  tests/
+  package.json
+  README.md
+  USAGE.md
+```
+
+## 라이선스
+
+MIT
