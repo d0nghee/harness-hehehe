@@ -32,12 +32,14 @@ test("global install preserves marketplace entries and uses AVAILABLE policy", a
 
   const result = await installGlobal({ sourcePluginDir, homeDir, activate: false });
   const marketplace = JSON.parse(await readFile(marketplacePath, "utf8"));
+  const sourceManifest = JSON.parse(await readFile(path.join(sourcePluginDir, ".codex-plugin", "plugin.json"), "utf8"));
+  const installedManifest = JSON.parse(await readFile(path.join(result.targetPluginDir, ".codex-plugin", "plugin.json"), "utf8"));
 
   assert.equal(result.marketplaceName, "personal-tools");
   assert.equal(marketplace.plugins[0].name, "existing");
   assert.equal(marketplace.plugins[1].name, "hehehe");
   assert.equal(marketplace.plugins[1].policy.installation, "AVAILABLE");
-  assert.equal(JSON.parse(await readFile(path.join(result.targetPluginDir, ".codex-plugin", "plugin.json"), "utf8")).version, "0.3.1");
+  assert.equal(installedManifest.version, sourceManifest.version);
 });
 
 test("reinstall replaces stale plugin files", async () => {

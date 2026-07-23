@@ -218,6 +218,10 @@ hehehe/
   USAGE.md
 ```
 
+## 자동 배포
+
+`main` 브랜치에 PR이 병합되면 GitHub Actions가 검증을 실행한 뒤 npm에 자동 배포합니다. PR에는 아직 npm에 배포되지 않은 새 버전을 `package.json`과 `plugins/hehehe/.codex-plugin/plugin.json`에 동일하게 지정해야 합니다. npm Trusted Publishing에는 GitHub 저장소 `d0nghee/harness-hehehe`와 워크플로 파일 `publish.yml`을 등록합니다.
+
 ## 라이선스
 
 MIT
