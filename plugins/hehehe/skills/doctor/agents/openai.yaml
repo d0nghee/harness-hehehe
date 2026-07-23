@@ -1,4 +1,4 @@
 interface:
   display_name: "Hehehe Doctor"
   short_description: "Diagnose hehehe setup and project state"
-  default_prompt: "Use $hehehe:doctor to diagnose the global hehehe plugin and current project without changing anything."
+  default_prompt: "Use $hehehe:doctor to diagnose the hehehe installation and current project without changing anything."

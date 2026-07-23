@@ -36,7 +36,7 @@ $hehehe:review 이번 변경사항을 버그와 회귀 위험 중심으로 리�
 ```
 
 ```text
-$hehehe:doctor 현재 전역 플러그인과 프로젝트 설정을 진단해줘
+$hehehe:doctor 현재 hehehe 설치와 프로젝트 설정을 진단해줘
 ```
 
 ```text
@@ -85,7 +85,7 @@ $hehehe:team-resolve
 - `hehehe:hehehe`: 아이디어, 버그, UI 요청을 Codex-first 자동 개발 흐름으로 처리
 - `hehehe:auto-resolve`: 구현, 빌드 게이트, 브라우저 검증, 선택적 Claude 리뷰, 수정 루프, 문서 정리
 - `hehehe:preflight`: 로드맵, done criteria, 요청 동작 기준 출시 전 점검
-- `hehehe:doctor`: Codex, Claude, 플러그인, 프로젝트 상태를 읽기 전용으로 진단
+- `hehehe:doctor`: Codex, Claude, hehehe 설치, 프로젝트 상태를 읽기 전용으로 진단
 - `hehehe:resume`: `.hehehe/runs/`에 기록된 활성 실행 상태를 확인하고 이어서 진행
 
 ### 기획과 스펙

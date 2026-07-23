@@ -11,7 +11,7 @@ Codex가 계획·구현·검증·수정을 끝까지 맡고, Claude는 필요할
 - **전 과정 자동화**: 스펙 작성 → 구현 → 빌드 게이트 → 브라우저 검증 → 정리 → 문서화
 - **실제 브라우저 테스트**: 인앱 브라우저로 클릭, 입력, 네트워크·콘솔 오류와 반응형 화면 확인
 - **실행 상태 복구**: `.hehehe/runs/`에 진행 상태를 보존하고 중단 지점부터 재개
-- **설치 진단**: 플러그인, Codex, 선택적 Claude와 프로젝트 상태를 읽기 전용으로 점검
+- **설치 진단**: hehehe 설치, Codex, 선택적 Claude와 프로젝트 상태를 읽기 전용으로 점검
 - **UI 설계 지원**: 제품 성격에 맞는 UI 방향, 디자인 시스템과 구현 흐름 제공
 
 전체 스킬 목록은 [USAGE.md](USAGE.md)에서 확인할 수 있습니다.
@@ -47,10 +47,10 @@ $hehehe:auto-resolve 사용자 프로필 편집 기능을 구현하고 검증해
 | 범위 | 명령 | 플러그인 위치 | 동작 |
 |---|---|---|---|
 | 사용자 전역 | `npx harness-hehehe install --global` | `~/plugins/hehehe` | 개인 마켓플레이스 등록 후 자동 활성화 |
-| 현재 프로젝트 | `npx harness-hehehe install --project .` | `<project>/plugins/hehehe` | 해당 프로젝트에서만 기본 로드 |
-| 지정 프로젝트 | `npx harness-hehehe install --project <path>` | `<path>/plugins/hehehe` | 지정한 프로젝트에서만 기본 로드 |
+| 현재 프로젝트 | `npx harness-hehehe install --project .` | `<project>/.agents/skills/hehehe-*` | 해당 프로젝트에서만 기본 로드 |
+| 지정 프로젝트 | `npx harness-hehehe install --project <path>` | `<path>/.agents/skills/hehehe-*` | 지정한 프로젝트에서만 기본 로드 |
 
-전역 설치는 `~/.agents/plugins/marketplace.json`의 다른 플러그인을 보존하고 `hehehe` 항목만 추가하거나 갱신합니다. 프로젝트 설치도 기존 프로젝트 마켓플레이스의 다른 항목을 덮어쓰지 않습니다.
+전역 설치는 `~/.agents/plugins/marketplace.json`의 다른 플러그인을 보존하고 `hehehe` 항목만 추가하거나 갱신합니다. 프로젝트 설치는 Codex CLI와 데스크톱 앱이 공통으로 탐색하는 `.agents/skills`에 `$hehehe:*` 스킬을 직접 배치하며 기존 프로젝트 스킬을 보존합니다. 이전 버전의 프로젝트 마켓플레이스 설치가 있으면 `hehehe` 항목만 마이그레이션합니다.
 
 Windows와 macOS/Linux 모두 같은 명령을 사용합니다.
 
@@ -125,7 +125,7 @@ npx harness-hehehe install --global --dry-run
 npx harness-hehehe install --project . --dry-run
 ```
 
-설치기는 번들 매니페스트와 기존 마켓플레이스 JSON을 먼저 검증합니다. 기존 플러그인은 임시 경로에서 새 번들을 준비한 뒤 교체하며, 잘못된 마켓플레이스 파일을 조용히 덮어쓰지 않습니다.
+설치기는 번들 매니페스트와 스킬 frontmatter를 먼저 검증합니다. 전역 플러그인과 프로젝트 스킬은 임시 경로에서 새 번들을 준비한 뒤 교체하며, 기존 마켓플레이스나 프로젝트 스킬을 조용히 덮어쓰지 않습니다.
 
 ## 업데이트
 
@@ -177,10 +177,10 @@ hehehe 스킬은 내부적으로 영어로 추론하고 사용자에게 보내�
 
 ### 설치했는데 스킬이 보이지 않음
 
-1. 설치 출력의 `Plugin target`을 확인합니다.
-2. 대상의 `.codex-plugin/plugin.json`이 존재하는지 확인합니다.
+1. 프로젝트 설치는 출력의 `Skills target`과 `.agents/skills/hehehe-review/SKILL.md`를 확인합니다.
+2. 전역 설치는 출력의 `Plugin target`과 대상의 `.codex-plugin/plugin.json`을 확인합니다.
 3. 전역 설치는 `codex plugin list`에서 `hehehe`가 활성화됐는지 확인합니다.
-4. Codex를 재시작하거나 새 스레드를 시작합니다.
+4. Codex를 프로젝트 루트에서 재시작하거나 새 스레드를 시작합니다.
 
 ### 설치 상태가 의심됨
 

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const pluginRoot = path.resolve(scriptDirectory, "..", "..", "..");
+const skillRoot = path.resolve(scriptDirectory, "..");
 const allowedStatuses = new Set(["active", "blocked", "complete"]);
 
 function parseArguments(argv) {
@@ -138,10 +139,16 @@ function uniqueRunId(runsRoot, requested) {
 }
 
 function writeInitialArtifacts(runDirectory, goal) {
-  const templatePath = path.join(pluginRoot, "templates", "done-criteria.md");
-  const doneCriteria = fs.existsSync(templatePath)
-    ? fs.readFileSync(templatePath, "utf8")
-    : "# Done Criteria\n\n## Goal\n\n## Verification\n";
+  const templatePath = [
+    path.join(skillRoot, "templates", "done-criteria.md"),
+    path.join(pluginRoot, "templates", "done-criteria.md"),
+  ].find((candidate) => fs.existsSync(candidate));
+  if (!templatePath) {
+    throw new Error(
+      "done-criteria template is missing; reinstall with npx harness-hehehe@latest install --project .",
+    );
+  }
+  const doneCriteria = fs.readFileSync(templatePath, "utf8");
   const files = {
     "done-criteria.md": doneCriteria.replace(/## Goal\r?\n/, `## Goal\n\n${goal}\n`),
     "build-log.md": "# Build Log\n\n",

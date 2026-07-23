@@ -7,11 +7,14 @@ import { fileURLToPath } from "node:url";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const inferredPluginRoot = path.resolve(scriptDirectory, "..", "..", "..");
+const inferredProjectSkillsRoot = path.resolve(scriptDirectory, "..", "..");
+const projectInstallStateName = ".hehehe-installed.json";
 
 function parseArguments(argv) {
   const options = {
     project: process.cwd(),
     pluginRoot: inferredPluginRoot,
+    projectSkillsRoot: inferredProjectSkillsRoot,
     json: false,
     strict: false,
   };
@@ -38,6 +41,7 @@ function parseArguments(argv) {
 
   options.project = path.resolve(options.project);
   options.pluginRoot = path.resolve(options.pluginRoot);
+  options.projectSkillsRoot = path.resolve(options.projectSkillsRoot);
   return options;
 }
 
@@ -84,6 +88,44 @@ function addCheck(checks, id, status, summary, remediation = null) {
   checks.push({ id, status, summary, ...(remediation ? { remediation } : {}) });
 }
 
+function loadSkillCatalog(catalogPath) {
+  const catalog = readJson(catalogPath);
+  if (
+    catalog?.schemaVersion !== 1
+    || catalog?.plugin !== "hehehe"
+    || !Array.isArray(catalog?.skills)
+    || catalog.skills.length === 0
+    || new Set(catalog.skills).size !== catalog.skills.length
+    || catalog.skills.some(
+      (name) => typeof name !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name),
+    )
+  ) {
+    throw new Error(`skill catalog has an unsupported shape: ${catalogPath}`);
+  }
+  return catalog;
+}
+
+function validateSkillFile(skillPath, expectedName) {
+  const details = fs.lstatSync(skillPath);
+  if (details.isSymbolicLink() || !details.isFile()) {
+    return "SKILL.md is linked or not a file";
+  }
+  const markdown = fs.readFileSync(skillPath, "utf8");
+  const frontmatter = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!frontmatter) {
+    return "SKILL.md has invalid frontmatter";
+  }
+  const declaredName = frontmatter[1].match(/^name:\s*(\S+)\s*$/m)?.[1];
+  if (declaredName !== expectedName) {
+    return `expected name: ${expectedName}`;
+  }
+  const description = frontmatter[1].match(/^description:\s*(.+?)\s*$/m)?.[1]?.trim();
+  if (!description || description === "\"\"" || description === "''") {
+    return "description is missing or empty";
+  }
+  return null;
+}
+
 function inspectPlugin(options, checks) {
   const manifestPath = path.join(options.pluginRoot, ".codex-plugin", "plugin.json");
   if (!fs.existsSync(manifestPath)) {
@@ -105,14 +147,229 @@ function inspectPlugin(options, checks) {
   }
   addCheck(checks, "plugin-manifest", "PASS", `hehehe ${manifest.version} manifest is valid JSON`);
 
-  const requiredSkills = ["hehehe", "auto-resolve", "preflight", "doctor", "resume"];
-  const missingSkills = requiredSkills.filter((name) => !fs.existsSync(path.join(options.pluginRoot, "skills", name, "SKILL.md")));
-  if (missingSkills.length > 0) {
-    addCheck(checks, "required-skills", "BLOCKED", `missing skills: ${missingSkills.join(", ")}`, "Restore the missing skill directories and upgrade the plugin cache.");
+  const catalogPath = path.join(options.pluginRoot, "skill-catalog.json");
+  let catalog;
+  try {
+    catalog = loadSkillCatalog(catalogPath);
+  } catch (error) {
+    addCheck(checks, "skill-catalog", "BLOCKED", error.message, "Restore the global hehehe plugin source, then reinstall or upgrade it.");
+    return manifest;
+  }
+  const expectedSet = new Set(catalog.skills);
+  const unexpectedDirectories = listDirectories(path.join(options.pluginRoot, "skills"))
+    .filter((name) => !expectedSet.has(name));
+  const invalidSkills = [];
+  for (const name of catalog.skills) {
+    const skillDirectory = path.join(options.pluginRoot, "skills", name);
+    const skillPath = path.join(skillDirectory, "SKILL.md");
+    try {
+      const directoryDetails = fs.lstatSync(skillDirectory);
+      if (directoryDetails.isSymbolicLink() || !directoryDetails.isDirectory()) {
+        invalidSkills.push(`${name} (directory is linked or not a directory)`);
+        continue;
+      }
+      const issue = validateSkillFile(skillPath, name);
+      if (issue) {
+        invalidSkills.push(`${name} (${issue})`);
+      }
+    } catch (error) {
+      invalidSkills.push(`${name} (${error.code === "ENOENT" ? "missing" : error.message})`);
+    }
+  }
+  if (unexpectedDirectories.length > 0 || invalidSkills.length > 0) {
+    addCheck(
+      checks,
+      "skill-catalog",
+      "BLOCKED",
+      [
+        unexpectedDirectories.length > 0
+          ? `unexpected skill directories: ${unexpectedDirectories.join(", ")}`
+          : null,
+        invalidSkills.length > 0 ? `invalid skills: ${invalidSkills.join(", ")}` : null,
+      ].filter(Boolean).join("; "),
+      "Restore the global hehehe plugin source, then reinstall or upgrade it.",
+    );
   } else {
-    addCheck(checks, "required-skills", "PASS", `required skills present: ${requiredSkills.join(", ")}`);
+    addCheck(checks, "skill-catalog", "PASS", `${catalog.skills.length} catalog skills are valid`);
   }
   return manifest;
+}
+
+function inspectProjectSkills(options, checks) {
+  const transactionJournalsRoot = path.resolve(
+    options.projectSkillsRoot,
+    "..",
+    ".hehehe-installer",
+    "journals",
+  );
+  try {
+    let activeJournals = [];
+    if (fs.existsSync(transactionJournalsRoot)) {
+      const details = fs.lstatSync(transactionJournalsRoot);
+      if (details.isSymbolicLink() || !details.isDirectory()) {
+        throw new Error("project installer journals path is linked or not a directory");
+      }
+      activeJournals = fs.readdirSync(transactionJournalsRoot, { withFileTypes: true }).filter(
+        (entry) => entry.isFile() && entry.name.endsWith(".json"),
+      );
+    }
+    if (activeJournals.length > 0) {
+      addCheck(
+        checks,
+        "project-skills",
+        "BLOCKED",
+        "project skill installation was interrupted",
+        "Rerun: npx harness-hehehe@latest install --project .",
+      );
+      return null;
+    }
+  } catch (error) {
+    addCheck(
+      checks,
+      "project-skills",
+      "BLOCKED",
+      `could not inspect project install journals: ${error.message}`,
+      "Rerun the project installer.",
+    );
+    return null;
+  }
+
+  const statePath = path.join(options.projectSkillsRoot, projectInstallStateName);
+  if (!fs.existsSync(statePath)) {
+    addCheck(
+      checks,
+      "installation",
+      "BLOCKED",
+      `neither plugin manifest nor project install state was found`,
+      "Reinstall with: npx harness-hehehe@latest install --project .",
+    );
+    return null;
+  }
+
+  let state;
+  try {
+    state = readJson(statePath);
+  } catch (error) {
+    addCheck(checks, "project-skills", "BLOCKED", `invalid JSON: ${error.message}`, "Reinstall the project-scoped skills.");
+    return null;
+  }
+  if (
+    state?.schemaVersion !== 1
+    || state?.plugin !== "hehehe"
+    || typeof state?.pluginVersion !== "string"
+    || !state.pluginVersion
+    || state?.status !== "installed"
+    || !Array.isArray(state?.skillDirectories)
+    || state.skillDirectories.length === 0
+    || new Set(state.skillDirectories).size !== state.skillDirectories.length
+  ) {
+    addCheck(checks, "project-skills", "BLOCKED", "project install state has an unsupported shape", "Reinstall the project-scoped skills.");
+    return null;
+  }
+
+  const catalogPath = path.join(
+    options.projectSkillsRoot,
+    "hehehe-doctor",
+    "skill-catalog.json",
+  );
+  let catalog;
+  try {
+    catalog = loadSkillCatalog(catalogPath);
+  } catch (error) {
+    addCheck(
+      checks,
+      "project-skills",
+      "BLOCKED",
+      `invalid or missing skill catalog: ${error.message}`,
+      "Reinstall the project-scoped skills.",
+    );
+    return null;
+  }
+  const expectedDirectories = catalog.skills.map((name) => `hehehe-${name}`);
+  const expectedSet = new Set(expectedDirectories);
+  const stateSet = new Set(state.skillDirectories);
+  const missingCatalogSkills = expectedDirectories.filter((directory) => !stateSet.has(directory));
+  const unexpectedStateSkills = state.skillDirectories.filter(
+    (directory) => !expectedSet.has(directory),
+  );
+  if (missingCatalogSkills.length > 0 || unexpectedStateSkills.length > 0) {
+    addCheck(
+      checks,
+      "project-skills",
+      "BLOCKED",
+      [
+        missingCatalogSkills.length > 0
+          ? `missing catalog skills: ${missingCatalogSkills.join(", ")}`
+          : null,
+        unexpectedStateSkills.length > 0
+          ? `unexpected managed skills: ${unexpectedStateSkills.join(", ")}`
+          : null,
+      ].filter(Boolean).join("; "),
+      "Reinstall the project-scoped skills.",
+    );
+    return null;
+  }
+
+  const invalidSkills = [];
+  for (const directory of state.skillDirectories) {
+    if (
+      typeof directory !== "string"
+      || !/^hehehe-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(directory)
+    ) {
+      invalidSkills.push(`${String(directory)} (invalid directory name)`);
+      continue;
+    }
+    const skillDirectory = path.join(options.projectSkillsRoot, directory);
+    const skillPath = path.join(skillDirectory, "SKILL.md");
+    try {
+      const directoryDetails = fs.lstatSync(skillDirectory);
+      if (directoryDetails.isSymbolicLink() || !directoryDetails.isDirectory()) {
+        invalidSkills.push(`${directory} (directory is missing, linked, or not a directory)`);
+        continue;
+      }
+      const expectedName = directory.replace(/^hehehe-/, "hehehe:");
+      const issue = validateSkillFile(skillPath, expectedName);
+      if (issue) {
+        invalidSkills.push(`${directory} (${issue})`);
+      }
+    } catch (error) {
+      invalidSkills.push(`${directory} (${error.code === "ENOENT" ? "missing" : error.message})`);
+    }
+  }
+  const resumeTemplate = path.join(
+    options.projectSkillsRoot,
+    "hehehe-resume",
+    "templates",
+    "done-criteria.md",
+  );
+  let resumeTemplateValid = false;
+  try {
+    const templateDetails = fs.lstatSync(resumeTemplate);
+    resumeTemplateValid = !templateDetails.isSymbolicLink() && templateDetails.isFile();
+  } catch {
+    resumeTemplateValid = false;
+  }
+  if (!resumeTemplateValid) {
+    invalidSkills.push("hehehe-resume (done-criteria template missing)");
+  }
+  if (invalidSkills.length > 0) {
+    addCheck(
+      checks,
+      "project-skills",
+      "BLOCKED",
+      `invalid managed skills: ${invalidSkills.join(", ")}`,
+      "Reinstall the project-scoped skills.",
+    );
+    return null;
+  }
+
+  addCheck(
+    checks,
+    "project-skills",
+    "PASS",
+    `${state.skillDirectories.length} namespaced skills installed for hehehe ${state.pluginVersion}`,
+  );
+  return state;
 }
 
 function inspectCache(manifest, checks) {
@@ -135,7 +392,10 @@ function inspectCache(manifest, checks) {
   } else {
     addCheck(checks, "plugin-cache", "PASS", `cache contains hehehe ${manifest.version}`);
   }
+}
 
+function inspectBrowserSkill(checks) {
+  const cacheRoot = path.join(os.homedir(), ".codex", "plugins", "cache");
   const browserRoot = path.join(cacheRoot, "openai-bundled", "browser");
   const browserVersions = listDirectories(browserRoot).sort();
   const validVersions = browserVersions.filter((version) => fs.existsSync(path.join(browserRoot, version, "skills", "control-in-app-browser", "SKILL.md")));
@@ -257,14 +517,27 @@ if (options.help) {
 
 const checks = [];
 try {
-  const manifest = inspectPlugin(options, checks);
-  inspectCache(manifest, checks);
+  const manifestPath = path.join(options.pluginRoot, ".codex-plugin", "plugin.json");
+  if (fs.existsSync(manifestPath)) {
+    const manifest = inspectPlugin(options, checks);
+    inspectCache(manifest, checks);
+  } else {
+    inspectProjectSkills(options, checks);
+  }
+  inspectBrowserSkill(checks);
   inspectRuntime(checks);
   inspectProject(options, checks);
 } catch (error) {
   addCheck(checks, "doctor-runtime", "BLOCKED", error.message, "Resolve the reported filesystem or runtime error and rerun doctor.");
 }
-const report = { status: overallStatus(checks), plugin_root: options.pluginRoot, project: options.project, checks };
+const report = {
+  status: overallStatus(checks),
+  installation_root: fs.existsSync(path.join(options.pluginRoot, ".codex-plugin", "plugin.json"))
+    ? options.pluginRoot
+    : options.projectSkillsRoot,
+  project: options.project,
+  checks,
+};
 printReport(report, options.json);
 
 if (report.status === "BLOCKED") {

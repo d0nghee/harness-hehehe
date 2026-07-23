@@ -78,28 +78,41 @@ function parseArguments(args) {
 function printResult(result) {
   console.log(`${result.dryRun ? "[dry-run] " : ""}hehehe ${result.version} ${result.scope} installation`);
   console.log(`Source: ${result.sourcePluginDir}`);
-  console.log(`Plugin target: ${result.targetPluginDir}`);
-  console.log(`Marketplace target: ${result.marketplacePath}`);
+  if (result.scope === "global") {
+    console.log(`Plugin target: ${result.targetPluginDir}`);
+    console.log(`Marketplace target: ${result.marketplacePath}`);
+  } else {
+    console.log(`Skills target: ${result.targetSkillsDir}`);
+    console.log(`Project skills: ${result.installedSkills.length} ($hehehe:*)`);
+  }
   if (result.dryRun) {
     console.log("No files were changed.");
   } else if (result.scope === "global") {
     console.log(`Activated: hehehe@${result.marketplaceName}`);
     console.log("Restart Codex or start a new thread to load the updated plugin.");
   } else {
-    console.log("Open this project in Codex, then start a new thread to load the project-scoped plugin.");
+    console.log("Open this project in Codex, then start a new thread to load the project-scoped skills.");
   }
 }
 
 function printUninstallResult(result) {
   console.log(`${result.dryRun ? "[dry-run] " : ""}hehehe ${result.scope} uninstall`);
-  console.log(`Plugin target: ${result.targetPluginDir}`);
-  console.log(`Marketplace target: ${result.marketplacePath}`);
+  if (result.scope === "global") {
+    console.log(`Plugin target: ${result.targetPluginDir}`);
+    console.log(`Marketplace target: ${result.marketplacePath}`);
+  } else {
+    console.log(`Skills target: ${result.targetSkillsDir}`);
+    console.log(`Project skills: ${result.installedSkills.length} ($hehehe:*)`);
+  }
   if (result.dryRun) {
     console.log("No files were changed.");
-  } else {
+    return;
+  } else if (result.scope === "global") {
     console.log("Removed the hehehe plugin entry without changing other marketplace plugins.");
-    console.log("Restart Codex or start a new thread to refresh the available skills.");
+  } else {
+    console.log("Removed managed hehehe project skills without changing unrelated repo skills.");
   }
+  console.log("Restart Codex or start a new thread to refresh the available skills.");
 }
 
 async function main() {

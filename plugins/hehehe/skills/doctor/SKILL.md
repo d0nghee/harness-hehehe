@@ -1,6 +1,6 @@
 ---
 name: doctor
-description: Diagnose the global hehehe plugin installation and current project state without changing files. Use when hehehe skills are missing, plugin cache versions disagree, browser tooling is unavailable, run state is invalid, or setup health must be verified after installation or upgrade.
+description: Diagnose the global hehehe plugin or project-scoped skill installation and current project state without changing files. Use when hehehe skills are missing, plugin cache versions disagree, browser tooling is unavailable, run state is invalid, or setup health must be verified after installation or upgrade.
 ---
 
 # hehehe:doctor

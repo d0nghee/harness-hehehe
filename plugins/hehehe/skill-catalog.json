@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "plugin": "hehehe",
+  "skills": [
+    "auto-resolve",
+    "browser-tool-test",
+    "browser-validate",
+    "clean",
+    "design-system",
+    "design-ui",
+    "discover-product",
+    "doctor",
+    "evaluate",
+    "feature-spec",
+    "hehehe",
+    "ideate",
+    "implement-ui",
+    "preflight",
+    "product-spec",
+    "recommend-features",
+    "resolve",
+    "resume",
+    "review",
+    "team-design-ui",
+    "team-resolve",
+    "team-review",
+    "update-docs"
+  ]
+}
