@@ -1,5 +1,7 @@
 # hehehe
 
+한국어 | [English](README.en.md)
+
 Codex가 계획·구현·검증·수정을 끝까지 맡고, Claude는 필요할 때만 독립 리뷰어로 참여하는 개발 워크플로우 플러그인입니다.
 
 아이디어 정리부터 구현, 브라우저 테스트, 출시 전 점검까지 하나의 흐름으로 연결하며 중단된 작업은 실행 상태를 기록해 이어서 진행할 수 있습니다.
@@ -217,6 +219,7 @@ hehehe/
   tests/
   package.json
   README.md
+  README.en.md
   USAGE.md
 ```
 
