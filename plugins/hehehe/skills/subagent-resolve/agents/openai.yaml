@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hehehe Subagent Resolve"
+  short_description: "Parallel resolution with Codex subagents"
+  default_prompt: "Use $hehehe:subagent-resolve to split this implementation or bug resolution into safe parallel Codex subagent workstreams and integrate the result."

@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "plugin": "hehehe",
   "skills": [
-    "auto-resolve",
     "browser-tool-test",
     "browser-validate",
     "clean",
@@ -12,6 +11,7 @@
     "doctor",
     "evaluate",
     "feature-spec",
+    "full-resolve",
     "hehehe",
     "ideate",
     "implement-ui",
@@ -21,6 +21,7 @@
     "resolve",
     "resume",
     "review",
+    "subagent-resolve",
     "team-design-ui",
     "team-resolve",
     "team-review",

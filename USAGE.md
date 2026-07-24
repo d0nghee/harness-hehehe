@@ -24,7 +24,7 @@ $hehehe:ideate 쇼핑몰 관리자 주문 처리 기능을 MVP 범위로 정리�
 ```
 
 ```text
-$hehehe:auto-resolve .hehehe/implementation-spec.md 기준으로 구현하고 빌드까지 확인해줘
+$hehehe:full-resolve .hehehe/implementation-spec.md 기준으로 구현하고 빌드까지 확인해줘
 ```
 
 ```text
@@ -50,7 +50,7 @@ $hehehe:resume 중단된 hehehe 실행을 이어서 진행해줘
 ```text
 $hehehe:ideate
 $hehehe:feature-spec
-$hehehe:auto-resolve
+$hehehe:full-resolve
 $hehehe:preflight
 ```
 
@@ -83,7 +83,7 @@ $hehehe:team-resolve
 ### 전체 파이프라인
 
 - `hehehe:hehehe`: 아이디어, 버그, UI 요청을 Codex-first 자동 개발 흐름으로 처리
-- `hehehe:auto-resolve`: 구현, 빌드 게이트, 브라우저 검증, 선택적 Claude 리뷰, 수정 루프, 문서 정리
+- `hehehe:full-resolve`: 구현, 빌드 게이트, 브라우저 검증, 선택적 Claude 리뷰, 수정 루프, 문서 정리
 - `hehehe:preflight`: 로드맵, done criteria, 요청 동작 기준 출시 전 점검
 - `hehehe:doctor`: Codex, Claude, hehehe 설치, 프로젝트 상태를 읽기 전용으로 진단
 - `hehehe:resume`: `.hehehe/runs/`에 기록된 활성 실행 상태를 확인하고 이어서 진행
@@ -99,6 +99,7 @@ $hehehe:team-resolve
 ### 구현과 검증
 
 - `hehehe:resolve`: 단일 버그나 실패 체크를 조사하고 수정
+- `hehehe:subagent-resolve`: 여러 독립 작업을 Codex 서브에이전트로 병렬 처리하고 메인 Codex가 통합·검증
 - `hehehe:team-resolve`: 복잡한 버그를 Codex 주도와 선택적 Claude 비평으로 해결
 - `hehehe:evaluate`: 명시 기준에 따라 구현을 평가
 - `hehehe:browser-validate`: 웹 UI 또는 로컬 앱 워크플로우를 브라우저로 검증

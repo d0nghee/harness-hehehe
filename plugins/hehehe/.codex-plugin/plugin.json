@@ -1,6 +1,6 @@
 {
   "name": "hehehe",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Codex-first AI development workflow with Claude as an independent reviewer.",
   "author": {
     "name": "Hehehe"
@@ -29,7 +29,8 @@
     ],
     "websiteURL": "https://github.com/d0nghee/harness-hehehe",
     "defaultPrompt": [
-      "Use $hehehe:auto-resolve to build this feature end to end.",
+      "Use $hehehe:full-resolve to build this feature end to end.",
+      "Use $hehehe:subagent-resolve to resolve and implement a ready task with parallel Codex sub-agents.",
       "Use $hehehe:doctor to diagnose the plugin and project setup.",
       "Use $hehehe:resume to continue the active workflow run."
     ],

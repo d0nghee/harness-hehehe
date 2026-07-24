@@ -9,6 +9,7 @@ Codex가 계획·구현·검증·수정을 끝까지 맡고, Claude는 필요할
 - **Codex-first 실행**: 기획, 구현, 디버깅, 테스트와 최종 판단을 Codex가 담당
 - **선택적 Claude 리뷰**: 코드·보안·마이그레이션 같은 고위험 변경을 읽기 전용으로 교차 검토
 - **전 과정 자동화**: 스펙 작성 → 구현 → 빌드 게이트 → 브라우저 검증 → 정리 → 문서화
+- **서브에이전트 병렬 해결**: 독립 작업을 Codex 서브에이전트에 분배하고 메인 Codex가 통합·검증
 - **실제 브라우저 테스트**: 인앱 브라우저로 클릭, 입력, 네트워크·콘솔 오류와 반응형 화면 확인
 - **실행 상태 복구**: `.hehehe/runs/`에 진행 상태를 보존하고 중단 지점부터 재개
 - **설치 진단**: hehehe 설치, Codex, 선택적 Claude와 프로젝트 상태를 읽기 전용으로 점검
@@ -39,7 +40,7 @@ npx harness-hehehe install --project .
 설치 후 Codex를 재시작하거나 새 스레드를 시작한 다음 스킬을 호출합니다.
 
 ```text
-$hehehe:auto-resolve 사용자 프로필 편집 기능을 구현하고 검증해줘
+$hehehe:full-resolve 사용자 프로필 편집 기능을 구현하고 검증해줘
 ```
 
 ## 설치 범위
@@ -78,7 +79,7 @@ harness-hehehe install --project .
 ```text
 $hehehe:ideate 관리자 주문 처리 아이디어를 MVP 스펙으로 정리해줘
 $hehehe:feature-spec 주문 상태 변경 기능의 인수 조건을 작성해줘
-$hehehe:auto-resolve 스펙을 구현하고 빌드와 브라우저 검증까지 완료해줘
+$hehehe:full-resolve 스펙을 구현하고 빌드와 브라우저 검증까지 완료해줘
 $hehehe:preflight 출시 가능한 상태인지 최종 확인해줘
 ```
 
@@ -86,6 +87,7 @@ $hehehe:preflight 출시 가능한 상태인지 최종 확인해줘
 
 ```text
 $hehehe:resolve 로그인 후 리다이렉트가 반복되는 원인을 찾아서 고쳐줘
+$hehehe:subagent-resolve 여러 모듈에 걸친 인증 변경을 서브에이전트로 나눠 구현하고 통합해줘
 $hehehe:review 현재 변경을 버그와 회귀 위험 중심으로 검토해줘
 $hehehe:team-review 인증 변경을 독립 관점까지 포함해 검토해줘
 ```

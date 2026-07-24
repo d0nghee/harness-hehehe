@@ -1,9 +1,9 @@
 ---
-name: auto-resolve
+name: full-resolve
 description: "Run the full Codex-first implementation pipeline: build, gate, browser validate, optional Claude review, fix loop, cleanup, and docs."
 ---
 
-# hehehe:auto-resolve
+# hehehe:full-resolve
 
 Use this for end-to-end implementation from a spec, issue, prompt, or `.hehehe/implementation-spec.md`.
 

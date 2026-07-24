@@ -19,4 +19,4 @@ Initialize a run with the run-state script bundled with `hehehe:resume`, or reus
 - acceptance criteria mapped to verification
 - rollout notes
 
-Resolve decisions that would change scope, contracts, or authority before marking the spec ready. This should be decision-complete for `hehehe:auto-resolve` without another planning pass.
+Resolve decisions that would change scope, contracts, or authority before marking the spec ready. This should be decision-complete for `hehehe:full-resolve` without another planning pass.

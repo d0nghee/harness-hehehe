@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hehehe Full Resolve"
+  short_description: "Full Codex implementation and verification pipeline"
+  default_prompt: "Use $hehehe:full-resolve to implement this task end to end with gates, validation, cleanup, and documentation."
