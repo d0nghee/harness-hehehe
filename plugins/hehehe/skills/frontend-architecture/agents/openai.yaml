@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Architecture"
+  short_description: "Build frontend features with FSD and Tailwind"
+  default_prompt: "Use $hehehe:frontend-architecture to design or review this frontend change with FSD boundaries and Tailwind styling."

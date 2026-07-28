@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hehehe Resolve"
+  short_description: "Repair one focused bug or failing check"
+  default_prompt: "Use $hehehe:resolve to reproduce, trace, minimally fix, and verify this focused bug or failing check."

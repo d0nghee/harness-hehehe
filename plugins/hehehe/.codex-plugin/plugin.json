@@ -1,6 +1,6 @@
 {
   "name": "hehehe",
-  "version": "0.3.4",
+  "version": "0.3.13",
   "description": "Codex-first AI development workflow with Claude as an independent reviewer.",
   "author": {
     "name": "Hehehe"
@@ -30,6 +30,12 @@
     "websiteURL": "https://github.com/d0nghee/harness-hehehe",
     "defaultPrompt": [
       "Use $hehehe:full-resolve to build this feature end to end.",
+      "Use $hehehe:frontend-architecture to build frontend features with FSD and Tailwind.",
+      "Use $hehehe:backend-architecture to design or review backend boundaries and data access.",
+      "Use $hehehe:observability to verify local runtime evidence and structured backend errors.",
+      "Use $hehehe:repository-knowledge to initialize, synchronize, and verify project knowledge.",
+      "Use $hehehe:maintain-codebase to audit drift and prepare one focused maintenance change.",
+      "Use $hehehe:pr-loop to repair CI and review feedback until the pull request reaches its authorized terminal state.",
       "Use $hehehe:subagent-resolve to resolve and implement a ready task with parallel Codex sub-agents.",
       "Use $hehehe:doctor to diagnose the plugin and project setup.",
       "Use $hehehe:resume to continue the active workflow run."

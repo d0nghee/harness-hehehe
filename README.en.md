@@ -11,9 +11,17 @@ It connects everything from shaping an idea through implementation, browser test
 - **Codex-first execution**: Codex handles planning, implementation, debugging, testing, and final decisions
 - **Optional Claude review**: Read-only cross-checks for high-risk changes involving code, security, or migrations
 - **End-to-end automation**: Specification → implementation → build gate → browser validation → cleanup → documentation
+- **Adaptive architecture gate**: Automatically select Lite, Standard, or Strict from a separate 0-10 project score, then apply profile-specific coupling thresholds
+- **Frontend defaults**: Use FSD and Tailwind CSS for new frontend work unless the user explicitly requests another approach
+- **Backend data policy**: Prefer ORM writes and Core/bound SQL for complex reads while treating established Go SQL layers as first-class
+- **Zero-install observability baseline**: Reuse browser, application, and test output while verifying backend error codes, structured logs, and `request_id` correlation
+- **Task-scoped isolation**: Reuse or create task branches and Git worktrees with separate port, log, Compose, and development-database identities
 - **Parallel resolution with subagents**: Distribute independent tasks to Codex subagents, then have the lead Codex agent integrate and verify their work
 - **Real browser testing**: Use the in-app browser to click, type, check network and console errors, and inspect responsive layouts
 - **Run-state recovery**: Preserve progress in `.hehehe/runs/` and resume from the point of interruption
+- **Repository knowledge system**: Automatically initialize, synchronize, and verify a short `AGENTS.md`, indexed project docs, architecture maps, and source fingerprints
+- **Drift and garbage collection**: Periodically audit churn, size, and structural drift, prove deletion candidates, and prepare one focused maintenance change or PR
+- **Autonomous CI and PR loop**: Reconcile review feedback and CI failures against the exact PR head SHA until the authorized ready or merged state
 - **Installation diagnostics**: Inspect the hehehe installation, Codex, optional Claude, and project state without modifying files
 - **UI design support**: Provide UI directions, design systems, and implementation workflows suited to the product
 
@@ -82,8 +90,15 @@ After global installation, the executable command is `harness-hehehe`, the same 
 $hehehe:ideate Turn an admin order-processing idea into an MVP specification
 $hehehe:feature-spec Write acceptance criteria for the order status change feature
 $hehehe:full-resolve Implement the specification and complete build and browser validation
+$hehehe:frontend-architecture Design this frontend feature with FSD and Tailwind
+$hehehe:backend-architecture Review backend responsibility boundaries and ORM-versus-SQL choices
+$hehehe:observability Structure and verify API errors and backend logs
+$hehehe:resume Prepare the workspace and run state for the order error task
+$hehehe:repository-knowledge
 $hehehe:preflight Perform a final check that this is ready to release
 ```
+
+`$hehehe:repository-knowledge` runs initialization, synchronization, safe repair, and freshness revalidation automatically when no mode is given. Use explicit `init`, `sync`, `check`, or `status` modes when narrower control is needed.
 
 ### Bug Fixes and Reviews
 
@@ -92,6 +107,8 @@ $hehehe:resolve Find and fix the cause of a redirect loop after login
 $hehehe:subagent-resolve Split a cross-module authentication change among subagents, then implement and integrate it
 $hehehe:review Review the current changes with a focus on bugs and regression risks
 $hehehe:team-review Review the authentication changes from independent perspectives as well
+$hehehe:maintain-codebase check Audit repository drift and rank cleanup targets
+$hehehe:pr-loop ready Fix review and CI failures on PR 42 until it is ready to merge
 ```
 
 ### UI Design and Real-Screen Validation
@@ -99,19 +116,19 @@ $hehehe:team-review Review the authentication changes from independent perspecti
 ```text
 $hehehe:design-ui Propose a UI direction for an analytics dashboard
 $hehehe:implement-ui Implement the selected direction in the existing frontend
-$hehehe:browser-tool-test Directly test the main flows on desktop and mobile
+$hehehe:browser-validate Directly test the main flows on desktop and mobile
 ```
 
-`browser-tool-test` does more than read the code or check that it builds. It opens the actual page in the in-app browser, performs clicks, input, and navigation, and checks for console errors, failed network requests, and layout regressions.
+`browser-validate` does more than read the code or check that it builds. It opens the actual page in the in-app browser, performs clicks, input, and navigation, and checks for console errors, failed network requests, and layout regressions.
 
 ### Diagnostics and Resuming Work
 
 ```text
 $hehehe:doctor Diagnose the global installation and current project state
-$hehehe:resume Resume an interrupted hehehe run
+$hehehe:resume Resume an interrupted task workspace and hehehe run
 ```
 
-`doctor` reports `PASS`, `DEGRADED`, or `BLOCKED` with supporting evidence without modifying files. `resume` reconciles the saved goal with the actual working tree, then continues from the next step.
+`doctor` reports `PASS`, `DEGRADED`, or `BLOCKED` with supporting evidence without modifying files. `resume` reconciles the task branch, worktree, local runtime identity, and saved run goal, then continues from the next step.
 
 ## CLI Commands
 
@@ -120,7 +137,27 @@ harness-hehehe install --global [--dry-run]
 harness-hehehe install --project [path] [--dry-run]
 harness-hehehe uninstall --global [--dry-run]
 harness-hehehe uninstall --project [path] [--dry-run]
+harness-hehehe profile [path] [--json] [--write]
+  [--config path] [--allow-downgrade]
 ```
+
+### Architecture Profiles
+
+For non-trivial application work, hehehe scores five project dimensions—security/data risk, domain complexity, integration complexity, operational risk, and collaboration pressure—from `0-2` each.
+
+| Project score | Profile | Coupling pass | Improve or justify | Fail |
+|---|---|---|---|---|
+| `0-3` | Lite | `0-4` | `5-6` | `7-10` |
+| `4-6` | Standard | `0-3` | `4-5` | `6-10` |
+| `7-10` | Strict | `0-2` | `3-4` | `5-10` |
+
+The project score and per-change coupling score are separate. Structural boundary failures block every profile. Generate or refresh the report with:
+
+```bash
+npx harness-hehehe profile . --write
+```
+
+Use `.hehehe/architecture-policy.json` to fix or bound a profile and to declare business-context dimensions the scanner cannot infer.
 
 You can inspect the installation path and scope without making changes.
 

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-28T06:12:44.472Z",
+  "project": "C:\\Users\\user\\Desktop\\hehehe",
+  "policy_path": ".hehehe/architecture-policy.json",
+  "policy_mode": "auto",
+  "score": 2,
+  "calculated_profile": "lite",
+  "selected_profile": "lite",
+  "selection_reason": "automatic score 2/10",
+  "automatic_downgrade_allowed": false,
+  "dimensions": {
+    "security_data_risk": {
+      "score": 0,
+      "evidence": [
+        "no authentication, payment, or regulated-data signal detected"
+      ],
+      "source": "detected"
+    },
+    "domain_complexity": {
+      "score": 0,
+      "evidence": [
+        "no conventional feature/domain/module root detected"
+      ],
+      "source": "detected"
+    },
+    "integration_complexity": {
+      "score": 0,
+      "evidence": [
+        "0 external provider signals",
+        "1 deployable roots: project root"
+      ],
+      "details": {
+        "provider_count": 0,
+        "deployable_count": 1
+      },
+      "source": "detected"
+    },
+    "operational_risk": {
+      "score": 1,
+      "evidence": [
+        "no migration directory detected",
+        "deployment/infrastructure signals: .github/workflows/publish.yml"
+      ],
+      "source": "detected"
+    },
+    "collaboration_pressure": {
+      "score": 1,
+      "evidence": [
+        "2 distinct git contributor emails in the last 180 days"
+      ],
+      "source": "detected"
+    }
+  },
+  "coupling_thresholds": {
+    "pass_max": 4,
+    "improve_min": 5,
+    "improve_max": 6,
+    "fail_min": 7
+  },
+  "structural_hard_failures_profile_independent": true
+}

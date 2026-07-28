@@ -17,3 +17,5 @@ Define:
 - responsive behavior
 
 Keep tokens implementable in the current codebase.
+
+Use Tailwind theme tokens, CSS variables, and utilities by default. Follow an explicit user request for another styling system. Do not introduce Tailwind alongside an established non-Tailwind system during a scoped change unless migration is authorized.

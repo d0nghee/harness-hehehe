@@ -7,6 +7,8 @@ description: Resolve complex bugs by coordinating Codex implementation with opti
 
 Use this for bugs spanning multiple modules or unclear ownership.
 
+Use `hehehe:resume` to select one task branch and worktree and initialize or resume its matching run before implementation or sub-agent work. Reuse that same workspace and run across the team.
+
 Codex keeps the critical path. If subagents are available, delegate bounded non-blocking exploration or review tasks. Claude may review hypotheses or the final diff, but should not own implementation.
 
 Produce a short root-cause note, patch, verification result, and residual-risk summary.

@@ -392,8 +392,11 @@ test("an interrupted project install is resumable without claiming skills are un
     projectDir,
   });
   const completedState = JSON.parse(await readFile(installed.statePath, "utf8"));
+  const catalog = JSON.parse(
+    await readFile(path.join(interruptedSource, "skill-catalog.json"), "utf8"),
+  );
   assert.equal(completedState.status, "installed");
-  assert.equal(completedState.skillDirectories.length, 24);
+  assert.equal(completedState.skillDirectories.length, catalog.skills.length);
   assert.equal((await readdir(journalDirectory)).filter((name) => name.endsWith(".json")).length, 0);
   await readFile(
     path.join(installed.targetSkillsDir, "hehehe-resume", "templates", "done-criteria.md"),

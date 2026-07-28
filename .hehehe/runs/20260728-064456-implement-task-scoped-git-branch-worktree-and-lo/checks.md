@@ -1,0 +1,22 @@
+# Checks
+
+- Workspace decision for this change: current worktree reused; cumulative uncommitted hehehe changes preserved without commit, stash, reset, patch, or migration.
+- Initial repository knowledge: FRESH, 0 errors, 0 warnings.
+- Skill quick validation: PASS.
+- Focused worktree-isolation tests: PASS, 9/9.
+- Actual repository read-only status: PASS; root, current branch, dirty paths, and registered worktree parsed correctly.
+- Independent forward test: PASS; reused an existing task branch/worktree across dates, preserved unrelated primary-tree edits, assigned isolated runtime identifiers, and did not create or retire a workspace.
+- `npm run validate`: PASS, 62/62 tests.
+- `git diff --check`: PASS; only expected line-ending notices.
+- `npm pack --dry-run`: PASS for `harness-hehehe@0.3.10`, 287 files; no archive written.
+- Final repository knowledge: FRESH, 2 tracked documents, 0 errors, 0 warnings.
+- Global installation:
+  - Atomic target-directory rename was blocked by Windows `EPERM`.
+  - Source/target comparison found four source-only files for the new skill and no target-only files.
+  - Created a temporary 0.3.9 backup, copied the validated managed files in place, activated `hehehe@user-local`, verified source/target/cache equality, then removed the temporary backup.
+  - Source, target, and 0.3.10 cache each contain 280 files.
+- Source/install/cache SHA-256:
+  - `worktree-isolation/SKILL.md`: `012A9ADE43170BBF5766D7248DD9F05E2877FCBB66049468C4DFA03410F449CB`
+  - `worktree-isolation/scripts/worktree-isolation.mjs`: `485DC5CB7FADD553F45B232D31517E5769B3667CCC213EB74940B8CE9859AF6C`
+  - `worktree-isolation/references/isolation-policy.md`: `464F9C81CB755DD86F4106A1BD66C7962557F7D525EF7DE6A42F1A73E77C9B26`
+- Current-process `codex plugin list`: still reports registry version 0.3.6; target and cache manifests are 0.3.10, so restart/new thread is required.

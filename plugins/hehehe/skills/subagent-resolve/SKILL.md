@@ -14,7 +14,11 @@ Codex remains the lead engineer and owns task partitioning, the critical path, i
 1. Read the applicable `AGENTS.md` files and preserve existing user changes.
 2. Read `.hehehe/vision.md`, `.hehehe/roadmap.md`, `.hehehe/done-criteria.md`, and `.hehehe/implementation-spec.md` when present.
 3. Require concrete scope, acceptance criteria, affected areas, and validation commands. If a material product decision is still open, run `hehehe:ideate` or ask only for the blocking decision before implementation.
-4. For non-trivial work, initialize or resume matching run-scoped state with `hehehe:resume`.
+4. Use `hehehe:resume` to select one task branch and worktree for the lead and all sub-agents, then initialize or continue the matching run inside it. Do not create one worktree per sub-agent by default.
+5. Confirm the selected branch, worktree, runtime identity, and active run artifacts before partitioning work.
+6. For non-trivial application work, use `hehehe:architecture-metrics` before task partitioning and lock the project profile plus its coupling thresholds.
+7. For non-trivial backend work, use `hehehe:backend-architecture` before task partitioning and lock responsibility boundaries and data-access choices.
+8. For non-trivial frontend work, use `hehehe:frontend-architecture` before task partitioning and lock FSD ownership, state/API boundaries, and styling choice.
 
 ## Coordination Workflow
 
@@ -28,6 +32,7 @@ Codex remains the lead engineer and owns task partitioning, the critical path, i
 8. Inspect every returned diff, file, log, and test result. Treat sub-agent summaries as claims to verify, not completion evidence.
 9. Integrate in dependency order, resolve overlaps deliberately, and run the strongest applicable build, test, lint, typecheck, and browser checks.
 10. Compare the integrated result against every done criterion. Update the active run artifacts and report residual risks.
+11. For non-trivial application work, run the applicable backend/frontend completion gate and `hehehe:architecture-metrics` on the integrated diff; component-level scores do not replace the final integrated score.
 
 ## Sub-Agent Task Contract
 
@@ -53,6 +58,7 @@ Avoid vague assignments such as "implement the feature" or "fix everything."
 ## Shared Workspace Rules
 
 - Assume all agents see the same working tree and edits immediately.
+- Keep every agent for the task inside the lead-selected task worktree unless an explicit multi-branch integration plan says otherwise.
 - Record ownership before spawning writable tasks.
 - Do not let two active agents edit the same file.
 - Do not overwrite, reset, clean, or reformat unrelated user changes.

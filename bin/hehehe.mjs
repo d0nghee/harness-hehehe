@@ -9,6 +9,7 @@ import {
   uninstallGlobal,
   uninstallProject,
 } from "../lib/installer.mjs";
+import { runProfileCli } from "../plugins/hehehe/skills/architecture-metrics/scripts/project-profile.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePluginDir = path.join(packageRoot, "plugins", "hehehe");
@@ -21,11 +22,14 @@ Usage:
   harness-hehehe install --project [path] [--dry-run]
   harness-hehehe uninstall --global [--dry-run]
   harness-hehehe uninstall --project [path] [--dry-run]
+  harness-hehehe profile [path] [--json] [--write]
+    [--config path] [--allow-downgrade]
 
 Examples:
   npx harness-hehehe install --global
   npx harness-hehehe install --project .
   npx harness-hehehe install --project "D:\\work\\my-app"
+  npx harness-hehehe profile . --write
 `;
 }
 
@@ -36,8 +40,11 @@ function parseArguments(args) {
   if (args.includes("--version") || args.includes("-v")) {
     return { version: true };
   }
+  if (args[0] === "profile") {
+    return { command: "profile", profileArgs: args.slice(1) };
+  }
   if (args[0] !== "install" && args[0] !== "uninstall") {
-    throw new Error("Expected the install or uninstall command.\n\n" + usage());
+    throw new Error("Expected the install, uninstall, or profile command.\n\n" + usage());
   }
 
   const command = args[0];
@@ -124,6 +131,10 @@ async function main() {
   if (parsed.version) {
     const packageJson = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
     console.log(packageJson.version);
+    return;
+  }
+  if (parsed.command === "profile") {
+    await runProfileCli(parsed.profileArgs);
     return;
   }
 
