@@ -1,0 +1,4 @@
+interface:
+  display_name: "Observability"
+  short_description: "Verify local errors, logs, requests, and traces"
+  default_prompt: "Use $hehehe:observability to apply and verify the project observability contract."

@@ -24,7 +24,7 @@ $hehehe:ideate 쇼핑몰 관리자 주문 처리 기능을 MVP 범위로 정리�
 ```
 
 ```text
-$hehehe:auto-resolve .hehehe/implementation-spec.md 기준으로 구현하고 빌드까지 확인해줘
+$hehehe:full-resolve .hehehe/implementation-spec.md 기준으로 구현하고 빌드까지 확인해줘
 ```
 
 ```text
@@ -50,7 +50,7 @@ $hehehe:resume 중단된 hehehe 실행을 이어서 진행해줘
 ```text
 $hehehe:ideate
 $hehehe:feature-spec
-$hehehe:auto-resolve
+$hehehe:full-resolve
 $hehehe:preflight
 ```
 
@@ -61,6 +61,15 @@ $hehehe:review
 $hehehe:evaluate
 $hehehe:browser-validate
 $hehehe:update-docs
+```
+
+주기적 유지보수와 PR 후속 처리를 할 때:
+
+```text
+$hehehe:maintain-codebase check
+$hehehe:maintain-codebase pr
+$hehehe:pr-loop ready
+$hehehe:pr-loop merge
 ```
 
 UI 작업을 설계하고 구현할 때:
@@ -83,10 +92,10 @@ $hehehe:team-resolve
 ### 전체 파이프라인
 
 - `hehehe:hehehe`: 아이디어, 버그, UI 요청을 Codex-first 자동 개발 흐름으로 처리
-- `hehehe:auto-resolve`: 구현, 빌드 게이트, 브라우저 검증, 선택적 Claude 리뷰, 수정 루프, 문서 정리
+- `hehehe:full-resolve`: 기능이나 넓은 변경을 작업공간 준비부터 구현, 아키텍처·빌드 게이트, 브라우저·관측 검증, 리뷰, 수정 루프, 문서·지식 동기화까지 종단간 처리
 - `hehehe:preflight`: 로드맵, done criteria, 요청 동작 기준 출시 전 점검
 - `hehehe:doctor`: Codex, Claude, hehehe 설치, 프로젝트 상태를 읽기 전용으로 진단
-- `hehehe:resume`: `.hehehe/runs/`에 기록된 활성 실행 상태를 확인하고 이어서 진행
+- `hehehe:resume`: 작업 ID에 맞는 브랜치·Git worktree·로컬 런타임 식별자와 `.hehehe/runs/` 실행 상태를 함께 준비·확인·재개·완료·명시적 폐기
 
 ### 기획과 스펙
 
@@ -95,15 +104,22 @@ $hehehe:team-resolve
 - `hehehe:feature-spec`: 기능 수준 구현 스펙과 검증 기준 작성
 - `hehehe:ideate`: 거친 아이디어를 로드맵, done criteria, 구현 스펙으로 변환
 - `hehehe:recommend-features`: 코드와 스펙 상태를 보고 다음 고가치 기능 추천
+- `hehehe:repository-knowledge`: 모드 생략 시 저장소 지식 시스템을 자동 초기화·동기화·검증하고, `init`·`sync`·`check`·`status` 모드도 제공
 
 ### 구현과 검증
 
-- `hehehe:resolve`: 단일 버그나 실패 체크를 조사하고 수정
+- `hehehe:architecture-metrics`: 프로젝트를 Lite·Standard·Strict로 산정하고 프론트엔드·백엔드 변경 결합도를 프로필별 기준과 구조적 차단 조건으로 평가
+- `hehehe:frontend-architecture`: FSD와 Tailwind 기본 정책으로 프론트엔드 책임·상태·API 경계를 설계·검토
+- `hehehe:backend-architecture`: 백엔드 책임 경계, 프로필별 결합도 기준, ORM과 SQL 사용 위치를 설계·검토
+- `hehehe:observability`: 별도 관측 스택 없이 브라우저·API·백엔드 실행 근거와 구조화 오류·로그·`request_id` 연결을 적용·검증하며, 명시적 `full` 모드에서만 Docker 관측 스택 사용
+- `hehehe:resolve`: 단일 버그·회귀·실패 체크를 재현하고 원인을 추적해 최소 범위를 수정하고 집중 검증
+- `hehehe:subagent-resolve`: 여러 독립 작업을 Codex 서브에이전트로 병렬 처리하고 메인 Codex가 통합·검증
 - `hehehe:team-resolve`: 복잡한 버그를 Codex 주도와 선택적 Claude 비평으로 해결
 - `hehehe:evaluate`: 명시 기준에 따라 구현을 평가
 - `hehehe:browser-validate`: 웹 UI 또는 로컬 앱 워크플로우를 브라우저로 검증
-- `hehehe:browser-tool-test`: 인앱 브라우저로 로컬 경로와 사용자 흐름을 직접 테스트
 - `hehehe:clean`: 구현 후 코드 위생 정리
+- `hehehe:maintain-codebase`: 주기적 저장소 드리프트 감사, 삭제 근거 검증, 한 가지 대상의 제한된 리팩터링과 유지보수 PR 준비
+- `hehehe:pr-loop`: 정확한 PR head SHA를 기준으로 리뷰·CI 실패를 수정하고 허용된 ready 또는 merge 상태까지 반복
 - `hehehe:update-docs`: 완료된 코드 변경과 관련 문서 동기화
 
 ### 리뷰
@@ -131,8 +147,11 @@ hehehe 워크플로우는 프로젝트 안에 `.hehehe/` 폴더를 사용할 수
 .hehehe/claude-review.md
 .hehehe/final-report.md
 .hehehe/current.json
+.hehehe/knowledge.json
 .hehehe/runs/<run-id>/state.json
 ```
+
+유지 대상 저장소의 장기 지식은 루트 `AGENTS.md`, `docs/README.md`, `docs/architecture/overview.md`를 공통 기준으로 사용합니다. 실제로 존재하는 관심사만 세부 문서로 추가하며 빈 문서를 기계적으로 만들지 않습니다.
 
 템플릿은 플러그인 번들에 들어 있습니다.
 

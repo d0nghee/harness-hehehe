@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hehehe Full Resolve"
+  short_description: "Complete implementation and verification pipeline"
+  default_prompt: "Use $hehehe:full-resolve to deliver this feature or broad change end to end with workspace setup, gates, validation, review, cleanup, and documentation."

@@ -1,6 +1,6 @@
 {
   "name": "harness-hehehe",
-  "version": "0.3.3",
+  "version": "0.3.13",
   "description": "Install the hehehe Codex workflow plugin globally or in one project.",
   "type": "module",
   "bin": {
@@ -11,12 +11,14 @@
     "lib/",
     "plugins/hehehe/",
     "README.md",
+    "README.en.md",
     "USAGE.md",
     "LICENSE"
   ],
   "scripts": {
     "test": "node --test",
-    "validate": "node --check bin/hehehe.mjs && node --check lib/installer.mjs && npm test"
+    "maintenance:check": "node plugins/hehehe/skills/maintain-codebase/scripts/maintenance-audit.mjs scan --project . --json",
+    "validate": "node --check bin/hehehe.mjs && node --check lib/installer.mjs && node --check plugins/hehehe/skills/architecture-metrics/scripts/project-profile.mjs && node --check plugins/hehehe/skills/maintain-codebase/scripts/maintenance-audit.mjs && node --check plugins/hehehe/skills/repository-knowledge/scripts/knowledge-system.mjs && node --check plugins/hehehe/skills/resume/scripts/worktree-isolation.mjs && npm test"
   },
   "engines": {
     "node": ">=20"

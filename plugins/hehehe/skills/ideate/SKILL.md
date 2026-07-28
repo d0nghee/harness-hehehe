@@ -17,4 +17,4 @@ Codex is the main product engineer. Claude may be used only for optional critiqu
 4. Write `.hehehe/implementation-spec.md` with concrete phases, affected areas, validation commands, and risks.
 5. If using Claude, ask it to challenge ambiguity and missing edge cases only; Codex decides final edits.
 
-Do not implement code in this skill unless the user explicitly asks to continue into `auto-resolve`.
+Do not implement code in this skill unless the user explicitly asks to continue into `full-resolve`.

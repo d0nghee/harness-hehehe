@@ -1,0 +1,4 @@
+interface:
+  display_name: "Backend Architecture"
+  short_description: "Keep backend boundaries loose and data access pragmatic"
+  default_prompt: "Use $hehehe:backend-architecture to design or review this backend change for responsibility separation, coupling, and ORM-versus-SQL choices."

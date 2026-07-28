@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repository Knowledge"
+  short_description: "Build and verify a repository knowledge map"
+  default_prompt: "Use $hehehe:repository-knowledge to initialize, synchronize, and verify this repository knowledge system."

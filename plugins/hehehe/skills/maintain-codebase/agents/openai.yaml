@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hehehe Maintain Codebase"
+  short_description: "Audit drift and prepare focused cleanup work"
+  default_prompt: "Use $hehehe:maintain-codebase to audit repository drift and prepare one evidence-backed maintenance change."

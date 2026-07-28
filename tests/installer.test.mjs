@@ -363,7 +363,7 @@ test("an interrupted project install is resumable without claiming skills are un
     false,
   );
   await readFile(
-    path.join(projectDir, ".agents", "skills", "hehehe-auto-resolve", "SKILL.md"),
+    path.join(projectDir, ".agents", "skills", "hehehe-full-resolve", "SKILL.md"),
     "utf8",
   );
   const interruptedDoctor = spawnSync(
@@ -392,8 +392,11 @@ test("an interrupted project install is resumable without claiming skills are un
     projectDir,
   });
   const completedState = JSON.parse(await readFile(installed.statePath, "utf8"));
+  const catalog = JSON.parse(
+    await readFile(path.join(interruptedSource, "skill-catalog.json"), "utf8"),
+  );
   assert.equal(completedState.status, "installed");
-  assert.equal(completedState.skillDirectories.length, 23);
+  assert.equal(completedState.skillDirectories.length, catalog.skills.length);
   assert.equal((await readdir(journalDirectory)).filter((name) => name.endsWith(".json")).length, 0);
   await readFile(
     path.join(installed.targetSkillsDir, "hehehe-resume", "templates", "done-criteria.md"),

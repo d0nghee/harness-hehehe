@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hehehe PR Loop"
+  short_description: "Repair CI and review feedback through PR readiness"
+  default_prompt: "Use $hehehe:pr-loop to reconcile this pull request, fix verified CI or review issues, and take it to the authorized terminal state."

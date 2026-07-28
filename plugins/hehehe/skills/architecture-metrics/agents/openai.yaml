@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture Metrics"
+  short_description: "Score coupling with evidence and hard gates"
+  default_prompt: "Use $hehehe:architecture-metrics to measure coupling and enforce architecture gates for this change."

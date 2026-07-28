@@ -1,4 +1,4 @@
 interface:
   display_name: "Hehehe Resume"
-  short_description: "Resume a durable hehehe workflow run"
-  default_prompt: "Use $hehehe:resume to inspect and continue the active hehehe workflow run."
+  short_description: "Manage task workspaces and workflow runs"
+  default_prompt: "Use $hehehe:resume to prepare or continue the matching task workspace and workflow run."
