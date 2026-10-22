@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-22T05:51:49.152Z",
+  "updated_at": "2026-10-22T05:56:07.502Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -54,8 +54,8 @@
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-22T05:51:49.151Z",
-      "source_fingerprint": "baf7b7b47866645bc601c2d23c9e3bfbff23f364a2d2dbf11adca330f4373563"
+      "last_verified": "2026-10-22T05:56:07.500Z",
+      "source_fingerprint": "283b9a83edde18d733ee4f516ec29dfff603218e1c11ba82a449604856d48e58"
     }
   ]
 }
