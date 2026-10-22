@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-22T05:56:07.502Z",
+  "updated_at": "2026-10-22T06:32:48.873Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -40,8 +40,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-22T05:51:49.045Z",
-      "source_fingerprint": "a9f8106c14ddfeb888a23e7c4183c7fc2cc560f5536a1c33e9c961a982f18736"
+      "last_verified": "2026-10-22T06:32:48.871Z",
+      "source_fingerprint": "09a795cc25a4da26d661a4b8ceccf4e54bbd6522132438cdf582ba5da04c3265"
     },
     {
       "path": "docs/README.md",
