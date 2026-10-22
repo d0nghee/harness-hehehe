@@ -1,0 +1,37 @@
+name: Trusted verification
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  completion-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # PR authors cannot substitute a different trust root in a policy file.
+      HEHEHE_VERIFICATION_BASE: ${{ github.event.pull_request.base.sha || vars.HEHEHE_VERIFICATION_BASE }}
+      HEHEHE_VERIFICATION_APPROVED_HEAD: ${{ vars.HEHEHE_VERIFICATION_APPROVED_HEAD }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Load CI adapter from the trusted commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HEHEHE_VERIFICATION_BASE" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$RUNNER_TEMP/hehehe-trusted-adapter"
+          git show "$HEHEHE_VERIFICATION_BASE:plugins/hehehe/skills/resume/scripts/ci-verification.mjs" > "$RUNNER_TEMP/hehehe-trusted-adapter/ci-verification.mjs"
+          git show "$HEHEHE_VERIFICATION_BASE:plugins/hehehe/skills/resume/scripts/verification-policy.mjs" > "$RUNNER_TEMP/hehehe-trusted-adapter/verification-policy.mjs"
+      - name: Run and enforce required verification
+        run: node "$RUNNER_TEMP/hehehe-trusted-adapter/ci-verification.mjs" "$GITHUB_WORKSPACE"

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "max_age_seconds": 3600,
+  "checks": [
+    {
+      "id": "syntax",
+      "command": ["$node", "scripts/check-syntax.mjs"],
+      "kind": "exit",
+      "timeout_ms": 60000
+    },
+    {
+      "id": "tests",
+      "command": ["$node", "--test", "--test-reporter=tap"],
+      "kind": "node-test",
+      "minimum_tests": 1,
+      "timeout_ms": 300000
+    }
+  ],
+  "always_required": ["syntax", "tests"],
+  "change_rules": [],
+  "protected_paths": [
+    ".hehehe/verification-policy.json",
+    "package.json",
+    "scripts/**",
+    "tests/**",
+    ".github/workflows/**",
+    "plugins/hehehe/skills/resume/scripts/**"
+  ]
+}

@@ -16,9 +16,11 @@ Codex가 계획·구현·검증·수정을 끝까지 맡고, Claude는 필요할
 - **백엔드 데이터 정책**: 쓰기는 ORM 우선, 복잡한 조회는 Core/바인딩 SQL을 선택하며 Go는 기존 SQL 계층을 동등하게 지원
 - **설치 없는 기본 관측**: 브라우저·애플리케이션·테스트 출력을 재사용하고, 백엔드 오류 코드·구조화 로그·`request_id` 연결을 검증
 - **작업별 격리**: 작업 브랜치와 Git worktree를 재사용·생성하고 포트·로그·Compose·개발 DB 식별자를 작업별로 분리
+- **하나의 확인 공간과 승인 후 main 반영**: 에이전트가 변경을 통합·검증하고 고정된 경로에서 후보를 보여준 뒤, 정확한 사용자 승인에 따라 같은 경로를 main으로 전환
 - **서브에이전트 병렬 해결**: 독립 작업을 Codex 서브에이전트에 분배하고 메인 Codex가 통합·검증
 - **실제 브라우저 테스트**: 인앱 브라우저로 클릭, 입력, 네트워크·콘솔 오류와 반응형 화면 확인
 - **실행 상태 복구**: `.hehehe/runs/`에 진행 상태를 보존하고 중단 지점부터 재개
+- **완료 게이트**: 검토된 커밋의 필수 검사를 실행하고 실패·미실행·유효기간 경과·검사 후 코드 변경 시 완료 차단
 - **저장소 지식 시스템**: 짧은 `AGENTS.md`, 문서 인덱스, 아키텍처 지도와 소스 지문으로 프로젝트 지식을 자동 생성·동기화·검증
 - **드리프트·가비지 컬렉션**: 주기적 품질 감사로 변경량·크기·구조 위반을 찾고, 삭제 근거를 검증한 뒤 한 가지 대상만 유지보수 변경이나 PR로 처리
 - **CI·PR 자율 루프**: 정확한 PR head SHA를 기준으로 리뷰 피드백과 CI 실패를 수정·재검증하고, 허용된 범위에서 ready 또는 merge 상태까지 진행
@@ -52,6 +54,8 @@ npx harness-hehehe install --project .
 ```text
 $hehehe:full-resolve 사용자 프로필 편집 기능을 구현하고 검증해줘
 ```
+
+설치만으로 검증 기준이 승인되지는 않습니다. 실행을 완료하려면 프로젝트 관리자가 [완료 게이트](#완료-게이트)의 최초 기준을 등록해야 합니다.
 
 ## 설치 범위
 
@@ -130,6 +134,65 @@ $hehehe:resume 중단된 작업공간과 hehehe 실행을 이어서 진행해줘
 
 `doctor`는 파일을 수정하지 않고 `PASS`, `DEGRADED`, `BLOCKED` 상태와 근거를 보고합니다. `resume`은 작업 브랜치·worktree·로컬 런타임 식별자와 저장된 실행 목표를 함께 대조한 후 다음 단계부터 진행합니다.
 
+## 완료 게이트
+
+AI가 작성한 완료 기준이나 `PASS` 보고서만으로 작업을 완료하지 않습니다. `resume`의 `verify`가 검토된 커밋의 `.hehehe/verification-policy.json`에서 필수 검사·변경 경로별 추가 검사·보호 파일·결과 유효기간을 읽고, `complete`가 실제 실행 증거를 확인합니다.
+
+### 최초 기준 등록
+
+1. 프로젝트 관리자가 검증 정책, 테스트, 실행 명령과 CI 도구를 검토하고 기준 커밋을 확정합니다.
+2. 신뢰하는 실행 환경에서 `HEHEHE_VERIFICATION_BASE`를 해당 커밋의 전체 SHA로 고정합니다. AI가 작업 브랜치의 `HEAD`를 자동 승인하거나 기준을 교체하도록 두지 않습니다.
+3. 정책이나 기존의 보호된 검증 파일을 바꿀 때는 독립적인 검토를 거칩니다. 관리자는 `HEHEHE_VERIFICATION_APPROVED_HEAD`에 정확히 검토한 커밋을 지정할 수 있지만, 해당 실행도 기존 기준의 필수 검사를 사용합니다.
+
+프로젝트 설치에서는 다음 명령을 사용합니다. 환경 변수는 위에서 정한 신뢰 실행 환경이 제공해야 합니다.
+
+```text
+node .agents/skills/hehehe-resume/scripts/run-state.mjs init --project . --goal "작업 목표"
+node .agents/skills/hehehe-resume/scripts/run-state.mjs verify --project . --json
+node .agents/skills/hehehe-resume/scripts/run-state.mjs complete --project . --json
+```
+
+이미 활성 실행이 있으면 새로 초기화하지 말고 `resume`으로 이어갑니다. 전역 설치에서는 `<Plugin target>/skills/resume/scripts/run-state.mjs`를 사용합니다.
+
+| 조건 | 완료 판정 |
+|---|---|
+| 현재 코드·HEAD·정책에 맞는 필수 검사가 모두 통과하고 증거가 유효함 | 허용 |
+| 실패·미실행·시간 초과·허용되지 않은 테스트 건너뛰기 | 차단 |
+| 검사 후 코드나 HEAD 변경, 결과 유효기간 경과 | 재검증 전까지 차단 |
+| 로그 누락·결과 변조·승인 없는 기준 완화·미해결 `blocked` 상태 | 차단 |
+
+### CI와 최초 도입
+
+이 저장소의 `.github/workflows/verification.yml`은 PR 기준 커밋에서 실행 도구를 가져와 정확한 PR HEAD를 검사합니다. 관리자는 `completion-gate`를 저장소의 필수 검사로 지정하고 정책·워크플로 변경 권한을 보호해야 합니다. 로컬 완료와 원격 CI 통과는 별도 판정입니다.
+
+구버전 기준 커밋에 정책이나 도구가 없으면 새 CI도 실패합니다. 최초 도입은 관리자가 검토한 기준을 정당한 도입 절차로 반영해야 하며, 이 기능은 초기 PR을 스스로 승인하는 예외를 제공하지 않습니다. 다른 프로젝트에는 해당 저장소에 맞는 CI 연결이 필요합니다.
+
+로컬 무결성 검사는 동일 계정의 무제한 파일·환경 수정까지 격리하지 못합니다. 강제력이 필요한 병합 조건은 AI가 통제하지 않는 실행 환경과 저장소 보호 규칙에서 유지해야 합니다. 정책 형식, 승인 범위와 운영 절차는 [검증 정책 안내](plugins/hehehe/skills/resume/references/verification-policy.md)를 참고하세요.
+
+## 통합·사용자 확인·main 반영
+
+사용자가 통합 전달 흐름을 요청하거나 저장소에 설정하면, 메인 에이전트가 서브에이전트 변경을 모아 충돌 해결과 전체 검증을 맡습니다. 한 작업의 서브에이전트는 기본적으로 같은 작업 worktree를 공유합니다. 독립 브랜치가 여러 개여도 사용자가 각각 테스트할 필요 없이 통합 결과 하나만 확인합니다.
+
+```text
+작업·서브에이전트 구현 → 변경 통합 → 고정 확인 경로에서 전체 검증
+                    → 사용자 승인 대기 → 승인된 후보를 local main에 반영
+```
+
+처음 지정한 확인 경로와 대상 브랜치는 저장소별로 고정합니다. 승인 대기 중에는 후보를 수정하지 않으며, 수정이 필요하면 새 후보를 검증하고 새 승인을 받습니다. 승인 후에는 같은 확인 경로가 main을 체크아웃하므로 폴더를 옮겨 다닐 필요가 없습니다.
+
+프로젝트 설치의 실행 예시입니다. 에이전트가 범위 내 변경을 검토·커밋한 뒤 수행합니다.
+
+```text
+node .agents/skills/hehehe-resume/scripts/delivery.mjs prepare --project . --target main --review-path <고정된-확인-폴더> --source <작업-브랜치> --json
+node .agents/skills/hehehe-resume/scripts/delivery.mjs status --project . --json
+```
+
+최초 설정 후에는 경로와 대상 브랜치를 다시 지정하지 않습니다. 여러 독립 브랜치는 `--source`를 반복해 전달합니다. `prepare`는 main을 변경하지 않습니다. 기준이 아직 없는 최초 도입에서만 `--bootstrap-review`로 제안된 검사를 실행해 확인 후보를 만들 수 있으며, 이것은 검증 기준을 승인하는 동작이 아닙니다.
+
+`awaiting_approval`이 되면 에이전트는 확인 경로, 후보 SHA, 당시 main SHA, 승인 요청 ID와 검사 결과를 제공합니다. 사용자가 그 후보를 승인한 뒤에만 신뢰하는 실행 환경이 정확한 승인 정보를 전달하고 `delivery.mjs merge`를 실행합니다. 최초 검증 정책 도입에는 정책 자체의 승인도 필요합니다.
+
+main이나 후보가 달라졌거나 검증 결과가 오래되면 병합을 차단합니다. 성공 시 `merged`와 실제 main SHA를 확인하고, 같은 확인 폴더가 깨끗한 main 상태인지 검증합니다. 원격 push·npm 배포·작업 worktree 삭제는 별도 권한입니다. 자세한 명령과 복구 절차는 [통합 전달 안내](plugins/hehehe/skills/resume/references/integration-delivery.md)를 참고하세요.
+
 ## CLI 명령
 
 ```text
@@ -193,13 +256,18 @@ npx harness-hehehe uninstall --project .
 장기 실행 워크플로우는 프로젝트의 `.hehehe/`에 상태와 검증 결과를 저장할 수 있습니다.
 
 ```text
-.hehehe/done-criteria.md
 .hehehe/implementation-spec.md
-.hehehe/checks.md
-.hehehe/final-report.md
+.hehehe/verification-policy.json
 .hehehe/current.json
 .hehehe/runs/<run-id>/state.json
+.hehehe/runs/<run-id>/done-criteria.md
+.hehehe/runs/<run-id>/checks.md
+.hehehe/runs/<run-id>/verification.json
+.hehehe/runs/<run-id>/verification-<check-id>.log
+.hehehe/runs/<run-id>/final-report.md
 ```
+
+과거의 `.hehehe/done-criteria.md`, `checks.md`, `final-report.md` 단일 파일은 이력으로 보존합니다. 실행 폴더의 `verification.json`은 확인용 사본이며, 완료 판정용 무결성 기록은 Git 공용 디렉터리에 별도로 저장됩니다.
 
 ## 언어 설정
 
@@ -235,6 +303,10 @@ $hehehe:doctor 현재 설치와 프로젝트 상태를 진단해줘
 - 현재 프로젝트만: `--project .`
 - 지정 프로젝트만: `--project <path>`
 
+### 완료가 차단됨
+
+`verify`의 오류 메시지와 해당 실행의 `verification-<check-id>.log`를 확인합니다. 실패를 수정하거나 오래된 결과를 다시 검증하세요. 최초 기준 부재나 보호된 기준 변경은 관리자 검토가 필요하며, 검사 삭제·건너뛰기나 수동 `PASS` 기록으로 해결하지 않습니다.
+
 ## 개발 및 검증
 
 ```bash
@@ -249,6 +321,9 @@ npm pack --dry-run
 hehehe/
   bin/hehehe.mjs
   lib/installer.mjs
+  scripts/check-syntax.mjs
+  .hehehe/verification-policy.json
+  .github/workflows/verification.yml
   plugins/hehehe/
     .codex-plugin/plugin.json
     skills/

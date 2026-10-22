@@ -29,3 +29,7 @@ Use this for end-to-end implementation from a spec, issue, prompt, or `.hehehe/i
 For non-trivial work, write concise artifacts under the active `.hehehe/runs/<run-id>/` directory. Preserve legacy singleton `.hehehe/*.md` files but do not append new runs to them.
 
 Codex owns final judgment. Do not ship solely because Claude approved.
+
+For user-requested or repository-configured integrated delivery, use `hehehe:resume`'s integration-delivery lifecycle after implementation. The lead integrates all task/worker commits, resolves conflicts and verifies the aggregate in one fixed review checkout. Scoped local commits needed to freeze that candidate are within the authorized delivery workflow; push/publish authority is separate. Report `awaiting_approval` with one path and exact candidate, then perform local main delivery only after the user approves it. Verify the same checkout on main before reporting `merged`; implementation completion alone never implies main was updated.
+
+Completion authority comes from the operator-pinned verification policy described in `hehehe:resume`, not from AI-authored done criteria. Run its `verify` command before `complete`. Do not delete, skip or weaken mandatory tests, commands or policy. Propose necessary baseline changes for independent review; missing trust, failed or unexecuted checks, expired evidence and changed source are blockers, not exceptions the implementation agent may approve.

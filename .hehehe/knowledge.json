@@ -1,18 +1,22 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-28T08:06:18.931Z",
+  "updated_at": "2026-10-22T05:51:49.152Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
       "kind": "architecture",
       "source_paths": [
         ".github/workflows",
+        ".hehehe/verification-policy.json",
+        "AGENTS.md",
         "bin",
         "lib",
         "package.json",
         "plugins/hehehe/.codex-plugin/plugin.json",
         "plugins/hehehe/skill-catalog.json",
         "plugins/hehehe/skills/architecture-metrics/SKILL.md",
+        "plugins/hehehe/skills/full-resolve/SKILL.md",
+        "plugins/hehehe/skills/hehehe/SKILL.md",
         "plugins/hehehe/skills/maintain-codebase/SKILL.md",
         "plugins/hehehe/skills/maintain-codebase/references/maintenance-policy.md",
         "plugins/hehehe/skills/maintain-codebase/scripts/maintenance-audit.mjs",
@@ -22,13 +26,22 @@
         "plugins/hehehe/skills/pr-loop/references/pr-policy.md",
         "plugins/hehehe/skills/repository-knowledge/SKILL.md",
         "plugins/hehehe/skills/resume/SKILL.md",
+        "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/isolation-policy.md",
+        "plugins/hehehe/skills/resume/references/verification-policy.md",
+        "plugins/hehehe/skills/resume/scripts/ci-verification.mjs",
+        "plugins/hehehe/skills/resume/scripts/delivery-store.mjs",
+        "plugins/hehehe/skills/resume/scripts/delivery.mjs",
         "plugins/hehehe/skills/resume/scripts/run-state.mjs",
+        "plugins/hehehe/skills/resume/scripts/verification-policy.mjs",
+        "plugins/hehehe/skills/resume/scripts/verification-runner.mjs",
         "plugins/hehehe/skills/resume/scripts/worktree-isolation.mjs",
+        "plugins/hehehe/skills/subagent-resolve/SKILL.md",
+        "scripts",
         "tests"
       ],
-      "last_verified": "2026-07-28T08:06:18.844Z",
-      "source_fingerprint": "1c183180ed2084e5e51a1680790ff830638b997ffaa8acb32ace312ed17ce281"
+      "last_verified": "2026-10-22T05:51:49.045Z",
+      "source_fingerprint": "a9f8106c14ddfeb888a23e7c4183c7fc2cc560f5536a1c33e9c961a982f18736"
     },
     {
       "path": "docs/README.md",
@@ -37,10 +50,12 @@
         "README.en.md",
         "README.md",
         "USAGE.md",
-        "docs/architecture/overview.md"
+        "docs/architecture/overview.md",
+        "plugins/hehehe/skills/resume/references/integration-delivery.md",
+        "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-07-28T08:06:18.930Z",
-      "source_fingerprint": "057a4c73b2d7f62e58c9a1fda085fc1592ee60008801ee9dceb9da6ebb595e18"
+      "last_verified": "2026-10-22T05:51:49.151Z",
+      "source_fingerprint": "baf7b7b47866645bc601c2d23c9e3bfbff23f364a2d2dbf11adca330f4373563"
     }
   ]
 }

@@ -3,11 +3,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { trustedContext } from "./verification-policy.mjs";
+import { assertVerified, runChecks } from "./verification-runner.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const pluginRoot = path.resolve(scriptDirectory, "..", "..", "..");
 const skillRoot = path.resolve(scriptDirectory, "..");
 const allowedStatuses = new Set(["active", "blocked", "complete"]);
+const allowedPhases = new Set(["intake", "plan", "architecture", "build", "verify", "review", "cleanup", "docs", "preflight", "blocked"]);
 
 function parseArguments(argv) {
   const command = argv[0];
@@ -29,6 +32,9 @@ function parseArguments(argv) {
     index += 1;
   }
   options.project = path.resolve(options.project);
+  const permitted = command === "init" ? ["project", "json", "goal", "run_id"]
+    : command === "advance" ? ["project", "json", "phase", "next", "status"] : ["project", "json"];
+  if (Object.keys(options).some((key) => !permitted.includes(key))) throw new Error("unsupported command option; verification cannot be bypassed");
   return { command, options };
 }
 
@@ -94,6 +100,9 @@ function loadCurrent(project, allowMissing = false) {
   }
   if (!fs.existsSync(statePath)) {
     throw new Error(`active run state does not exist: ${statePath}`);
+  }
+  if (!isInside(fs.realpathSync(project), fs.realpathSync(statePath))) {
+    throw new Error("run state must resolve inside the project");
   }
   const state = readJson(statePath);
   if (state.schema_version !== 1 || typeof state.run_id !== "string" || !allowedStatuses.has(state.status)) {
@@ -187,6 +196,7 @@ function init(project, options) {
     schema_version: 1,
     run_id: runId,
     goal,
+    verification_base: process.env.HEHEHE_VERIFICATION_BASE ?? null,
     status: "active",
     phase: "intake",
     next_step: "Confirm scope and done criteria.",
@@ -220,6 +230,8 @@ function advance(project, options) {
   if (!phase || !nextStep) {
     throw new Error("advance requires --phase and --next");
   }
+  if (!allowedPhases.has(phase)) throw new Error("unsupported pipeline phase");
+  if ((phase === "blocked") !== (status === "blocked")) throw new Error("blocked phase and status must agree");
   if (!allowedStatuses.has(status) || status === "complete") {
     throw new Error("advance status must be active or blocked");
   }
@@ -232,6 +244,10 @@ function advance(project, options) {
 
 function complete(project) {
   const loaded = loadCurrent(project);
+  if (loaded.state.status !== "active") throw new Error("only active runs can complete; resolve blocked state first");
+  if (!loaded.state.verification_base) throw new Error("required verification has not run; use verify before complete");
+  const context = trustedContext(project, loaded.state.verification_base);
+  const receipt = assertVerified(project, loaded.state.run_id, context, path.dirname(loaded.statePath));
   const timestamp = now();
   const state = {
     ...loaded.state,
@@ -240,10 +256,23 @@ function complete(project) {
     next_step: null,
     updated_at: timestamp,
     completed_at: timestamp,
+    verification: { base: receipt.base, policy_hash: receipt.policy_hash, snapshot: receipt.snapshot,
+      finished_at: receipt.finished_at },
   };
   writeJsonAtomic(loaded.statePath, state);
   writeJsonAtomic(loaded.paths.current, { ...loaded.current, updated_at: timestamp });
   return state;
+}
+
+function verify(project) {
+  const loaded = loadCurrent(project);
+  if (loaded.state.status !== "active") throw new Error("only active runs can be verified");
+  const context = trustedContext(project, loaded.state.verification_base);
+  const state = { ...loaded.state, verification_base: context.base, phase: "verify", updated_at: now() };
+  writeJsonAtomic(loaded.statePath, state);
+  const result = runChecks(project, state.run_id, context, path.dirname(loaded.statePath));
+  if (result.status !== "pass") throw new Error(`verification failed: ${result.results.filter((item) => item.status !== "pass").map((item) => `${item.id}: ${item.reason}`).join("; ") || "source changed during verification"}`);
+  return { ...state, verification_result: result };
 }
 
 function printResult(value, asJson) {
@@ -260,14 +289,28 @@ function printResult(value, asJson) {
   process.stdout.write(`Next: ${value.next_step ?? "none"}\n`);
 }
 
+let mutationLock;
 try {
   const { command, options } = parseArguments(process.argv.slice(2));
   if (!command || command === "help" || command === "--help" || command === "-h") {
-    process.stdout.write("Usage: run-state.mjs <init|status|advance|complete> [--project PATH] [options] [--json]\n");
+    process.stdout.write("Usage: run-state.mjs <init|status|advance|verify|complete> [--project PATH] [options] [--json]\n");
     process.exit(0);
   }
 
   assertProjectSafe(options.project);
+  if (["init", "advance", "verify", "complete"].includes(command)) {
+    const root = statePaths(options.project).root;
+    fs.mkdirSync(root, { recursive: true });
+    const lock = path.join(root, "run-state.lock");
+    let handle;
+    try { handle = fs.openSync(lock, "wx"); }
+    catch (error) {
+      if (error.code === "EEXIST") throw new Error("run-state is locked by another mutation; investigate interrupted runs before removing the lock");
+      throw error;
+    }
+    fs.closeSync(handle);
+    mutationLock = lock;
+  }
 
   let result;
   if (command === "init") {
@@ -279,11 +322,15 @@ try {
     result = advance(options.project, options);
   } else if (command === "complete") {
     result = complete(options.project);
+  } else if (command === "verify") {
+    result = verify(options.project);
   } else {
     throw new Error(`unknown command: ${command}`);
   }
   printResult(result, options.json);
 } catch (error) {
   process.stderr.write(`run-state: ${error.message}\n`);
-  process.exit(2);
+  process.exitCode = 2;
+} finally {
+  if (mutationLock) fs.unlinkSync(mutationLock);
 }

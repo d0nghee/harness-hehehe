@@ -21,3 +21,5 @@ Use this before release or handoff.
 - List gaps in the active run's `final-report.md` when run state exists; otherwise use `.hehehe/PREFLIGHT-REPORT.md`.
 
 If `--autofix` or equivalent intent is present, Codex fixes confirmed gaps directly. Claude can be used for a skeptical second pass, but Codex verifies every finding.
+
+Verify the operator-pinned policy through `hehehe:resume` before completion. AI-authored criteria cannot replace mandatory checks. Report missing trust, protected-input changes, failed/unexecuted checks and expired/source-stale evidence as completion blockers.

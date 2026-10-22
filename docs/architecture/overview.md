@@ -63,6 +63,22 @@ Task identity
 
 The task identity, rather than a date, is durable. The deterministic workspace script can plan, create, and inspect worktrees but cannot commit, stash, patch, merge, push, start services, remove worktrees, or delete branches. The run-state script records progress and evidence inside the selected worktree. Dirty source changes remain in place and are excluded only after an explicit acknowledgement; retirement remains a separate explicit gate.
 
+Completion now has a deterministic verification boundary:
+
+```text
+Externally supplied reviewed commit
+  -> strict verification policy and protected inputs
+  -> required checks selected from the actual diff
+  -> command execution and source/HEAD-bound integrity receipt
+  -> completion only with passing, complete, fresh evidence
+```
+
+`resume/scripts/verification-policy.mjs` owns baseline policy validation, changed-file selection, protected-input checks and source identity. `verification-runner.mjs` owns command execution, TAP summaries, logs and receipt integrity. `run-state.mjs` orchestrates verification and completion with exclusive mutation locking. Existing protected tests and command configuration cannot be relaxed by the task; external exact-head review can authorize committed changes while the old baseline requirements remain in force. AI-authored Markdown and JSON approval fields have no authority.
+
+The [verification policy reference](../../plugins/hehehe/skills/resume/references/verification-policy.md) defines bootstrap, operator trust, receipt expiry, source coverage, protected changes, and limitations. `.github/workflows/verification.yml` loads the CI adapter and runner from the trusted PR base and tests the exact PR head without publication credentials. Initial policy adoption, independent approvals and branch protection remain maintainer responsibilities. Local integrity keys and full filesystem access are not an independent security boundary.
+
+The separate local delivery lifecycle lives in `resume/scripts/delivery.mjs`, with Git-common state/locking in `delivery-store.mjs`. It integrates exact task commits in temporary staging, publishes and verifies one repository-pinned review checkout, and freezes the approval candidate. Exact user approval binds the candidate, target base and request ID; a compare-and-swap fast-forward updates local main and the same review directory then checks out main. Failed, stale or changed results cannot authorize delivery. First-policy review is explicitly provisional until separate user approval. See the [integration-delivery reference](../../plugins/hehehe/skills/resume/references/integration-delivery.md). No remote push, publication or task-worktree deletion is implied.
+
 `maintain-codebase` and `pr-loop` cover the longer repository and delivery lifecycle:
 
 ```text
@@ -90,4 +106,4 @@ The maintenance audit ranks common source files by size, recent churn, maintenan
 
 ## Validation and release
 
-`npm run validate` syntax-checks the CLI, installer, and deterministic skill scripts before running all Node tests. `npm pack --dry-run` verifies the publishable artifact. The quality workflow runs these gates for pull requests and on a weekly schedule, while the publication workflow validates again before publishing to npm.
+`npm run validate` uses `scripts/check-syntax.mjs` to syntax-check ESM scripts before running all Node tests, including failure, missing-result, stale-result and policy-weakening completion regressions. `npm pack --dry-run` verifies the publishable artifact. The quality workflow runs these gates for pull requests and on a weekly schedule, while the publication workflow validates again before publishing to npm. The separate trusted verification workflow enforces the reviewed policy; require its completion-gate job through repository protections after initial baseline adoption.

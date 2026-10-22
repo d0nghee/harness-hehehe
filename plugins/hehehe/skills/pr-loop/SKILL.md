@@ -34,6 +34,8 @@ Infer the first explicit mode; use `status` when no mutation is requested.
 
 ## Ready Gate
 
+Use the trusted completion verifier from `hehehe:resume` locally and the protected CI `completion-gate` against the exact PR head. Do not treat a Markdown report, locally edited verification JSON, or AI-authored policy approval as evidence. Required verification inputs changed by the PR need an independently reviewed baseline update; the implementation agent cannot waive the gate. Local completion and remote CI readiness are separate claims.
+
 Declare `READY` only when all apply:
 
 - the remote head SHA equals the locally verified and pushed SHA

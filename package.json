@@ -9,6 +9,7 @@
   "files": [
     "bin/",
     "lib/",
+    "scripts/",
     "plugins/hehehe/",
     "README.md",
     "README.en.md",
@@ -18,7 +19,8 @@
   "scripts": {
     "test": "node --test",
     "maintenance:check": "node plugins/hehehe/skills/maintain-codebase/scripts/maintenance-audit.mjs scan --project . --json",
-    "validate": "node --check bin/hehehe.mjs && node --check lib/installer.mjs && node --check plugins/hehehe/skills/architecture-metrics/scripts/project-profile.mjs && node --check plugins/hehehe/skills/maintain-codebase/scripts/maintenance-audit.mjs && node --check plugins/hehehe/skills/repository-knowledge/scripts/knowledge-system.mjs && node --check plugins/hehehe/skills/resume/scripts/worktree-isolation.mjs && npm test"
+    "validate": "node scripts/check-syntax.mjs && npm test",
+    "verification:ci": "node plugins/hehehe/skills/resume/scripts/ci-verification.mjs ."
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,291 @@
+#!/usr/bin/env node
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import crypto from "node:crypto";
+import { pathToFileURL } from "node:url";
+import { digest, git, policyPath, sourceSnapshot, trustedContext, validatePolicy } from "./verification-policy.mjs";
+import { assertVerified, runChecks } from "./verification-runner.mjs";
+import { loadDelivery, repository, safeDirectory, samePath, saveDelivery, withDeliveryLock } from "./delivery-store.mjs";
+import { parseWorktreePorcelain } from "./worktree-isolation.mjs";
+
+const reviewBranch = "integration/hehehe-review";
+
+function resolveCommit(project, ref) {
+  return git(project, ["rev-parse", "--verify", "--end-of-options", `${ref}^{commit}`]).trim();
+}
+
+function targetHead(project, target) {
+  git(project, ["check-ref-format", "--branch", target]);
+  return resolveCommit(project, `refs/heads/${target}`);
+}
+
+function worktrees(project) {
+  return parseWorktreePorcelain(git(project, ["worktree", "list", "--porcelain"]));
+}
+
+function clean(project, allowRuntime = false) {
+  const runtime = (file) => file === ".hehehe/current.json" || file === ".hehehe/run-state.lock"
+    || file === ".hehehe/architecture-profile.json" || file.startsWith(".hehehe/runs/") || file.startsWith(".hehehe/workspaces/");
+  const entries = git(project, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]).split("\0").filter(Boolean);
+  // Rename records include a second path; never silently classify that path as runtime.
+  if (entries.some((entry) => !allowRuntime || !runtime(entry.slice(3)))) {
+    throw new Error(`delivery requires a clean committed workspace: ${project}`);
+  }
+}
+
+function assertReview(repo, state) {
+  safeDirectory(state.review_path);
+  const registered = worktrees(repo.root).find((item) => samePath(item.path, state.review_path));
+  if (!registered || !samePath(repository(state.review_path).common, repo.common)) throw new Error("fixed review worktree is missing or belongs to another repository");
+  if (![state.target, reviewBranch].includes(registered.branch)) throw new Error("review worktree is on an unexpected branch");
+  clean(state.review_path);
+  return registered;
+}
+
+function hasPolicy(project, ref) {
+  try { git(project, ["cat-file", "-e", `${ref}:${policyPath}`], { stdio: ["ignore", "pipe", "pipe"] }); return true; }
+  catch { return false; }
+}
+
+function provisionalContext(project, candidate, targetBase) {
+  if (hasPolicy(project, targetBase)) throw new Error("bootstrap review is only allowed before the target has a verification policy");
+  const text = git(project, ["show", `${candidate}:${policyPath}`]);
+  const policy = validatePolicy(JSON.parse(text));
+  // First-adoption preview runs every proposed check, including conditional ones.
+  return { base: candidate, policy_hash: digest(text), policy, approved_head: null,
+    required: policy.checks.map((check) => check.id).sort(), snapshot: sourceSnapshot(project) };
+}
+
+function contextFor(state) {
+  if (state.verification_mode === "bootstrap_provisional") {
+    return provisionalContext(state.review_path, state.candidate, state.target_base);
+  }
+  return trustedContext(state.review_path, state.verification_base);
+}
+
+function evidenceDirectory(repo, state) {
+  const directory = path.join(repo.store, "evidence", state.request_id);
+  fs.mkdirSync(directory, { recursive: true });
+  safeDirectory(directory);
+  return directory;
+}
+
+function verifyCandidate(repo, state) {
+  assertReview(repo, state);
+  if (resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("review candidate changed; prepare a new approval request");
+  if (targetHead(repo.root, state.target) !== state.target_base) throw new Error("target moved; reintegrate and request approval for the new candidate");
+  const context = contextFor(state);
+  const result = runChecks(state.review_path, state.request_id, context, evidenceDirectory(repo, state));
+  const next = { ...state, status: result.status === "pass" ? "awaiting_approval" : "verification_failed",
+    verification_base: context.base, verified_at: result.finished_at, snapshot: result.snapshot, updated_at: new Date().toISOString() };
+  saveDelivery(repo, next);
+  if (result.status !== "pass") throw new Error(`integrated verification failed; inspect ${evidenceDirectory(repo, state)}`);
+  return next;
+}
+
+export function prepareDelivery(options) {
+  return withDeliveryLock(options.project, (repo) => {
+    const previous = loadDelivery(repo.root).state;
+    const target = options.target ?? previous?.target;
+    const reviewPath = options.reviewPath ? path.resolve(options.reviewPath) : previous?.review_path;
+    if (!target || !reviewPath) throw new Error("first delivery requires --target and --review-path");
+    if (target === reviewBranch) throw new Error("target must differ from the reserved review branch");
+    if (previous && (target !== previous.target || !samePath(reviewPath, previous.review_path))) {
+      throw new Error("review path and target are pinned; do not create another user review location");
+    }
+    if (previous?.status !== "merged" && previous
+      && options.replaceCandidate !== previous.candidate) throw new Error("pending review is frozen; explicit --replace-candidate with its exact SHA is required");
+    const base = targetHead(repo.root, target);
+    safeDirectory(reviewPath);
+    const registered = worktrees(repo.root);
+    const targetCheckout = registered.find((item) => item.branch === target);
+    const relative = path.relative(repo.root, reviewPath);
+    if (!relative.startsWith("..") && !path.isAbsolute(relative)
+      && !(samePath(reviewPath, repo.root) && targetCheckout && samePath(targetCheckout.path, reviewPath))) {
+      throw new Error("review worktree must be outside the source checkout, or its existing target checkout");
+    }
+    if (targetCheckout && !samePath(targetCheckout.path, reviewPath)) {
+      throw new Error(`target is checked out elsewhere; use its path as the one review location: ${targetCheckout.path}`);
+    }
+    if (previous) assertReview(repo, previous);
+    if (!previous) {
+      const occupied = worktrees(repo.root).find((item) => item.branch === reviewBranch);
+      if (occupied) throw new Error("reserved review branch is already owned by another checkout");
+      try {
+        git(repo.root, ["show-ref", "--verify", `refs/heads/${reviewBranch}`]);
+        throw new Error("reserved review branch already exists without delivery ownership");
+      } catch (error) {
+        if (error.message === "reserved review branch already exists without delivery ownership") throw error;
+      }
+    }
+    const sources = options.sources ?? [];
+    if (!sources.length) throw new Error("at least one committed --source is required");
+    const commits = [...new Set(sources.map((ref) => resolveCommit(repo.root, ref)))];
+    for (const commit of commits) {
+      for (const tree of registered.filter((item) => item.head === commit)) clean(tree.path, true);
+    }
+    if (options.bootstrapReview && hasPolicy(repo.root, base)) throw new Error("bootstrap cannot bypass an established target policy");
+    if (!options.bootstrapReview && !process.env.HEHEHE_VERIFICATION_BASE) throw new Error("trusted baseline required; no automatic bootstrap fallback");
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "hehehe-integration-"));
+    const staging = path.join(scratch, "checkout");
+    let stagingCreated = false;
+    let candidate;
+    try {
+      git(repo.root, ["worktree", "add", "--detach", staging, base]);
+      stagingCreated = true;
+      for (const commit of commits) {
+        try { git(staging, ["merge", "--no-edit", commit]); }
+        catch (error) {
+          try { git(staging, ["merge", "--abort"]); } catch { /* No merge may have started. */ }
+          throw new Error(`source integration failed; main and review were not changed: ${error.message}`);
+        }
+      }
+      clean(staging);
+      candidate = resolveCommit(staging, "HEAD");
+      if (candidate === base) throw new Error("no new integrated changes to review");
+    } finally {
+      if (stagingCreated) git(repo.root, ["worktree", "remove", staging]);
+      fs.rmdirSync(scratch);
+    }
+    const atPath = registered.find((item) => samePath(item.path, reviewPath));
+    if (!atPath) {
+      if (fs.existsSync(reviewPath)) throw new Error("review path already exists and is not a registered worktree");
+      git(repo.root, ["worktree", "add", "-b", reviewBranch, reviewPath, candidate]);
+    } else {
+      const allowed = previous ? [target, reviewBranch] : [target];
+      if (!allowed.includes(atPath.branch)) throw new Error("refusing to replace an unrelated checkout");
+      clean(reviewPath);
+      const oldReview = previous ? resolveCommit(repo.root, `refs/heads/${reviewBranch}`) : null;
+      if (previous && oldReview !== previous.candidate) throw new Error("review branch moved outside the delivery lifecycle");
+      git(reviewPath, ["switch", "--detach", candidate]);
+      git(repo.root, ["update-ref", `refs/heads/${reviewBranch}`, candidate, oldReview ?? "0".repeat(40)]);
+      git(reviewPath, ["switch", reviewBranch]);
+    }
+    const state = { schema_version: 1, status: "integrated", target, target_base: base,
+      review_path: reviewPath, review_branch: reviewBranch, candidate, source_commits: commits,
+      request_id: `delivery-${crypto.randomBytes(12).toString("hex")}`,
+      verification_mode: options.bootstrapReview ? "bootstrap_provisional" : "trusted",
+      verification_base: process.env.HEHEHE_VERIFICATION_BASE ?? null, updated_at: new Date().toISOString() };
+    saveDelivery(repo, state);
+    return verifyCandidate(repo, state);
+  });
+}
+
+export function verifyDelivery(project) {
+  return withDeliveryLock(project, (repo) => {
+    const state = loadDelivery(project).state;
+    if (!state || state.status === "merged") throw new Error("no pending delivery to verify");
+    return verifyCandidate(repo, state);
+  });
+}
+
+export function mergeDelivery(project) {
+  return withDeliveryLock(project, (repo) => {
+    const state = loadDelivery(project).state;
+    if (!state || state.status !== "awaiting_approval") throw new Error("only a verified approval request can merge");
+    if (process.env.HEHEHE_DELIVERY_APPROVED_HEAD !== state.candidate
+      || process.env.HEHEHE_DELIVERY_APPROVED_TARGET !== state.target_base
+      || process.env.HEHEHE_DELIVERY_APPROVAL_ID !== state.request_id) {
+      throw new Error("external user approval must match the exact candidate, target HEAD and request ID");
+    }
+    assertReview(repo, state);
+    if (targetHead(repo.root, state.target) !== state.target_base) throw new Error("target moved since approval; reintegration and new approval required");
+    if (resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("approved candidate changed");
+    const context = contextFor(state);
+    assertVerified(state.review_path, state.request_id, context, evidenceDirectory(repo, state));
+    if (state.verification_mode === "bootstrap_provisional") {
+      if (process.env.HEHEHE_DELIVERY_BOOTSTRAP_APPROVED !== state.request_id) {
+        throw new Error("initial verification baseline needs explicit external bootstrap approval");
+      }
+      // Only an actual caller approval permits the proposed baseline to become authoritative.
+      const saved = process.env.HEHEHE_VERIFICATION_BASE;
+      try {
+        process.env.HEHEHE_VERIFICATION_BASE = state.candidate;
+        const approvedContext = trustedContext(state.review_path, state.candidate);
+        const approvedId = `${state.request_id}-approved`;
+        const checked = runChecks(state.review_path, approvedId, approvedContext, evidenceDirectory(repo, state));
+        if (checked.status !== "pass") throw new Error("approved initial baseline verification failed");
+        assertVerified(state.review_path, approvedId, approvedContext, evidenceDirectory(repo, state));
+      } finally {
+        if (saved === undefined) delete process.env.HEHEHE_VERIFICATION_BASE;
+        else process.env.HEHEHE_VERIFICATION_BASE = saved;
+      }
+    }
+    // Recheck immediately before mutation. Target advancement is a compare-and-swap fast-forward.
+    assertReview(repo, state);
+    if (resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("candidate changed during merge validation");
+    git(repo.root, ["merge-base", "--is-ancestor", state.target_base, state.candidate]);
+    const targetCheckout = worktrees(repo.root).find((item) => item.branch === state.target);
+    if (targetCheckout && !samePath(targetCheckout.path, state.review_path)) throw new Error("target was checked out elsewhere during review");
+    git(repo.root, ["update-ref", `refs/heads/${state.target}`, state.candidate, state.target_base]);
+    let next = { ...state, status: "main_updated_checkout_pending", approved_candidate: state.candidate,
+      merged_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    saveDelivery(repo, next);
+    git(state.review_path, ["switch", state.target]);
+    clean(state.review_path);
+    if (resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("post-merge checkout verification failed");
+    next = { ...next, status: "merged", main_head: state.candidate };
+    saveDelivery(repo, next);
+    return next;
+  });
+}
+
+export function finishDelivery(project) {
+  return withDeliveryLock(project, (repo) => {
+    const state = loadDelivery(project).state;
+    if (!state || state.status !== "main_updated_checkout_pending") throw new Error("no interrupted approved checkout to finish");
+    assertReview(repo, state);
+    if (targetHead(repo.root, state.target) !== state.candidate
+      || resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("interrupted merge identities changed; manual reconciliation required");
+    const elsewhere = worktrees(repo.root).find((item) => item.branch === state.target && !samePath(item.path, state.review_path));
+    if (elsewhere) throw new Error("target is checked out elsewhere; refusing to displace it");
+    git(state.review_path, ["switch", state.target]);
+    clean(state.review_path);
+    const next = { ...state, status: "merged", main_head: state.candidate, updated_at: new Date().toISOString() };
+    saveDelivery(repo, next);
+    return next;
+  });
+}
+
+export function deliveryStatus(project) {
+  return loadDelivery(project).state ?? { status: "unconfigured" };
+}
+
+function parse(argv) {
+  const command = argv[0];
+  const options = { project: process.cwd(), sources: [] };
+  const flags = { "--project": "project", "--target": "target", "--review-path": "reviewPath", "--replace-candidate": "replaceCandidate" };
+  for (let i = 1; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === "--json") continue;
+    if (arg === "--bootstrap-review") { options.bootstrapReview = true; continue; }
+    if (arg === "--source" || flags[arg]) {
+      const value = argv[++i];
+      if (!value || value.startsWith("--")) throw new Error(`${arg} requires a value`);
+      if (arg === "--source") options.sources.push(value);
+      else options[flags[arg]] = value;
+    } else throw new Error(`unsupported delivery option: ${arg}`);
+  }
+  if (command !== "prepare" && (options.sources.length || options.target || options.reviewPath || options.replaceCandidate || options.bootstrapReview)) {
+    throw new Error("prepare options cannot be used to bypass merge approval");
+  }
+  return { command, options };
+}
+
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  try {
+    const { command, options } = parse(process.argv.slice(2));
+    let result;
+    if (command === "prepare") result = prepareDelivery(options);
+    else if (command === "verify") result = verifyDelivery(options.project);
+    else if (command === "merge") result = mergeDelivery(options.project);
+    else if (command === "finish") result = finishDelivery(options.project);
+    else if (command === "status") result = deliveryStatus(options.project);
+    else throw new Error("Usage: delivery.mjs <prepare|verify|status|merge|finish> --project <root> [prepare options]");
+    process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+  } catch (error) {
+    process.stderr.write(`delivery: ${error.message}\n`);
+    process.exitCode = 2;
+  }
+}

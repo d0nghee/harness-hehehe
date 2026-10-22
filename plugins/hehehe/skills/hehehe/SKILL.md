@@ -60,6 +60,8 @@ Use `hehehe:maintain-codebase` for proactive periodic drift checks, evidence-bac
 
 Use `hehehe:pr-loop` when an existing pull request must absorb review feedback or CI fixes. It may update or merge only the exact PR and head SHA within current user and committed repository-policy authority.
 
+When the user requests integrated local delivery, or its repository workflow is already enabled, use `hehehe:resume`'s integration-delivery lifecycle. The lead consolidates worker/task commits, verifies one fixed review checkout and reports the frozen candidate as `awaiting_approval`. After the user approves the exact candidate and target base, finish local main delivery and verify that same directory on main. Do not leave the user to test or merge individual worker worktrees. Local main delivery does not authorize remote push, release or deployment.
+
 Use `hehehe:resume` before new non-trivial code work. Task identity owns one stable branch, registered worktree, runtime identity, and matching run; a date may label the directory but never creates a new identity for resumed work. Keep dirty source changes in place unless the user separately authorizes a preservation strategy.
 
 ## Pipeline
@@ -183,6 +185,8 @@ End with a concise final response:
 For non-trivial application work, run the applicable backend or frontend completion gate and record both the project profile result and the shared architecture-metrics coupling report in `checks.md`. Record the selected `observability` mode and runtime evidence for affected workflows. For maintained repositories, also record the final `repository-knowledge` freshness result. For maintenance or PR work, record the selected target, authority boundary, exact PR head SHA, and terminal `PASS`, `READY`, `MERGED`, or `BLOCKED` state as applicable.
 
 Mark run state complete only after required evidence passes. Use `hehehe:resume` to continue an interrupted active run and `hehehe:doctor` to diagnose plugin or project setup problems.
+
+Use the operator/CI-pinned verification policy through `hehehe:resume` `verify` and `complete`. AI-authored success criteria and Markdown pass claims cannot authorize completion. Never relax required checks or existing protected verification inputs to pass a task; policy changes require an independently reviewed baseline. Missing, failed, skipped, expired or source-stale verification blocks completion.
 
 Do not over-report internal pipeline files unless the user asks for them.
 

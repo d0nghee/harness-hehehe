@@ -167,3 +167,18 @@ plugins/hehehe/templates/implementation-spec.md
 - Claude 결과는 조언이며, Codex가 코드와 테스트로 다시 확인합니다.
 - 구현, 수정, 최종 판단은 Codex가 맡습니다.
 - 작은 작업은 Claude를 호출하지 않고 Codex만으로 처리할 수 있습니다.
+
+## 완료 게이트와 검증 정책
+
+통합 전달을 요청했거나 저장소에 설정한 경우에는 메인 에이전트가 변경을 합치고 `resume`의 `delivery.mjs prepare`로 고정된 확인 경로에서 전체 검증합니다. `awaiting_approval`은 main 반영 전이며, 사용자 승인 후 정확한 후보·main·요청 ID를 대조해 `merge`하고 같은 폴더가 main인지 확인합니다. 서브에이전트별 테스트나 병합을 사용자에게 떠넘기지 않습니다. 설정·첫 도입·복구는 [통합 전달 안내](plugins/hehehe/skills/resume/references/integration-delivery.md)를 참고하세요.
+
+`hehehe:resume`의 `verify`는 사람이 검토한 커밋의 `.hehehe/verification-policy.json`에서 필수 검사를 읽습니다. 외부 실행 환경에서 `HEHEHE_VERIFICATION_BASE`에 해당 커밋의 전체 SHA를 지정해야 합니다. AI가 작성한 완료 기준이나 `PASS` 문구는 승인 근거가 아닙니다.
+
+```text
+node <resume>/scripts/run-state.mjs verify --project <repository-root> --json
+node <resume>/scripts/run-state.mjs complete --project <repository-root> --json
+```
+
+검사 실패·미실행·시간 초과·허용되지 않은 건너뛰기·증거 누락·유효기간 경과·검사 후 코드나 HEAD 변경은 완료를 차단합니다. 기존 필수 테스트와 실행 설정을 바꿔야 한다면 독립적인 검토가 필요합니다. 관리자가 정확히 검토한 커밋을 외부 `HEHEHE_VERIFICATION_APPROVED_HEAD`로 지정할 수 있지만, 그 실행도 기존 기준 커밋의 필수 검사를 사용합니다.
+
+최초 도입과 정책 변경 승인, CI 필수 검사 설정은 [검증 정책 안내](plugins/hehehe/skills/resume/references/verification-policy.md)를 따르세요. 신뢰 기준이 없는 구버전 실행에는 자동 완료 예외를 주지 않습니다. 로컬 무결성 검사는 같은 계정의 무제한 파일 접근까지 통제하지 못하므로 중요한 병합 조건은 CI 및 저장소 보호 규칙으로 강제해야 합니다.

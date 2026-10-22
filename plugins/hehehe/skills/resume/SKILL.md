@@ -11,8 +11,12 @@ Resolve both scripts relative to this `SKILL.md`:
 
 - `scripts/worktree-isolation.mjs`: read-only planning/status and safe task-worktree creation
 - `scripts/run-state.mjs`: the only writer for `.hehehe/current.json` and run `state.json`
+- `scripts/verification-policy.mjs` and `scripts/verification-runner.mjs`: trusted policy selection, protected inputs, deterministic execution and completion evidence
+- `scripts/delivery.mjs`: one fixed integrated review checkout, verification, exact user approval and local main delivery
 
 Read [references/isolation-policy.md](references/isolation-policy.md) before creating or retiring a worktree.
+Read [references/verification-policy.md](references/verification-policy.md) before verification or completion. The operator/CI must supply a reviewed `HEHEHE_VERIFICATION_BASE`; never select a weaker base, approve a policy change yourself, or substitute a handwritten pass report.
+Read [references/integration-delivery.md](references/integration-delivery.md) for requested/configured integrated delivery. The lead prepares one frozen, tested candidate and one stable review path; main is updated only after the user approves that exact result.
 
 ## Modes
 
@@ -23,6 +27,7 @@ Infer the first explicit mode; use `auto` when none is supplied.
 - `resume`: confirm task/workspace identity and continue from the recorded next step.
 - `status`: report Git/worktree/runtime identity plus active run state without mutation.
 - `advance`: record a verified phase transition or actionable blocker.
+- `verify`: run every policy-required check and generate code-bound evidence; failed, missing, skipped, expired, or stale evidence cannot authorize completion.
 - `complete`: complete the run only after required evidence passes; preserve its worktree.
 - `retire`: after explicit user intent, verify clean and integrated state before removing a worktree; never delete its branch automatically.
 
@@ -48,9 +53,13 @@ node scripts/run-state.mjs advance --project <selected-worktree> --phase blocked
 node scripts/run-state.mjs complete --project <selected-worktree>
 ```
 
+Before `complete`, run `node scripts/run-state.mjs verify --project <selected-worktree> --json`. Required checks come from the externally pinned baseline, never from AI-authored done criteria. Existing protected tests, commands, policy and gate changes require a separately reviewed baseline update. Keep proposals in the diff and report the blocked completion; do not weaken checks to make it green.
+
+Allowed phases are `intake`, `plan`, `architecture`, `build`, `verify`, `review`, `cleanup`, `docs`, `preflight`, and `blocked`; blocked phase and status must agree. Resolve a blocker before returning to an active phase. No force-complete or legacy exemption is available.
+
 Optional workspace overrides are `--branch`, `--path`, `--date YYYYMMDD`, `--port-base`, and `--port-span`. `create` requires `--allow-dirty-source` when the source worktree is dirty. Supply it only after verifying those changes are unrelated and recording that they will be excluded.
 
-The scripts do not commit, stash, patch, merge, push, start services, create databases, remove worktrees, or delete branches.
+Workspace-isolation and run-state scripts do not commit, stash, patch, merge, push, start services, create databases, remove worktrees, or delete branches. The separate delivery script explicitly integrates committed sources, owns its disposable staging checkout, and updates the local target only under exact user approval. It never pushes or retires task worktrees.
 
 ## Workspace Decision
 
@@ -80,6 +89,8 @@ Never create another date-labelled worktree when the task branch is already regi
 9. Complete only when required evidence passes. Preserve the workspace for review, commit, merge, or an explicit retirement request.
 
 For `hehehe:subagent-resolve`, select one task worktree before spawning agents. Agents share it unless the user explicitly requests a separate multi-branch integration strategy.
+
+When integrated delivery is requested or already configured, the lead must commit only inspected in-scope changes, run `delivery.mjs prepare`, and hand off its fixed review path, candidate, verification and approval request. Do not stop at scattered worktrees or a patch export. A pending candidate stays frozen. After the user's approval, refresh expired evidence if needed, run the approval-bound merge, and verify that the same directory is clean on the target branch before reporting main delivery. Never infer approval from a previous candidate, passing tests or this workflow being enabled.
 
 ## Retirement Gate
 

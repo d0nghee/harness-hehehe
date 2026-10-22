@@ -9,6 +9,8 @@ Use this for implementation or resolution work with multiple independent workstr
 
 Codex remains the lead engineer and owns task partitioning, the critical path, integration, verification, and the final result.
 
+For integrated delivery, the lead also owns the handoff and approval-bound main update through `hehehe:resume`'s `delivery.mjs`. Workers do not hand separate review worktrees to the user. Use the one repository-pinned review path, test the integrated candidate there, freeze it for user review, and update main only after exact user approval. Preserve source task workspaces; never label a worker's passing tests as integrated readiness or a review candidate as already merged.
+
 ## Preconditions
 
 1. Read the applicable `AGENTS.md` files and preserve existing user changes.

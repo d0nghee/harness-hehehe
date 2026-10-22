@@ -16,9 +16,11 @@ It connects everything from shaping an idea through implementation, browser test
 - **Backend data policy**: Prefer ORM writes and Core/bound SQL for complex reads while treating established Go SQL layers as first-class
 - **Zero-install observability baseline**: Reuse browser, application, and test output while verifying backend error codes, structured logs, and `request_id` correlation
 - **Task-scoped isolation**: Reuse or create task branches and Git worktrees with separate port, log, Compose, and development-database identities
+- **One review location and approval-bound main delivery**: The lead integrates and verifies changes in a fixed checkout, then switches that same location to main only after exact user approval
 - **Parallel resolution with subagents**: Distribute independent tasks to Codex subagents, then have the lead Codex agent integrate and verify their work
 - **Real browser testing**: Use the in-app browser to click, type, check network and console errors, and inspect responsive layouts
 - **Run-state recovery**: Preserve progress in `.hehehe/runs/` and resume from the point of interruption
+- **Completion gate**: Execute a reviewed commit's mandatory checks and block completion for failed, missing, expired, or source-stale evidence
 - **Repository knowledge system**: Automatically initialize, synchronize, and verify a short `AGENTS.md`, indexed project docs, architecture maps, and source fingerprints
 - **Drift and garbage collection**: Periodically audit churn, size, and structural drift, prove deletion candidates, and prepare one focused maintenance change or PR
 - **Autonomous CI and PR loop**: Reconcile review feedback and CI failures against the exact PR head SHA until the authorized ready or merged state
@@ -52,6 +54,8 @@ After installation, restart Codex or start a new thread, then invoke a skill.
 ```text
 $hehehe:full-resolve Implement and validate a user profile editing feature
 ```
+
+Installation does not approve verification criteria. Before a run can complete, a project maintainer must establish the initial baseline described under [Trusted Completion Gate](#trusted-completion-gate).
 
 ## Installation Scope
 
@@ -130,6 +134,65 @@ $hehehe:resume Resume an interrupted task workspace and hehehe run
 
 `doctor` reports `PASS`, `DEGRADED`, or `BLOCKED` with supporting evidence without modifying files. `resume` reconciles the task branch, worktree, local runtime identity, and saved run goal, then continues from the next step.
 
+## Trusted Completion Gate
+
+AI-authored acceptance criteria and handwritten `PASS` reports cannot authorize completion. The `resume` `verify` command reads mandatory checks, changed-path rules, protected inputs, and result expiry from a reviewed commit's `.hehehe/verification-policy.json`. The `complete` command validates actual execution evidence.
+
+### Establish the Initial Baseline
+
+1. A project maintainer reviews the policy, tests, commands, and CI tools and establishes a baseline commit.
+2. A trusted launcher supplies that commit's full SHA as `HEHEHE_VERIFICATION_BASE`. Do not let the implementation agent approve its working `HEAD` or substitute a different baseline.
+3. Changes to the policy or existing protected verification inputs require independent review. A maintainer may supply the exact reviewed commit as `HEHEHE_VERIFICATION_APPROVED_HEAD`; that run still executes the old baseline's mandatory checks.
+
+For a project installation, use the following commands with the environment supplied by that trusted launcher:
+
+```text
+node .agents/skills/hehehe-resume/scripts/run-state.mjs init --project . --goal "Task goal"
+node .agents/skills/hehehe-resume/scripts/run-state.mjs verify --project . --json
+node .agents/skills/hehehe-resume/scripts/run-state.mjs complete --project . --json
+```
+
+Resume an existing active run rather than initializing another one. For a global installation, use `<Plugin target>/skills/resume/scripts/run-state.mjs`.
+
+| Condition | Completion decision |
+|---|---|
+| All mandatory checks pass with valid evidence for the current source, HEAD, and policy | Allowed |
+| Failed or unexecuted checks, timeout, or disallowed skipped tests | Blocked |
+| Source or HEAD changed after verification, or the receipt expired | Blocked until reverified |
+| Missing logs, modified receipts, unapproved weaker criteria, or unresolved `blocked` state | Blocked |
+
+### CI and First Adoption
+
+This repository's `.github/workflows/verification.yml` loads the verifier from the PR base commit and tests the exact PR head. A maintainer must require `completion-gate` through repository protections and protect policy/workflow changes. Local completion and remote CI success are separate decisions.
+
+If the old base has no policy or verifier, the new CI job fails too. A maintainer must review and establish the initial baseline through the repository's authorized adoption process; there is no initial-PR self-approval exception. Other projects need CI integration appropriate to their own repository.
+
+Local integrity checks do not isolate a process with unrestricted same-account filesystem and environment access. Enforce important merge conditions through trusted execution and platform protections outside the implementation agent's control. See the [verification policy reference](plugins/hehehe/skills/resume/references/verification-policy.md) for the schema, approval scope, and operating procedures.
+
+## Integration, User Review, and Main Delivery
+
+When the user requests integrated delivery or enables it for the repository, the lead agent owns worker integration, conflict resolution and aggregate verification. Subagents on one task share its task worktree by default. Even when independent branches are used, the user reviews one integrated result rather than testing each worker checkout.
+
+```text
+Task/worker implementation -> integration -> verification in one fixed review checkout
+                          -> user approval -> approved candidate delivered to local main
+```
+
+The first delivery pins the review path and target branch for the repository. A pending candidate is frozen; requested revisions produce a newly verified candidate and approval request. After approval, that same directory checks out main, so the user does not need to switch folders.
+
+For a project installation, the lead runs these commands after reviewing and committing in-scope task changes:
+
+```text
+node .agents/skills/hehehe-resume/scripts/delivery.mjs prepare --project . --target main --review-path <fixed-review-directory> --source <task-branch> --json
+node .agents/skills/hehehe-resume/scripts/delivery.mjs status --project . --json
+```
+
+Subsequent preparations reuse the pinned path and target. Repeat `--source` for multiple independent branches. `prepare` never advances main. Only first adoption without a target policy may use `--bootstrap-review` to test proposed checks and publish a provisional review candidate; this does not approve its verification baseline.
+
+At `awaiting_approval`, the lead provides the fixed path, candidate SHA, target main SHA, unique approval request ID and check evidence. Only after the user approves that candidate may a trusted launcher supply the exact approval identities and invoke `delivery.mjs merge`. Initial verification-policy adoption also requires approval of the policy itself.
+
+Changed main/candidate identities or stale evidence block merge. Success requires `merged`, the actual main SHA and a clean checkout of main in that same review directory. Remote push, npm publication and task worktree removal require separate authority. See the [integration-delivery reference](plugins/hehehe/skills/resume/references/integration-delivery.md) for commands and recovery.
+
 ## CLI Commands
 
 ```text
@@ -193,13 +256,18 @@ Other plugins in the existing marketplace are preserved; only the `hehehe` entry
 Long-running workflows can store their state and validation results in the project's `.hehehe/` directory.
 
 ```text
-.hehehe/done-criteria.md
 .hehehe/implementation-spec.md
-.hehehe/checks.md
-.hehehe/final-report.md
+.hehehe/verification-policy.json
 .hehehe/current.json
 .hehehe/runs/<run-id>/state.json
+.hehehe/runs/<run-id>/done-criteria.md
+.hehehe/runs/<run-id>/checks.md
+.hehehe/runs/<run-id>/verification.json
+.hehehe/runs/<run-id>/verification-<check-id>.log
+.hehehe/runs/<run-id>/final-report.md
 ```
+
+Preserve legacy singleton `.hehehe/done-criteria.md`, `checks.md`, and `final-report.md` as history. The run's `verification.json` is an inspection copy; authoritative integrity receipts are stored separately in the Git common directory.
 
 ## Language Settings
 
@@ -235,6 +303,10 @@ $hehehe:doctor Diagnose the current installation and project state
 - Current project only: `--project .`
 - Specified project only: `--project <path>`
 
+### Completion Is Blocked
+
+Inspect the `verify` error and the run's `verification-<check-id>.log`. Fix failed checks or rerun stale verification. Missing initial trust and protected-criteria changes require maintainer review; deleting or skipping checks or writing a manual `PASS` does not resolve them.
+
 ## Development and Validation
 
 ```bash
@@ -249,6 +321,9 @@ Repository structure:
 hehehe/
   bin/hehehe.mjs
   lib/installer.mjs
+  scripts/check-syntax.mjs
+  .hehehe/verification-policy.json
+  .github/workflows/verification.yml
   plugins/hehehe/
     .codex-plugin/plugin.json
     skills/
