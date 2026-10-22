@@ -11,6 +11,7 @@ This index contains durable information for analyzing and maintaining the hehehe
 - [Korean README](../README.md)
 - [English README](../README.en.md)
 - [Skill and workflow usage](../USAGE.md)
+- [Version history](../CHANGELOG.md) and [published release notes](https://github.com/d0nghee/harness-hehehe/releases)
 - [Trusted completion verification](../plugins/hehehe/skills/resume/references/verification-policy.md)
 - [One review location and approval-bound main delivery](../plugins/hehehe/skills/resume/references/integration-delivery.md)
 

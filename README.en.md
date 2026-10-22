@@ -281,3 +281,7 @@ To apply the same rule to general Codex conversations, add the following to your
 - Reason internally in English.
 - Always write the final response to the user in Korean.
 ```
+
+## Release Notes
+
+**Latest version v0.3.14** · [Browse releases](https://github.com/d0nghee/harness-hehehe/releases) · [Full changelog (Korean)](CHANGELOG.md)

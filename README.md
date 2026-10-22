@@ -281,3 +281,7 @@ hehehe 스킬은 내부적으로 영어로 추론하고 사용자에게 보내�
 - Reason internally in English.
 - Always write the final response to the user in Korean.
 ```
+
+## 업데이트 내역
+
+**최신 버전 v0.3.14** · [버전별 업데이트 보기](https://github.com/d0nghee/harness-hehehe/releases) · [전체 변경 기록](CHANGELOG.md)

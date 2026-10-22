@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-22T06:32:48.873Z",
+  "updated_at": "2026-10-22T08:50:38.872Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -40,13 +40,14 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-22T06:32:48.871Z",
-      "source_fingerprint": "09a795cc25a4da26d661a4b8ceccf4e54bbd6522132438cdf582ba5da04c3265"
+      "last_verified": "2026-10-22T08:50:38.776Z",
+      "source_fingerprint": "91c2c79a8e8cb119865dc844a515eba4fd29de3b1399dbbf062488da8fede207"
     },
     {
       "path": "docs/README.md",
       "kind": "index",
       "source_paths": [
+        "CHANGELOG.md",
         "README.en.md",
         "README.md",
         "USAGE.md",
@@ -54,8 +55,8 @@
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-22T05:56:07.500Z",
-      "source_fingerprint": "283b9a83edde18d733ee4f516ec29dfff603218e1c11ba82a449604856d48e58"
+      "last_verified": "2026-10-22T08:50:38.870Z",
+      "source_fingerprint": "52c8dc60e322dcd2ea5865a2121a8dfc7aa4a48db5ceda033856bb2b928c8739"
     }
   ]
 }

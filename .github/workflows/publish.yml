@@ -20,4 +20,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
       - run: npm run validate
-      - run: npm publish
+      - name: Check whether this version needs publication
+        id: version
+        run: node scripts/publish-status.mjs
+      - name: Publish new version
+        if: steps.version.outputs.publish == 'true'
+        run: npm publish
