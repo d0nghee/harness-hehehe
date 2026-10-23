@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-23T02:46:54.142Z",
+  "updated_at": "2026-10-23T08:00:24.109Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -44,8 +44,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-23T02:46:54.087Z",
-      "source_fingerprint": "916e6b97106685071deb1f6beabadc54f32b7d278a73210cb4767639c37f6174"
+      "last_verified": "2026-10-23T08:00:24.052Z",
+      "source_fingerprint": "f1dc9d68f355efe06172f19f1593195760cd713f80fba099ab3958b68c9dd238"
     },
     {
       "path": "docs/README.md",
@@ -60,8 +60,8 @@
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-23T02:46:54.126Z",
-      "source_fingerprint": "ae5c1b67d51bf6f479b89719eb03c299fa93b0eaf55dc474b07a47fce39550ba"
+      "last_verified": "2026-10-23T08:00:24.095Z",
+      "source_fingerprint": "31e34c727bb2dcfd0b6e5d28bb9a2b917faa0ed5f49fa9d134a5c214bb6bd8a8"
     },
     {
       "path": "docs/runbooks/solo-owner-delivery.md",
@@ -74,8 +74,8 @@
         "plugins/hehehe/skills/resume/scripts",
         "scripts/repository-protection.mjs"
       ],
-      "last_verified": "2026-10-23T02:46:54.142Z",
-      "source_fingerprint": "bb27e19935f8e98a2c8f99a859cc96ee2b06b31618eb9f8537c66ee2383e4572"
+      "last_verified": "2026-10-23T08:00:24.109Z",
+      "source_fingerprint": "e05604ab77d8d418c9a67373cb878bfae26c5a562d24557dee4ff4c80fa8a4b1"
     }
   ]
 }

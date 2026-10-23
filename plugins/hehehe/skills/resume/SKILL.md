@@ -93,6 +93,8 @@ For `hehehe:subagent-resolve`, select one task worktree before spawning agents. 
 
 When integrated delivery is requested or already configured, the lead must commit only inspected in-scope changes, run `delivery.mjs prepare`, and hand off its fixed review path, candidate, verification and approval request. Do not stop at scattered worktrees or a patch export. A pending candidate stays frozen. After the user's approval, refresh expired evidence if needed, run the approval-bound merge, and verify that the same directory is clean on the target branch before reporting main delivery. Never infer approval from a previous candidate, passing tests or this workflow being enabled.
 
+If candidate publication stops in `preparing`, repeat the same `prepare` or run `finish` to recover the exact recorded candidate/request before verification. Recovery never replaces dirty user content, accepts moved sources/main, grants approval or moves main. Resolve a dead-process mutation lock explicitly before retrying; do not steal it.
+
 ## Retirement Gate
 
 Never retire automatically. When the user explicitly requests it:

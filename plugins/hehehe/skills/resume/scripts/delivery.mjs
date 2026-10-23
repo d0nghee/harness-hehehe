@@ -94,6 +94,56 @@ function verifyCandidate(repo, state) {
   return next;
 }
 
+function currentReviewHead(project) {
+  const ref = `refs/heads/${reviewBranch}`;
+  const rows = git(project, ["for-each-ref", "--format=%(refname) %(objectname)", ref]).trim().split(/\r?\n/);
+  return rows.find((row) => row.startsWith(`${ref} `))?.slice(ref.length + 1) ?? null;
+}
+
+function finishPreparation(repo, state) {
+  const preparation = state.preparation;
+  const validateTarget = () => {
+    if (targetHead(repo.root, state.target) !== state.target_base) throw new Error("target moved during preparation; reconcile before recovering this candidate");
+  };
+  validateTarget();
+  safeDirectory(state.review_path);
+  const registered = worktrees(repo.root);
+  if (registered.some((item) => [state.target, reviewBranch].includes(item.branch) && !samePath(item.path, state.review_path))) {
+    throw new Error("preparation branch is checked out elsewhere; refusing to displace it");
+  }
+  let oldReview = currentReviewHead(repo.root);
+  if (![preparation.previous_review, state.candidate].includes(oldReview)) throw new Error("review ref changed outside the recorded preparation");
+  let tree = registered.find((item) => samePath(item.path, state.review_path));
+  if (!tree) {
+    if (preparation.review_existed || fs.existsSync(state.review_path)) throw new Error("recorded review checkout is missing or occupied; inspect it before recovery");
+    git(repo.root, ["worktree", "add", "--detach", state.review_path, state.candidate]);
+    tree = worktrees(repo.root).find((item) => samePath(item.path, state.review_path));
+  }
+  safeDirectory(state.review_path);
+  if (!tree || tree.locked || !samePath(repository(state.review_path).common, repo.common)) throw new Error("preparation review worktree is missing, locked or belongs to another repository");
+  if (![null, preparation.initial_branch, reviewBranch].includes(tree.branch)
+    || ![preparation.initial_head, state.candidate].includes(resolveCommit(state.review_path, "HEAD"))) {
+    throw new Error("review checkout changed outside the recorded preparation");
+  }
+  clean(state.review_path);
+  validateTarget();
+  if (tree.branch !== null) git(state.review_path, ["switch", "--detach", state.candidate]);
+  else if (resolveCommit(state.review_path, "HEAD") !== state.candidate) git(state.review_path, ["switch", "--detach", state.candidate]);
+  // Both Git mutations are replayable: intent is already durable, and ref
+  // advancement uses the recorded old identity rather than an unchecked reset.
+  oldReview = currentReviewHead(repo.root);
+  if (![preparation.previous_review, state.candidate].includes(oldReview)) throw new Error("review ref changed outside the recorded preparation");
+  if (oldReview !== state.candidate) git(repo.root, ["update-ref", `refs/heads/${reviewBranch}`, state.candidate, oldReview ?? "0".repeat(40)]);
+  git(state.review_path, ["switch", reviewBranch]);
+  assertReview(repo, state);
+  validateTarget();
+  if (resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("prepared review candidate changed");
+  const next = { ...state, status: "integrated", updated_at: new Date().toISOString() };
+  delete next.preparation;
+  saveDelivery(repo, next);
+  return verifyCandidate(repo, next);
+}
+
 export function prepareDelivery(options) {
   return withDeliveryLock(options.project, (repo) => {
     const previous = loadDelivery(repo.root).state;
@@ -103,6 +153,15 @@ export function prepareDelivery(options) {
     if (target === reviewBranch) throw new Error("target must differ from the reserved review branch");
     if (previous && (target !== previous.target || !samePath(reviewPath, previous.review_path))) {
       throw new Error("review path and target are pinned; do not create another user review location");
+    }
+    if (previous?.status === "preparing") {
+      const requested = [...new Set((options.sources ?? []).map((ref) => resolveCommit(repo.root, ref)))];
+      if (requested.length && JSON.stringify(requested) !== JSON.stringify(previous.source_commits)) {
+        throw new Error("interrupted preparation is frozen; finish its recorded sources before requesting another candidate");
+      }
+      if (options.bootstrapReview && previous.verification_mode !== "bootstrap_provisional") throw new Error("bootstrap cannot replace a trusted preparation");
+      if (options.replaceCandidate && options.replaceCandidate !== previous.preparation.previous_review) throw new Error("replacement identity differs from the recorded preparation");
+      return finishPreparation(repo, previous);
     }
     if (previous?.status !== "merged" && previous
       && options.replaceCandidate !== previous.candidate) throw new Error("pending review is frozen; explicit --replace-candidate with its exact SHA is required");
@@ -158,27 +217,26 @@ export function prepareDelivery(options) {
       if (stagingCreated) git(repo.root, ["worktree", "remove", staging]);
       fs.rmdirSync(scratch);
     }
-    const atPath = registered.find((item) => samePath(item.path, reviewPath));
+    const atPath = worktrees(repo.root).find((item) => samePath(item.path, reviewPath));
     if (!atPath) {
       if (fs.existsSync(reviewPath)) throw new Error("review path already exists and is not a registered worktree");
-      git(repo.root, ["worktree", "add", "-b", reviewBranch, reviewPath, candidate]);
     } else {
       const allowed = previous ? [target, reviewBranch] : [target];
       if (!allowed.includes(atPath.branch)) throw new Error("refusing to replace an unrelated checkout");
       clean(reviewPath);
-      const oldReview = previous ? resolveCommit(repo.root, `refs/heads/${reviewBranch}`) : null;
-      if (previous && oldReview !== previous.candidate) throw new Error("review branch moved outside the delivery lifecycle");
-      git(reviewPath, ["switch", "--detach", candidate]);
-      git(repo.root, ["update-ref", `refs/heads/${reviewBranch}`, candidate, oldReview ?? "0".repeat(40)]);
-      git(reviewPath, ["switch", reviewBranch]);
     }
-    const state = { schema_version: 1, status: "integrated", target, target_base: base,
+    const oldReview = currentReviewHead(repo.root);
+    if (oldReview !== (previous?.candidate ?? null)) throw new Error("review branch moved outside the delivery lifecycle");
+    if (targetHead(repo.root, target) !== base) throw new Error("target moved during integration; prepare again");
+    const state = { schema_version: 1, status: "preparing", target, target_base: base,
       review_path: reviewPath, review_branch: reviewBranch, candidate, source_commits: commits,
       request_id: `delivery-${crypto.randomBytes(12).toString("hex")}`,
       verification_mode: options.bootstrapReview ? "bootstrap_provisional" : "trusted",
-      verification_base: process.env.HEHEHE_VERIFICATION_BASE ?? null, updated_at: new Date().toISOString() };
+      verification_base: process.env.HEHEHE_VERIFICATION_BASE ?? null, updated_at: new Date().toISOString(),
+      preparation: { previous_review: oldReview, review_existed: Boolean(atPath),
+        initial_head: atPath ? resolveCommit(reviewPath, "HEAD") : null, initial_branch: atPath?.branch ?? null } };
     saveDelivery(repo, state);
-    return verifyCandidate(repo, state);
+    return finishPreparation(repo, state);
   });
 }
 
@@ -186,6 +244,7 @@ export function verifyDelivery(project) {
   return withDeliveryLock(project, (repo) => {
     const state = loadDelivery(project).state;
     if (!state) throw new Error("no delivery to verify");
+    if (state.status === "preparing") throw new Error("preparation was interrupted; repeat prepare or run finish before verification");
     return verifyCandidate(repo, state);
   });
 }
@@ -247,6 +306,7 @@ export function mergeDelivery(project) {
 export function finishDelivery(project) {
   return withDeliveryLock(project, (repo) => {
     const state = loadDelivery(project).state;
+    if (state?.status === "preparing") return finishPreparation(repo, state);
     if (!state || !["approved_update_pending", "main_updated_checkout_pending"].includes(state.status)) throw new Error("no interrupted approved checkout to finish");
     assertReview(repo, state);
     if (state.approved_candidate !== state.candidate

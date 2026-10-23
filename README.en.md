@@ -248,6 +248,8 @@ npx harness-hehehe@latest install --project .
 
 After updating, restart Codex or start a new thread.
 
+Installer settings JSON is atomically replaced without first removing the original. A failed commit leaves the previous settings intact. If plugin-directory replacement and rollback both fail, the error identifies the preserved backup. A later successful reinstall does not delete that separate backup; inspect the current target before restoring it manually.
+
 ## Uninstalling
 
 ```bash

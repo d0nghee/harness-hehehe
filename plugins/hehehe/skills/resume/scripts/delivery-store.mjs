@@ -34,11 +34,25 @@ export function loadDelivery(project) {
   const state = JSON.parse(fs.readFileSync(file, "utf8"));
   if (state.schema_version !== 1 || typeof state.review_path !== "string" || !path.isAbsolute(state.review_path)
     || typeof state.target !== "string" || state.review_branch !== "integration/hehehe-review"
-    || !["integrated", "awaiting_approval", "verification_failed", "approved_update_pending", "main_updated_checkout_pending", "merged"].includes(state.status)
+    || !["preparing", "integrated", "awaiting_approval", "verification_failed", "approved_update_pending", "main_updated_checkout_pending", "merged"].includes(state.status)
     || !/^[a-f0-9]{40}$/.test(state.candidate) || !/^[a-f0-9]{40}$/.test(state.target_base)
     || !/^delivery-[a-f0-9]{24}$/.test(state.request_id)
     || !["trusted", "bootstrap_provisional"].includes(state.verification_mode)) {
     throw new Error("unsupported delivery state");
+  }
+  if (state.status === "preparing") {
+    const preparation = state.preparation;
+    const optionalSha = (value) => value === null || /^[a-f0-9]{40}$/.test(value);
+    if (!preparation || typeof preparation.review_existed !== "boolean"
+      || !optionalSha(preparation.previous_review)
+      || !optionalSha(preparation.initial_head)
+      || ![null, state.target, state.review_branch].includes(preparation.initial_branch)
+      || (preparation.review_existed ? preparation.initial_head === null || preparation.initial_branch === null
+        : preparation.initial_head !== null || preparation.initial_branch !== null)
+      || !Array.isArray(state.source_commits) || !state.source_commits.length
+      || state.source_commits.some((commit) => !/^[a-f0-9]{40}$/.test(commit))) {
+      throw new Error("unsupported preparation recovery state");
+    }
   }
   return { repo, state };
 }

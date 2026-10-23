@@ -26,6 +26,8 @@ node <delivery-script> finish --project <any-repository-worktree> --json
 
 The second prepare example applies after the path and target are configured. Source refs are resolved to immutable commits; dirty implementation files must be committed by the lead first. Preparing an already pending review requires `--replace-candidate <old-full-sha>`. Neither preparation nor verification moves main.
 
+Preparation records a `preparing` intent before changing the fixed checkout or review ref. If it stops after that record, repeat the same `prepare` command or run `finish`. Recovery publishes only the recorded immutable candidate and retains its request ID; it does not reintegrate a moved source branch, update main, reuse an older approval or skip verification. It checks the prior/new checkout and ref identities, unchanged target and clean owned review path. Changed source lists, unrelated refs/branches, user edits and moved main stop recovery. If intent was never saved, refs and checkouts remain unchanged and ordinary `prepare` can be retried. A process killed while holding the mutation lock still needs the documented dead-process/lock diagnosis before recovery; locks are never stolen automatically.
+
 ## Verification and bootstrap
 
 Ordinary delivery requires the externally supplied `HEHEHE_VERIFICATION_BASE` from the completion policy. It executes the policy's required checks against the integrated review checkout and preserves signed source/HEAD-bound receipts and logs in the Git common directory. Failed, missing, tampered, expired or source-stale evidence blocks merge. `verify` refreshes evidence for the same unchanged candidate and approval request; changed source or target requires reintegration and a new request.
@@ -55,6 +57,7 @@ After a protected-input update lands, use the separate baseline-promotion proced
 
 | State | Meaning |
 | --- | --- |
+| `preparing` | Durable candidate publication intent; repeat prepare or use finish, with main unchanged |
 | `integrated` | Candidate published; verification not yet successful |
 | `verification_failed` | Main unchanged; fix the responsible task and prepare a revised candidate |
 | `awaiting_approval` | Integrated checks passed; fixed candidate awaits the user's decision |

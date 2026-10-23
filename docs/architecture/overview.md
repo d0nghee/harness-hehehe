@@ -24,6 +24,8 @@ The installer must reject unsafe paths, symbolic-link targets, malformed manifes
 
 Global ownership uses a target-bound marker at `.codex-plugin/hehehe-installation.json`, prepared inside the staging payload before replacement. Unmarked older installations require the exact local marketplace entry, valid manifest/skill catalog and no paths outside the bundled payload layout. Git metadata, linked children and linked target/marketplace ancestors fail closed. Missing installations are a removal no-op; foreign or duplicate hehehe registrations are never overwritten. Marked installation directories are managed as a whole, so personal data belongs outside them. The marker is local ownership metadata, not authentication against an unrestricted same-account process.
 
+Installer settings JSON is committed by renaming an exclusive temporary file over the existing regular file, without first moving away the old JSON. Plugin-directory replacement retains its backup if rollback fails or the target becomes occupied, including when staging cleanup fails. The error reports the preserved path. Successful global retries do not delete separately retained backups; manual restoration must not overwrite an uninspected target. Project operations retain their existing transaction and lock recovery.
+
 ## Workflow and knowledge flows
 
 Each bundled skill provides focused instructions and may include deterministic scripts or references. Non-trivial workflow execution stores state under `.hehehe/runs/<run-id>/`.
@@ -90,6 +92,8 @@ The [verification policy reference](../../plugins/hehehe/skills/resume/reference
 The separate local delivery lifecycle lives in `resume/scripts/delivery.mjs`, with Git-common state/locking in `delivery-store.mjs`. It integrates exact task commits in temporary staging, publishes and verifies one repository-pinned review checkout, and freezes the approval candidate. Exact user approval binds the candidate, target base and request ID; a compare-and-swap fast-forward updates local main and the same review directory then checks out main. Failed, stale or changed results cannot authorize delivery. First-policy review is explicitly provisional until separate user approval. See the [integration-delivery reference](../../plugins/hehehe/skills/resume/references/integration-delivery.md). No remote push, publication or task-worktree deletion is implied.
 
 An approved intent journal is saved before updating the target ref. Recovery distinguishes an unchanged target, an already advanced approved candidate, and an unrelated target; it requires exact approval and fresh evidence before completing a ref update that never happened. Doctor checks actual cache payloads and recognizes modern computer-use provider metadata without treating installed skill files as a live execution probe.
+
+Candidate publication has its own `preparing` intent, persisted before checkout/ref mutations. `prepare` retry or `finish` resumes that immutable candidate and request using old/new checkout/ref identities and unchanged target. It can reconcile the recorded detached intermediate state without resetting dirty user changes or accepting unrelated refs, branches or moved source requests. Publication ends at `integrated` before required verification; preparation recovery never updates main or grants approval. Existing main-update recovery remains separate.
 
 `maintain-codebase` and `pr-loop` cover the longer repository and delivery lifecycle:
 
