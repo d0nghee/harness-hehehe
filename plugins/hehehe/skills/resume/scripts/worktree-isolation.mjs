@@ -264,6 +264,11 @@ export async function buildPlan(options) {
   }
   if (!existingWorktree) await validatePathChain(worktreePath);
   const branchAlreadyExists = await branchExists(repository.root, branch);
+  // Continuing an existing branch must report its actual starting HEAD; --base
+  // selects only the starting point for a newly created branch.
+  const actualBase = branchAlreadyExists
+    ? (await runGit(repository.root, ["rev-parse", "--verify", `refs/heads/${branch}^{commit}`])).stdout
+    : baseCommit;
   const commonResult = await runGit(repository.root, ["rev-parse", "--git-common-dir"]);
   const commonDirectory = await realpath(path.resolve(repository.root, commonResult.stdout));
   const digest = crypto
@@ -295,8 +300,10 @@ export async function buildPlan(options) {
       branch_exists: branchAlreadyExists,
       worktree: worktreePath,
       registered: Boolean(existingWorktree),
-      base_ref: baseRef,
-      base_commit: baseCommit,
+      base_ref: branchAlreadyExists ? `refs/heads/${branch}` : baseRef,
+      base_commit: actualBase,
+      requested_base_ref: baseRef,
+      requested_base_commit: baseCommit,
       date_label: date,
     },
     runtime: {
@@ -342,6 +349,9 @@ export async function createWorktree(options) {
       && comparable(item.path) === comparable(plan.task_workspace.worktree),
   );
   if (!registered) fail("Git did not register the expected task worktree.");
+  if (registered.head !== plan.task_workspace.base_commit) {
+    fail("Task branch changed during worktree creation; inspect its actual HEAD before continuing.");
+  }
   return { ...plan, result: "created", registered_worktree: registered };
 }
 

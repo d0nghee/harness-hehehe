@@ -72,12 +72,22 @@ function evidenceDirectory(repo, state) {
 }
 
 function verifyCandidate(repo, state) {
-  assertReview(repo, state);
+  const registered = assertReview(repo, state);
+  const merged = state.status === "merged";
+  if (merged && (state.verification_mode !== "trusted" || state.main_head !== state.candidate
+    || state.approved_candidate !== state.candidate || registered.branch !== state.target)) {
+    throw new Error("merged verification requires the exact approved candidate on the target checkout");
+  }
   if (resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("review candidate changed; prepare a new approval request");
-  if (targetHead(repo.root, state.target) !== state.target_base) throw new Error("target moved; reintegrate and request approval for the new candidate");
+  const expectedTarget = merged ? state.candidate : state.target_base;
+  if (targetHead(repo.root, state.target) !== expectedTarget) throw new Error("target moved; reintegrate and request approval for the new candidate");
   const context = contextFor(state);
   const result = runChecks(state.review_path, state.request_id, context, evidenceDirectory(repo, state));
-  const next = { ...state, status: result.status === "pass" ? "awaiting_approval" : "verification_failed",
+  assertReview(repo, state);
+  if (targetHead(repo.root, state.target) !== expectedTarget
+    || resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("delivery identities changed during verification");
+  const next = { ...state, status: merged ? "merged" : result.status === "pass" ? "awaiting_approval" : "verification_failed",
+    verification_status: result.status,
     verification_base: context.base, verified_at: result.finished_at, snapshot: result.snapshot, updated_at: new Date().toISOString() };
   saveDelivery(repo, next);
   if (result.status !== "pass") throw new Error(`integrated verification failed; inspect ${evidenceDirectory(repo, state)}`);
@@ -175,7 +185,7 @@ export function prepareDelivery(options) {
 export function verifyDelivery(project) {
   return withDeliveryLock(project, (repo) => {
     const state = loadDelivery(project).state;
-    if (!state || state.status === "merged") throw new Error("no pending delivery to verify");
+    if (!state) throw new Error("no delivery to verify");
     return verifyCandidate(repo, state);
   });
 }

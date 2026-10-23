@@ -32,6 +32,8 @@ node <resume>/scripts/verification-baseline.mjs promote --project <root> --candi
 
 The old baseline, exact-head protected-input approval and fresh delivery receipt are still required for promotion. The command records the approved transition outside the source checkout and returns `launcher_environment`. It does **not** silently repin the process, an active run, global instructions, or CI. The operator must update the trusted launcher's `HEHEHE_VERIFICATION_BASE`, repository variable and repository-specific instructions to the approved TO value for new runs, and clear obsolete exact-head approval. Existing runs retain their old base. Never derive the replacement from HEAD or promote without the separate matching user decision.
 
+If delivery evidence expires before the separate promotion approval arrives, run `delivery.mjs verify --project <root> --json` with the same OLD baseline and exact-head protected-input approval. An unchanged trusted `merged` delivery can be reverified without moving main or changing the request. Failed, missing or source-stale results still block promotion; moving the target or changing the fixed review checkout requires reconciliation, not a new trust pin.
+
 For this repository's solo-owner GitHub procedure, see the [repository delivery runbook](https://github.com/d0nghee/harness-hehehe/blob/main/docs/runbooks/solo-owner-delivery.md). Project-scoped installations follow their own repository's trusted launcher configuration.
 
 The schema rejects unknown fields, duplicate IDs, undefined required IDs, empty mandatory check sets, invalid paths and invalid limits. The repository's own policy is a working example; project owners choose their own commands and behavioral contracts.

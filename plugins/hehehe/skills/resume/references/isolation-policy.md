@@ -60,7 +60,7 @@ Use the committed branch or ref the task should be reviewed against:
 - continuation: existing task branch and worktree
 - stacked work: explicitly selected parent task branch
 
-Do not guess a different base because its name looks conventional. Record the resolved commit.
+Do not guess a different base because its name looks conventional. Record the resolved commit. When a selected task branch already exists, `base_ref` and `base_commit` report that branch's current HEAD, including unregistered branches being checked out again. `requested_base_ref` and `requested_base_commit` preserve the caller's requested base separately. `--base` initializes new branches only; continuing an existing branch never resets or rebases it.
 
 ## Subagents
 

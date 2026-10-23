@@ -195,7 +195,7 @@ Subsequent preparations reuse the pinned path and target. Repeat `--source` for 
 
 At `awaiting_approval`, the lead provides the fixed path, candidate SHA, target main SHA, unique approval request ID and check evidence. Only after the user approves that candidate may a trusted launcher supply the exact approval identities and invoke `delivery.mjs merge`. Initial verification-policy adoption also requires approval of the policy itself.
 
-Changed main/candidate identities or stale evidence block merge. Success requires `merged`, the actual main SHA and a clean checkout of main in that same review directory. Remote push, npm publication and task worktree removal require separate authority. See the [integration-delivery reference](plugins/hehehe/skills/resume/references/integration-delivery.md) for commands and recovery.
+Changed main/candidate identities or stale evidence block merge. Success requires `merged`, the actual main SHA and a clean checkout of main in that same review directory. If evidence expires while waiting for separate baseline-promotion approval after merge, run `delivery.mjs verify` again for the identical candidate under the old baseline. Failed or missing results still block promotion. Remote push, npm publication and task worktree removal require separate authority. See the [integration-delivery reference](plugins/hehehe/skills/resume/references/integration-delivery.md) for commands and recovery.
 
 ## CLI Commands
 
@@ -236,6 +236,8 @@ npx harness-hehehe install --project . --dry-run
 The installer first validates the bundle manifest and skill frontmatter. For both global plugins and project skills, it prepares the new bundle in a temporary location before replacing the existing one, and it does not silently overwrite an existing marketplace entry or project skill.
 
 ## Updating
+
+Global installation and removal verify ownership before changing an existing folder. New installations carry a marker bound to the target path. Older unmarked installations require the exact marketplace registration, valid plugin/catalog and paths belonging to the bundled payload layout. Unverified folders, extra personal paths in legacy installations, Git checkouts and linked paths are rejected, including with `--dry-run`. A marked installation directory is managed as a whole; keep personal files elsewhere.
 
 Run the same installation command again to replace the current installation with the latest release.
 

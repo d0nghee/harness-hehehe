@@ -67,6 +67,8 @@ $hehehe:full-resolve 사용자 프로필 편집 기능을 구현하고 검증해
 
 전역 설치는 `~/.agents/plugins/marketplace.json`의 다른 플러그인을 보존하고 `hehehe` 항목만 추가하거나 갱신합니다. 프로젝트 설치는 Codex CLI와 데스크톱 앱이 공통으로 탐색하는 `.agents/skills`에 `$hehehe:*` 스킬을 직접 배치하며 기존 프로젝트 스킬을 보존합니다. 이전 버전의 프로젝트 마켓플레이스 설치가 있으면 `hehehe` 항목만 마이그레이션합니다.
 
+전역 설치·제거는 폴더 이름만으로 관리 대상을 판단하지 않습니다. 설치 시 대상 경로를 기록한 소유 표식을 남기며, 표식이 없는 구버전은 정확한 마켓플레이스 등록·플러그인 구성·번들 경로를 함께 확인합니다. 확인할 수 없는 폴더, 개인 파일이 섞인 구버전 폴더, Git 체크아웃과 연결 경로는 변경을 차단합니다. 표식이 있는 설치 폴더 전체는 갱신·제거 대상이므로 개인 파일은 그 밖에 보관하세요. `--dry-run`에도 같은 검사를 적용합니다.
+
 Windows와 macOS/Linux 모두 같은 명령을 사용합니다.
 
 ```bash
@@ -195,7 +197,7 @@ node .agents/skills/hehehe-resume/scripts/delivery.mjs status --project . --json
 
 `awaiting_approval`이 되면 에이전트는 확인 경로, 후보 SHA, 당시 main SHA, 승인 요청 ID와 검사 결과를 제공합니다. 사용자가 그 후보를 승인한 뒤에만 신뢰하는 실행 환경이 정확한 승인 정보를 전달하고 `delivery.mjs merge`를 실행합니다. 최초 검증 정책 도입에는 정책 자체의 승인도 필요합니다.
 
-main이나 후보가 달라졌거나 검증 결과가 오래되면 병합을 차단합니다. 성공 시 `merged`와 실제 main SHA를 확인하고, 같은 확인 폴더가 깨끗한 main 상태인지 검증합니다. 원격 push·npm 배포·작업 worktree 삭제는 별도 권한입니다. 자세한 명령과 복구 절차는 [통합 전달 안내](plugins/hehehe/skills/resume/references/integration-delivery.md)를 참고하세요.
+main이나 후보가 달라졌거나 검증 결과가 오래되면 병합을 차단합니다. 성공 시 `merged`와 실제 main SHA를 확인하고, 같은 확인 폴더가 깨끗한 main 상태인지 검증합니다. 병합 후 별도 기준 승격 승인을 기다리다 결과가 만료되면, 동일한 후보와 기존 기준으로 `delivery.mjs verify`를 다시 실행합니다. 실패·미실행 결과는 승격을 허용하지 않습니다. 원격 push·npm 배포·작업 worktree 삭제는 별도 권한입니다. 자세한 명령과 복구 절차는 [통합 전달 안내](plugins/hehehe/skills/resume/references/integration-delivery.md)를 참고하세요.
 
 ## CLI 명령
 

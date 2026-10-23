@@ -22,6 +22,8 @@ Global installation copies `plugins/hehehe` to the user plugin directory, update
 
 The installer must reject unsafe paths, symbolic-link targets, malformed manifests, unmanaged collisions, invalid transaction state, and source/target identity.
 
+Global ownership uses a target-bound marker at `.codex-plugin/hehehe-installation.json`, prepared inside the staging payload before replacement. Unmarked older installations require the exact local marketplace entry, valid manifest/skill catalog and no paths outside the bundled payload layout. Git metadata, linked children and linked target/marketplace ancestors fail closed. Missing installations are a removal no-op; foreign or duplicate hehehe registrations are never overwritten. Marked installation directories are managed as a whole, so personal data belongs outside them. The marker is local ownership metadata, not authentication against an unrestricted same-account process.
+
 ## Workflow and knowledge flows
 
 Each bundled skill provides focused instructions and may include deterministic scripts or references. Non-trivial workflow execution stores state under `.hehehe/runs/<run-id>/`.
@@ -65,6 +67,8 @@ The task identity, rather than a date, is durable. The deterministic workspace s
 
 New default labels include the complete task string's hash to avoid mixed-language and truncation collisions. Runtime hashes use the canonical Git common directory and selected branch, keeping ports, logs, Compose and database names stable regardless of the calling checkout. Existing pre-hash branches remain selectable explicitly.
 
+When continuing an existing branch, planner `base_ref`/`base_commit` describe its actual HEAD; `requested_base_ref`/`requested_base_commit` retain the caller's requested starting point separately. Worktree creation confirms that its registered HEAD matches the planned start and never resets an existing branch to a newer main.
+
 Completion now has a deterministic verification boundary:
 
 ```text
@@ -78,6 +82,8 @@ Externally supplied reviewed commit
 `resume/scripts/verification-policy.mjs` owns baseline policy validation, changed-file selection, protected-input checks and source identity. `verification-runner.mjs` owns command execution, TAP summaries, logs and receipt integrity. `run-state.mjs` orchestrates verification and completion with exclusive mutation locking. Existing protected tests and command configuration cannot be relaxed by the task; external exact-head review can authorize committed changes while the old baseline requirements remain in force. AI-authored Markdown and JSON approval fields have no authority.
 
 Source identity checks each existing path component and rejects linked source parents as well as linked files. `verification-baseline.mjs` generates an old/new policy review plan bound to a delivery request. Its post-delivery promotion requires separate exact external approval and fresh old-policy evidence; it records the transition outside source but never silently changes a running pin or launcher. Operators update the approved pin for subsequent runs.
+
+A trusted merged delivery can refresh expired evidence through `delivery.mjs verify` only while the fixed clean target checkout and target ref remain at the exact approved candidate. It preserves merged status and the delivery request, runs the original policy again and cannot grant baseline approval. A failed refresh invalidates prior success and continues to block promotion.
 
 The [verification policy reference](../../plugins/hehehe/skills/resume/references/verification-policy.md) defines bootstrap, operator trust, receipt expiry, source coverage, protected changes, and limitations. `.github/workflows/verification.yml` loads the CI adapter and runner from the trusted PR base and tests the exact PR head without publication credentials. Initial policy adoption, independent approvals and branch protection remain maintainer responsibilities. Local integrity keys and full filesystem access are not an independent security boundary.
 

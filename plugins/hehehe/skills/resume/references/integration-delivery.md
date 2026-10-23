@@ -30,6 +30,8 @@ The second prepare example applies after the path and target are configured. Sou
 
 Ordinary delivery requires the externally supplied `HEHEHE_VERIFICATION_BASE` from the completion policy. It executes the policy's required checks against the integrated review checkout and preserves signed source/HEAD-bound receipts and logs in the Git common directory. Failed, missing, tampered, expired or source-stale evidence blocks merge. `verify` refreshes evidence for the same unchanged candidate and approval request; changed source or target requires reintegration and a new request.
 
+After a trusted delivery is `merged`, `verify` may also refresh that exact approved candidate for delayed baseline promotion. The fixed checkout must remain clean on the target branch, with both its HEAD and the target still equal to the delivered candidate. The old baseline and any exact-head protected-input approval remain required. Reverification preserves `merged`, the delivery request and approvals; it never moves main or grants baseline approval. A failed or interrupted refresh invalidates old passing evidence and blocks promotion until all original checks pass again.
+
 The first introduction of verification has no policy in the target. Only then may `prepare --bootstrap-review` execute every check in the proposed candidate policy. This produces **provisional** evidence and an approval request, never an approved trust baseline. The flag is rejected once the target has a policy. A missing ordinary baseline cannot silently fall back to the candidate.
 
 ## User approval and main

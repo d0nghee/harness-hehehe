@@ -86,7 +86,7 @@ test("global install preserves marketplace entries and uses AVAILABLE policy", a
 test("reinstall replaces stale plugin files", async () => {
   const homeDir = await temporaryDirectory("hehehe-reinstall-");
   const targetPluginDir = path.join(homeDir, "plugins", "hehehe");
-  await mkdir(targetPluginDir, { recursive: true });
+  await installGlobal({ sourcePluginDir, homeDir, activate: false });
   await writeFile(path.join(targetPluginDir, "stale.txt"), "stale");
 
   await installGlobal({ sourcePluginDir, homeDir, activate: false });
