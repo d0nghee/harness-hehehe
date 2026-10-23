@@ -10,6 +10,7 @@ hehehe is a dependency-free Node.js ESM package that distributes a Codex workflo
 | --- | --- |
 | [`bin/hehehe.mjs`](../../bin/hehehe.mjs) | CLI parsing for installation, uninstallation, and project-profile reporting |
 | [`lib/installer.mjs`](../../lib/installer.mjs) | Safe global/plugin and project/skill installation transactions |
+| [`lib/confirmation.mjs`](../../lib/confirmation.mjs) | Default-No terminal confirmation and exact-path operator approval for legacy project folder deletion |
 | [`plugins/hehehe/`](../../plugins/hehehe/) | Plugin manifest, sorted skill catalog, skills, bundled scripts, references, and workflow templates |
 | [`tests/`](../../tests/) | Node test fixtures for installer safety and deterministic bundled scripts |
 | [`.github/workflows/quality.yml`](../../.github/workflows/quality.yml) | Pull-request validation plus scheduled package and maintenance audits |
@@ -21,6 +22,8 @@ hehehe is a dependency-free Node.js ESM package that distributes a Codex workflo
 Global installation copies `plugins/hehehe` to the user plugin directory, updates only the hehehe entry in the personal marketplace, and activates it through the Codex CLI. Project installation validates the catalog, rewrites skill names to the `hehehe:*` namespace, and installs managed skills under `.agents/skills` using locks, journals, staging directories, and recoverable replacement.
 
 The installer must reject unsafe paths, symbolic-link targets, malformed manifests, unmanaged collisions, invalid transaction state, and source/target identity.
+
+Legacy project marketplace migration/removal treats the old plugin folder as a whole managed directory, but requires one explicit deletion decision before changing project skills, state or registrations. The library exposes an immutable `{ target, operation }` plan and requires a confirmation callback returning exactly `true`. The CLI displays the absolute path and whole-folder deletion scope with a default-No prompt; EOF and noninteractive calls reject. An operator-approved noninteractive invocation may bind approval to that exact absolute path via `--confirm-legacy-removal`. Dry runs report the plan without asking or mutating. Missing or unrelated old folders do not require deletion consent, and confirmation is not persisted for future calls. The existing project lock surrounds the decision and operation; its temporary lock metadata is not a payload change.
 
 Global ownership uses a target-bound marker at `.codex-plugin/hehehe-installation.json`, prepared inside the staging payload before replacement. Unmarked older installations require the exact local marketplace entry, valid manifest/skill catalog and no paths outside the bundled payload layout. Git metadata, linked children and linked target/marketplace ancestors fail closed. Missing installations are a removal no-op; foreign or duplicate hehehe registrations are never overwritten. Marked installation directories are managed as a whole, so personal data belongs outside them. The marker is local ownership metadata, not authentication against an unrestricted same-account process.
 

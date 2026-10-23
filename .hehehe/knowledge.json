@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-23T08:00:24.109Z",
+  "updated_at": "2026-10-23T08:45:20.282Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -44,8 +44,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-23T08:00:24.052Z",
-      "source_fingerprint": "f1dc9d68f355efe06172f19f1593195760cd713f80fba099ab3958b68c9dd238"
+      "last_verified": "2026-10-23T08:44:45.986Z",
+      "source_fingerprint": "42ae48a1ac90fc53d820c4984e13acd296378ca7b17a170d02161dec05cf33ee"
     },
     {
       "path": "docs/README.md",
@@ -60,8 +60,8 @@
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-23T08:00:24.095Z",
-      "source_fingerprint": "31e34c727bb2dcfd0b6e5d28bb9a2b917faa0ed5f49fa9d134a5c214bb6bd8a8"
+      "last_verified": "2026-10-23T08:44:46.107Z",
+      "source_fingerprint": "263eb71d53eb1b0a606492951a6855c992cbc782f479832eccfa7873cac1bd91"
     },
     {
       "path": "docs/runbooks/solo-owner-delivery.md",
@@ -69,13 +69,16 @@
       "source_paths": [
         ".github/workflows",
         ".hehehe/verification-policy.json",
+        "bin/hehehe.mjs",
+        "lib/confirmation.mjs",
+        "lib/installer.mjs",
         "plugins/hehehe/skills/doctor/scripts/doctor.mjs",
         "plugins/hehehe/skills/resume/references",
         "plugins/hehehe/skills/resume/scripts",
         "scripts/repository-protection.mjs"
       ],
-      "last_verified": "2026-10-23T08:00:24.109Z",
-      "source_fingerprint": "e05604ab77d8d418c9a67373cb878bfae26c5a562d24557dee4ff4c80fa8a4b1"
+      "last_verified": "2026-10-23T08:45:20.281Z",
+      "source_fingerprint": "b38d38d1b8f6bd0a26b0fca93348cc3f74ff40ce98430e9ce1a2e49793595cc2"
     }
   ]
 }

@@ -67,6 +67,8 @@ $hehehe:full-resolve 사용자 프로필 편집 기능을 구현하고 검증해
 
 전역 설치는 `~/.agents/plugins/marketplace.json`의 다른 플러그인을 보존하고 `hehehe` 항목만 추가하거나 갱신합니다. 프로젝트 설치는 Codex CLI와 데스크톱 앱이 공통으로 탐색하는 `.agents/skills`에 `$hehehe:*` 스킬을 직접 배치하며 기존 프로젝트 스킬을 보존합니다. 이전 버전의 프로젝트 마켓플레이스 설치가 있으면 `hehehe` 항목만 마이그레이션합니다.
 
+이전 프로젝트 설치 폴더 `plugins/hehehe`를 지우는 마이그레이션·제거는 **변경 전에 삭제 경로와 전체 내용 삭제를 확인**합니다. 기본값은 취소이며, 거절·입력 종료·비대화형 실행에서는 기존 스킬과 등록 정보를 보존합니다. `--dry-run`은 확인이 필요한 경로만 표시합니다. 자동 실행은 사용자가 해당 경로의 삭제를 승인한 뒤에만 `--confirm-legacy-removal "<삭제 대상의 절대 경로>"`를 지정하세요. 이 승인은 현재 호출의 정확한 경로에만 적용되며, Git 이력과 개인 파일도 폴더와 함께 삭제됩니다.
+
 전역 설치·제거는 폴더 이름만으로 관리 대상을 판단하지 않습니다. 설치 시 대상 경로를 기록한 소유 표식을 남기며, 표식이 없는 구버전은 정확한 마켓플레이스 등록·플러그인 구성·번들 경로를 함께 확인합니다. 확인할 수 없는 폴더, 개인 파일이 섞인 구버전 폴더, Git 체크아웃과 연결 경로는 변경을 차단합니다. 표식이 있는 설치 폴더 전체는 갱신·제거 대상이므로 개인 파일은 그 밖에 보관하세요. `--dry-run`에도 같은 검사를 적용합니다.
 
 Windows와 macOS/Linux 모두 같은 명령을 사용합니다.
@@ -203,9 +205,9 @@ main이나 후보가 달라졌거나 검증 결과가 오래되면 병합을 차
 
 ```text
 harness-hehehe install --global [--dry-run]
-harness-hehehe install --project [path] [--dry-run]
+harness-hehehe install --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
 harness-hehehe uninstall --global [--dry-run]
-harness-hehehe uninstall --project [path] [--dry-run]
+harness-hehehe uninstall --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
 harness-hehehe profile [path] [--json] [--write]
   [--config path] [--allow-downgrade]
 ```

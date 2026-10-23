@@ -10,6 +10,7 @@ import {
   uninstallProject,
 } from "../lib/installer.mjs";
 import { runProfileCli } from "../plugins/hehehe/skills/architecture-metrics/scripts/project-profile.mjs";
+import { confirmLegacyRemoval } from "../lib/confirmation.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePluginDir = path.join(packageRoot, "plugins", "hehehe");
@@ -19,9 +20,9 @@ function usage() {
 
 Usage:
   harness-hehehe install --global [--dry-run]
-  harness-hehehe install --project [path] [--dry-run]
+  harness-hehehe install --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
   harness-hehehe uninstall --global [--dry-run]
-  harness-hehehe uninstall --project [path] [--dry-run]
+  harness-hehehe uninstall --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
   harness-hehehe profile [path] [--json] [--write]
     [--config path] [--allow-downgrade]
 
@@ -51,6 +52,7 @@ function parseArguments(args) {
   let scope;
   let projectDir;
   let dryRun = false;
+  let legacyRemovalApprovedPath;
   for (let index = 1; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === "--global") {
@@ -71,6 +73,12 @@ function parseArguments(args) {
       if (!projectDir) throw new Error("--project requires a non-empty path.");
     } else if (argument === "--dry-run") {
       dryRun = true;
+    } else if (argument === "--confirm-legacy-removal") {
+      if (legacyRemovalApprovedPath !== undefined) throw new Error("Legacy removal approval may be supplied only once.");
+      legacyRemovalApprovedPath = args[++index];
+      if (!legacyRemovalApprovedPath || legacyRemovalApprovedPath.startsWith("-")) {
+        throw new Error("--confirm-legacy-removal requires an absolute target path.");
+      }
     } else {
       throw new Error(`Unknown argument: ${argument}\n\n${usage()}`);
     }
@@ -79,10 +87,20 @@ function parseArguments(args) {
   if (!scope) {
     throw new Error("Choose an installation scope with --global or --project.\n\n" + usage());
   }
-  return { command, scope, projectDir, dryRun };
+  if (legacyRemovalApprovedPath !== undefined && (scope !== "project" || !path.isAbsolute(legacyRemovalApprovedPath))) {
+    throw new Error("--confirm-legacy-removal requires --project and an absolute target path.");
+  }
+  return { command, scope, projectDir, dryRun, legacyRemovalApprovedPath };
+}
+
+function printLegacyRemoval(result) {
+  if (result.legacyRemoval) {
+    console.log(`Legacy folder removal${result.dryRun ? " (confirmation required before changes)" : " (confirmed)"}: ${result.legacyRemoval.target}`);
+  }
 }
 
 function printResult(result) {
+  printLegacyRemoval(result);
   console.log(`${result.dryRun ? "[dry-run] " : ""}hehehe ${result.version} ${result.scope} installation`);
   console.log(`Source: ${result.sourcePluginDir}`);
   if (result.scope === "global") {
@@ -103,6 +121,7 @@ function printResult(result) {
 }
 
 function printUninstallResult(result) {
+  printLegacyRemoval(result);
   console.log(`${result.dryRun ? "[dry-run] " : ""}hehehe ${result.scope} uninstall`);
   if (result.scope === "global") {
     console.log(`Plugin target: ${result.targetPluginDir}`);
@@ -141,12 +160,14 @@ async function main() {
   if (parsed.command === "install") {
     const result = parsed.scope === "global"
       ? await installGlobal({ sourcePluginDir, dryRun: parsed.dryRun })
-      : await installProject({ sourcePluginDir, projectDir: parsed.projectDir, dryRun: parsed.dryRun });
+      : await installProject({ sourcePluginDir, projectDir: parsed.projectDir, dryRun: parsed.dryRun,
+        confirmLegacyRemoval: (plan) => confirmLegacyRemoval(plan, { approvedPath: parsed.legacyRemovalApprovedPath }) });
     printResult(result);
   } else {
     const result = parsed.scope === "global"
       ? await uninstallGlobal({ dryRun: parsed.dryRun })
-      : await uninstallProject({ projectDir: parsed.projectDir, dryRun: parsed.dryRun });
+      : await uninstallProject({ projectDir: parsed.projectDir, dryRun: parsed.dryRun,
+        confirmLegacyRemoval: (plan) => confirmLegacyRemoval(plan, { approvedPath: parsed.legacyRemovalApprovedPath }) });
     printUninstallResult(result);
   }
 }

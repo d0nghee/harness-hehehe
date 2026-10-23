@@ -201,9 +201,9 @@ Changed main/candidate identities or stale evidence block merge. Success require
 
 ```text
 harness-hehehe install --global [--dry-run]
-harness-hehehe install --project [path] [--dry-run]
+harness-hehehe install --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
 harness-hehehe uninstall --global [--dry-run]
-harness-hehehe uninstall --project [path] [--dry-run]
+harness-hehehe uninstall --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
 harness-hehehe profile [path] [--json] [--write]
   [--config path] [--allow-downgrade]
 ```
@@ -234,6 +234,8 @@ npx harness-hehehe install --project . --dry-run
 ```
 
 The installer first validates the bundle manifest and skill frontmatter. For both global plugins and project skills, it prepares the new bundle in a temporary location before replacing the existing one, and it does not silently overwrite an existing marketplace entry or project skill.
+
+Migration or removal of the old project `plugins/hehehe` folder requires confirmation of its absolute path before changing skills or registrations. The prompt defaults to No; rejection, EOF and noninteractive execution preserve the existing project contents. `--dry-run` reports the target without prompting. After the user explicitly approves that deletion, automation may pass `--confirm-legacy-removal "<absolute-target-path>"` for that invocation only. Approval permits deleting the entire folder, including Git history and personal or uncommitted files. Library callers must provide a `confirmLegacyRemoval(plan)` callback returning exactly `true`; the plan contains `target` and `operation`.
 
 ## Updating
 

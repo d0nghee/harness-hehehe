@@ -663,7 +663,12 @@ test("project install migrates the legacy marketplace plugin without touching ot
     ],
   }));
 
-  const installed = await installProject({ sourcePluginDir, projectDir });
+  const installed = await installProject({ sourcePluginDir, projectDir,
+    confirmLegacyRemoval: (plan) => {
+      assert.equal(plan.target, legacyPluginDir);
+      assert.equal(plan.operation, "migration");
+      return true;
+    } });
   const marketplace = JSON.parse(await readFile(marketplacePath, "utf8"));
 
   assert.deepEqual(marketplace.plugins.map((plugin) => plugin.name), ["existing"]);
