@@ -134,6 +134,8 @@ $hehehe:resume Resume an interrupted task workspace and hehehe run
 
 `doctor` reports `PASS`, `DEGRADED`, or `BLOCKED` with supporting evidence without modifying files. `resume` reconciles the task branch, worktree, local runtime identity, and saved run goal, then continues from the next step.
 
+Task labels include a hash of the complete identity, and runtime IDs use the Git common directory so they remain stable across worktree entry points. Continue older task branches with their exact `--branch`. Doctor compares actual cached files and recognizes installed browser providers; live session tool availability remains a separate check.
+
 ## Trusted Completion Gate
 
 AI-authored acceptance criteria and handwritten `PASS` reports cannot authorize completion. The `resume` `verify` command reads mandatory checks, changed-path rules, protected inputs, and result expiry from a reviewed commit's `.hehehe/verification-policy.json`. The `complete` command validates actual execution evidence.
@@ -143,6 +145,8 @@ AI-authored acceptance criteria and handwritten `PASS` reports cannot authorize 
 1. A project maintainer reviews the policy, tests, commands, and CI tools and establishes a baseline commit.
 2. A trusted launcher supplies that commit's full SHA as `HEHEHE_VERIFICATION_BASE`. Do not let the implementation agent approve its working `HEAD` or substitute a different baseline.
 3. Changes to the policy or existing protected verification inputs require independent review. A maintainer may supply the exact reviewed commit as `HEHEHE_VERIFICATION_APPROVED_HEAD`; that run still executes the old baseline's mandatory checks.
+
+After a protected update lands, use `verification-baseline.mjs plan` to present the old/new SHAs and request ID, obtain **separate baseline approval**, then run `promote`. Update the trusted launcher's pin for new runs; never repin an active run. See the [solo-owner delivery runbook](docs/runbooks/solo-owner-delivery.md) for required remote checks and the full procedure.
 
 For a project installation, use the following commands with the environment supplied by that trusted launcher:
 

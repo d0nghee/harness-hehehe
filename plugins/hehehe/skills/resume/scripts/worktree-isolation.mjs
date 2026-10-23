@@ -2,7 +2,7 @@
 
 import { execFile } from "node:child_process";
 import crypto from "node:crypto";
-import { lstat, readdir } from "node:fs/promises";
+import { lstat, readdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -55,9 +55,9 @@ export function normalizeTaskSlug(task) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 48)
     .replace(/-+$/g, "");
-  if (ascii) return ascii;
   const digest = crypto.createHash("sha256").update(task.trim()).digest("hex").slice(0, 10);
-  return `task-${digest}`;
+  // Retain readable labels while keeping lossy transliteration/truncation out of task identity.
+  return `${ascii || "task"}-${digest}`;
 }
 
 function usage() {
@@ -264,12 +264,15 @@ export async function buildPlan(options) {
   }
   if (!existingWorktree) await validatePathChain(worktreePath);
   const branchAlreadyExists = await branchExists(repository.root, branch);
+  const commonResult = await runGit(repository.root, ["rev-parse", "--git-common-dir"]);
+  const commonDirectory = await realpath(path.resolve(repository.root, commonResult.stdout));
   const digest = crypto
     .createHash("sha256")
-    .update(`${comparable(repository.root)}\n${branch}`)
+    .update(`${comparable(commonDirectory)}\n${branch}`)
     .digest("hex");
   const shortHash = digest.slice(0, 8);
-  const workspaceId = `${slug}-${shortHash}`.slice(0, 63).replace(/-+$/g, "");
+  const runtimeLabel = branch.replace(/^task\//, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 44).replace(/-+$/g, "") || "task";
+  const workspaceId = `${runtimeLabel}-${shortHash}`;
   const portBase = positiveInteger(options.portBase ?? 3000, "--port-base");
   const portSpan = positiveInteger(options.portSpan ?? 1000, "--port-span");
   if (portBase + portSpan - 1 > 65535) fail("The suggested port range must end at or below 65535.");

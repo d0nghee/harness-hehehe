@@ -15,6 +15,8 @@ node scripts/doctor.mjs --project <project-root> --strict
 
 Treat the script as read-only. Do not repair, delete, install, or rewrite anything during diagnosis.
 
+The cache check compares actual files against the selected plugin source, using `CODEX_HOME` when supplied. A matching version directory alone is insufficient. It does not prove which plugin is active in a running chat. Browser checks recognize current computer-use and legacy browser provider skills on disk; confirm the session tool inventory separately before claiming live browser availability or successful execution.
+
 Report:
 
 - overall `PASS`, `DEGRADED`, or `BLOCKED`

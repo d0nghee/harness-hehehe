@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-22T08:50:38.872Z",
+  "updated_at": "2026-10-23T01:51:36.176Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -15,6 +15,9 @@
         "plugins/hehehe/.codex-plugin/plugin.json",
         "plugins/hehehe/skill-catalog.json",
         "plugins/hehehe/skills/architecture-metrics/SKILL.md",
+        "plugins/hehehe/skills/browser-validate/SKILL.md",
+        "plugins/hehehe/skills/doctor/SKILL.md",
+        "plugins/hehehe/skills/doctor/scripts/doctor.mjs",
         "plugins/hehehe/skills/full-resolve/SKILL.md",
         "plugins/hehehe/skills/hehehe/SKILL.md",
         "plugins/hehehe/skills/maintain-codebase/SKILL.md",
@@ -33,6 +36,7 @@
         "plugins/hehehe/skills/resume/scripts/delivery-store.mjs",
         "plugins/hehehe/skills/resume/scripts/delivery.mjs",
         "plugins/hehehe/skills/resume/scripts/run-state.mjs",
+        "plugins/hehehe/skills/resume/scripts/verification-baseline.mjs",
         "plugins/hehehe/skills/resume/scripts/verification-policy.mjs",
         "plugins/hehehe/skills/resume/scripts/verification-runner.mjs",
         "plugins/hehehe/skills/resume/scripts/worktree-isolation.mjs",
@@ -40,8 +44,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-22T08:50:38.776Z",
-      "source_fingerprint": "91c2c79a8e8cb119865dc844a515eba4fd29de3b1399dbbf062488da8fede207"
+      "last_verified": "2026-10-23T01:51:36.111Z",
+      "source_fingerprint": "0754b87f0535e92b39e599fce11c6a96854e56361f442b15da19caf7a23349a4"
     },
     {
       "path": "docs/README.md",
@@ -52,11 +56,26 @@
         "README.md",
         "USAGE.md",
         "docs/architecture/overview.md",
+        "docs/runbooks/solo-owner-delivery.md",
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-22T08:50:38.870Z",
-      "source_fingerprint": "52c8dc60e322dcd2ea5865a2121a8dfc7aa4a48db5ceda033856bb2b928c8739"
+      "last_verified": "2026-10-23T01:51:36.176Z",
+      "source_fingerprint": "c6738c6ca4f503d4d0e8e8efdc59b1329ddfb2ac71cb282a1618ab173ad31c8f"
+    },
+    {
+      "path": "docs/runbooks/solo-owner-delivery.md",
+      "kind": "runbook",
+      "source_paths": [
+        ".github/workflows",
+        ".hehehe/verification-policy.json",
+        "plugins/hehehe/skills/doctor/scripts/doctor.mjs",
+        "plugins/hehehe/skills/resume/references",
+        "plugins/hehehe/skills/resume/scripts",
+        "scripts/repository-protection.mjs"
+      ],
+      "last_verified": "2026-10-23T01:51:36.125Z",
+      "source_fingerprint": "cd674e4a2dab5cec301b14a969d34471baf90cbb6ac6f69606134fc880f830ef"
     }
   ]
 }

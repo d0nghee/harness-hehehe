@@ -34,7 +34,7 @@ export function loadDelivery(project) {
   const state = JSON.parse(fs.readFileSync(file, "utf8"));
   if (state.schema_version !== 1 || typeof state.review_path !== "string" || !path.isAbsolute(state.review_path)
     || typeof state.target !== "string" || state.review_branch !== "integration/hehehe-review"
-    || !["integrated", "awaiting_approval", "verification_failed", "main_updated_checkout_pending", "merged"].includes(state.status)
+    || !["integrated", "awaiting_approval", "verification_failed", "approved_update_pending", "main_updated_checkout_pending", "merged"].includes(state.status)
     || !/^[a-f0-9]{40}$/.test(state.candidate) || !/^[a-f0-9]{40}$/.test(state.target_base)
     || !/^delivery-[a-f0-9]{24}$/.test(state.request_id)
     || !["trusted", "bootstrap_provisional"].includes(state.verification_mode)) {

@@ -13,6 +13,7 @@ Resolve both scripts relative to this `SKILL.md`:
 - `scripts/run-state.mjs`: the only writer for `.hehehe/current.json` and run `state.json`
 - `scripts/verification-policy.mjs` and `scripts/verification-runner.mjs`: trusted policy selection, protected inputs, deterministic execution and completion evidence
 - `scripts/delivery.mjs`: one fixed integrated review checkout, verification, exact user approval and local main delivery
+- `scripts/verification-baseline.mjs`: explicit old/new baseline review and separately approved post-delivery promotion; never automatic HEAD trust
 
 Read [references/isolation-policy.md](references/isolation-policy.md) before creating or retiring a worktree.
 Read [references/verification-policy.md](references/verification-policy.md) before verification or completion. The operator/CI must supply a reviewed `HEHEHE_VERIFICATION_BASE`; never select a weaker base, approve a policy change yourself, or substitute a handwritten pass report.

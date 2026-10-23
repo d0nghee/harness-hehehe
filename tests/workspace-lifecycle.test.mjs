@@ -67,7 +67,7 @@ test("argument parser keeps task identity separate from date metadata", () => {
 });
 
 test("task slug is stable and supports non-Latin task names", () => {
-  assert.equal(normalizeTaskSlug("Order error contract"), "order-error-contract");
+  assert.match(normalizeTaskSlug("Order error contract"), /^order-error-contract-[a-f0-9]{10}$/);
   assert.match(normalizeTaskSlug("주문 오류 개선"), /^task-[a-f0-9]{10}$/);
   assert.equal(normalizeTaskSlug("주문 오류 개선"), normalizeTaskSlug("주문 오류 개선"));
 });
@@ -100,10 +100,10 @@ test("plan uses a stable branch and date-labelled sibling path", async (t) => {
     date: "20260729",
   });
 
-  assert.equal(first.task_workspace.branch, "task/order-error-contract");
+  assert.equal(first.task_workspace.branch, `task/${normalizeTaskSlug("Order error contract")}`);
   assert.match(
     first.task_workspace.worktree.replaceAll("\\", "/"),
-    /repo-worktrees\/20260728-order-error-contract$/,
+    /repo-worktrees\/20260728-order-error-contract-[a-f0-9]{10}$/,
   );
   assert.equal(first.runtime.workspace_id, second.runtime.workspace_id);
   assert.equal(first.runtime.suggested_port, second.runtime.suggested_port);
@@ -121,7 +121,7 @@ test("create registers a task branch and reuses it across dates", async (t) => {
   const worktreePath = created.task_workspace.worktree;
 
   assert.equal(created.result, "created");
-  assert.equal(await git(worktreePath, ["branch", "--show-current"]), "task/order-error-contract");
+  assert.equal(await git(worktreePath, ["branch", "--show-current"]), created.task_workspace.branch);
 
   const reused = await createWorktree({
     projectDir: repository,
@@ -132,7 +132,34 @@ test("create registers a task branch and reuses it across dates", async (t) => {
   assert.equal(path.resolve(reused.task_workspace.worktree), path.resolve(worktreePath));
 
   const status = await inspectRepository(repository);
-  assert.ok(status.worktrees.some((item) => item.branch === "task/order-error-contract"));
+  assert.ok(status.worktrees.some((item) => item.branch === created.task_workspace.branch));
+});
+
+test("runtime identity is unchanged when resuming from the task or another checkout", async (t) => {
+  const { repository, container } = await fixture(t);
+  const task = "로그인 fix";
+  const created = await createWorktree({ projectDir: repository, task });
+  const other = path.join(container, "other");
+  await git(repository, ["worktree", "add", "--detach", other, "HEAD"]);
+  for (const projectDir of [created.task_workspace.worktree, other]) {
+    const resumed = await buildPlan({ projectDir, task });
+    assert.equal(resumed.action, "reuse");
+    assert.equal(resumed.task_workspace.worktree, created.task_workspace.worktree);
+    assert.deepEqual(resumed.runtime, created.runtime);
+  }
+  const selected = await buildPlan({ projectDir: other, task: "Explicit continuation label", branch: created.task_workspace.branch });
+  assert.deepEqual(selected.runtime, created.runtime, "an explicitly selected authoritative branch keeps its runtime labels");
+});
+
+test("mixed-language and truncated task labels never reuse another task branch", async (t) => {
+  const { repository } = await fixture(t);
+  const first = await createWorktree({ projectDir: repository, task: "로그인 fix" });
+  const second = await buildPlan({ projectDir: repository, task: "결제 fix" });
+  assert.equal(second.action, "create");
+  assert.notEqual(second.task_workspace.branch, first.task_workspace.branch);
+  const prefix = "long-task-".repeat(8);
+  assert.notEqual(normalizeTaskSlug(`${prefix}a`), normalizeTaskSlug(`${prefix}b`));
+  assert.notEqual(normalizeTaskSlug("a+b"), normalizeTaskSlug("a b"));
 });
 
 test("dirty source requires acknowledgement and remains excluded", async (t) => {

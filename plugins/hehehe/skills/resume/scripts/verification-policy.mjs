@@ -92,11 +92,25 @@ function runtimeArtifact(file) {
 }
 
 export function sourceSnapshot(project) {
+  const realRoot = fs.realpathSync(project);
   const files = [...new Set(git(project, ["ls-files", "-z", "--cached", "--others", "--exclude-standard"])
     .split("\0").filter((file) => file && !runtimeArtifact(file)))].sort();
   const hash = crypto.createHash("sha256");
   for (const file of files) {
     const target = path.join(project, file);
+    // lstat on a leaf follows linked parents. Validate every existing segment first.
+    let current = project;
+    for (const segment of file.split("/")) {
+      current = path.join(current, segment);
+      let details;
+      try { details = fs.lstatSync(current); }
+      catch (error) { if (error.code === "ENOENT") break; throw error; }
+      if (details.isSymbolicLink()) throw new Error(`verification refuses linked source path: ${file}`);
+      const relative = path.relative(realRoot, fs.realpathSync(current));
+      if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+        throw new Error(`verification refuses source outside the repository: ${file}`);
+      }
+    }
     hash.update(`${file}\0`);
     if (!fs.existsSync(target)) { hash.update("deleted\0"); continue; }
     const stats = fs.lstatSync(target);

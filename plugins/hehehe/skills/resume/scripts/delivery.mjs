@@ -218,9 +218,12 @@ export function mergeDelivery(project) {
     git(repo.root, ["merge-base", "--is-ancestor", state.target_base, state.candidate]);
     const targetCheckout = worktrees(repo.root).find((item) => item.branch === state.target);
     if (targetCheckout && !samePath(targetCheckout.path, state.review_path)) throw new Error("target was checked out elsewhere during review");
+    // Write intent before the irreversible ref update so either crash boundary is recoverable.
+    let next = { ...state, status: "approved_update_pending", approved_candidate: state.candidate,
+      approved_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    saveDelivery(repo, next);
     git(repo.root, ["update-ref", `refs/heads/${state.target}`, state.candidate, state.target_base]);
-    let next = { ...state, status: "main_updated_checkout_pending", approved_candidate: state.candidate,
-      merged_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    next = { ...next, status: "main_updated_checkout_pending", merged_at: new Date().toISOString() };
     saveDelivery(repo, next);
     git(state.review_path, ["switch", state.target]);
     clean(state.review_path);
@@ -234,10 +237,29 @@ export function mergeDelivery(project) {
 export function finishDelivery(project) {
   return withDeliveryLock(project, (repo) => {
     const state = loadDelivery(project).state;
-    if (!state || state.status !== "main_updated_checkout_pending") throw new Error("no interrupted approved checkout to finish");
+    if (!state || !["approved_update_pending", "main_updated_checkout_pending"].includes(state.status)) throw new Error("no interrupted approved checkout to finish");
     assertReview(repo, state);
-    if (targetHead(repo.root, state.target) !== state.candidate
+    if (state.approved_candidate !== state.candidate
       || resolveCommit(state.review_path, "HEAD") !== state.candidate) throw new Error("interrupted merge identities changed; manual reconciliation required");
+    const target = targetHead(repo.root, state.target);
+    if (target !== state.candidate) {
+      if (state.status !== "approved_update_pending" || target !== state.target_base) {
+        throw new Error("interrupted merge identities changed; manual reconciliation required");
+      }
+      // If the ref never moved, require fresh evidence and the exact approval again.
+      if (process.env.HEHEHE_DELIVERY_APPROVED_HEAD !== state.candidate
+        || process.env.HEHEHE_DELIVERY_APPROVED_TARGET !== state.target_base
+        || process.env.HEHEHE_DELIVERY_APPROVAL_ID !== state.request_id) {
+        throw new Error("resuming a pending ref update requires the exact external user approval");
+      }
+      if (state.verification_mode !== "trusted") throw new Error("unfinished bootstrap requires a fresh approval and verification request");
+      assertVerified(state.review_path, state.request_id, contextFor(state), evidenceDirectory(repo, state));
+      git(repo.root, ["merge-base", "--is-ancestor", state.target_base, state.candidate]);
+      const occupied = worktrees(repo.root).find((item) => item.branch === state.target && !samePath(item.path, state.review_path));
+      if (occupied) throw new Error("target is checked out elsewhere; refusing to displace it");
+      git(repo.root, ["update-ref", `refs/heads/${state.target}`, state.candidate, state.target_base]);
+      saveDelivery(repo, { ...state, status: "main_updated_checkout_pending", merged_at: new Date().toISOString() });
+    }
     const elsewhere = worktrees(repo.root).find((item) => item.branch === state.target && !samePath(item.path, state.review_path));
     if (elsewhere) throw new Error("target is checked out elsewhere; refusing to displace it");
     git(state.review_path, ["switch", state.target]);

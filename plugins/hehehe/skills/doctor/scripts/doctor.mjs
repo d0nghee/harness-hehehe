@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -372,16 +373,31 @@ function inspectProjectSkills(options, checks) {
   return state;
 }
 
-function inspectCache(manifest, checks) {
+function payloadFiles(root, relative = "", files = new Map()) {
+  const directory = path.join(root, relative);
+  if (fs.lstatSync(directory).isSymbolicLink()) throw new Error(`linked plugin directory: ${relative || "."}`);
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const name = path.join(relative, entry.name);
+    if (entry.isSymbolicLink()) throw new Error(`linked plugin file: ${name}`);
+    if (entry.isDirectory()) payloadFiles(root, name, files);
+    else if (entry.isFile()) files.set(name, crypto.createHash("sha256").update(fs.readFileSync(path.join(root, name))).digest("hex"));
+    else throw new Error(`non-regular plugin file: ${name}`);
+  }
+  return files;
+}
+
+function inspectCache(manifest, checks, options) {
   if (!manifest) {
     return;
   }
-  const cacheRoot = path.join(os.homedir(), ".codex", "plugins", "cache");
+  const cacheRoot = path.join(process.env.CODEX_HOME || path.join(os.homedir(), ".codex"), "plugins", "cache");
   const cachedVersions = [];
+  const matching = [];
   for (const marketplace of listDirectories(cacheRoot)) {
     const pluginDirectory = path.join(cacheRoot, marketplace, "hehehe");
     for (const version of listDirectories(pluginDirectory)) {
       cachedVersions.push(`${marketplace}/${version}`);
+      if (version === manifest.version) matching.push(path.join(pluginDirectory, version));
     }
   }
 
@@ -390,19 +406,39 @@ function inspectCache(manifest, checks) {
   } else if (!cachedVersions.some((entry) => entry.endsWith(`/${manifest.version}`))) {
     addCheck(checks, "plugin-cache", "DEGRADED", `source is ${manifest.version}; cached versions are ${cachedVersions.join(", ")}`, "Run: codex plugin marketplace upgrade user-local");
   } else {
-    addCheck(checks, "plugin-cache", "PASS", `cache contains hehehe ${manifest.version}`);
+    const expected = payloadFiles(options.pluginRoot);
+    const invalid = [];
+    for (const directory of matching) {
+      try {
+        const actual = payloadFiles(directory);
+        if (actual.size !== expected.size || [...expected].some(([file, hash]) => actual.get(file) !== hash)) {
+          throw new Error("cached payload differs from the plugin source");
+        }
+      } catch (error) { invalid.push(`${directory}: ${error.message}`); }
+    }
+    if (invalid.length) addCheck(checks, "plugin-cache", "DEGRADED", invalid.join("; "), "Reinstall the reviewed plugin source into its marketplace cache; directory version names alone do not verify an installation.");
+    else addCheck(checks, "plugin-cache", "PASS", `${matching.length} cache payload(s) match ${expected.size} source files for hehehe ${manifest.version}; activation is not probed`);
   }
 }
 
 function inspectBrowserSkill(checks) {
-  const cacheRoot = path.join(os.homedir(), ".codex", "plugins", "cache");
-  const browserRoot = path.join(cacheRoot, "openai-bundled", "browser");
-  const browserVersions = listDirectories(browserRoot).sort();
-  const validVersions = browserVersions.filter((version) => fs.existsSync(path.join(browserRoot, version, "skills", "control-in-app-browser", "SKILL.md")));
-  if (validVersions.length === 0) {
-    addCheck(checks, "browser-skill", "DEGRADED", "browser control skill is unavailable in the plugin cache", "Repair or reinstall the bundled browser plugin before browser validation.");
+  const cacheRoot = path.join(process.env.CODEX_HOME || path.join(os.homedir(), ".codex"), "plugins", "cache");
+  const providers = [];
+  for (const marketplace of listDirectories(cacheRoot)) {
+    for (const [plugin, skill] of [["computer-use", "computer-use"], ["browser", "control-in-app-browser"]]) {
+      const root = path.join(cacheRoot, marketplace, plugin);
+      for (const version of listDirectories(root)) {
+        const skillPath = path.join(root, version, "skills", skill, "SKILL.md");
+        try {
+          if (!validateSkillFile(skillPath, skill)) providers.push(`${plugin}/${version}`);
+        } catch { /* Missing or malformed provider metadata is not evidence of availability. */ }
+      }
+    }
+  }
+  if (providers.length === 0) {
+    addCheck(checks, "browser-skill", "DEGRADED", "no supported browser provider skill found on disk; session tool availability is unknown", "Inspect the session tool inventory for mcp__cua_repl or a supported browser provider; disk absence alone does not prove tools are unavailable.");
   } else {
-    addCheck(checks, "browser-skill", "PASS", `browser control skill available in ${validVersions.at(-1)}`);
+    addCheck(checks, "browser-skill", "PASS", `provider skill installed: ${providers.join(", ")}; confirm session tools before browser validation (live execution not tested)`);
   }
 }
 
@@ -520,7 +556,7 @@ try {
   const manifestPath = path.join(options.pluginRoot, ".codex-plugin", "plugin.json");
   if (fs.existsSync(manifestPath)) {
     const manifest = inspectPlugin(options, checks);
-    inspectCache(manifest, checks);
+    inspectCache(manifest, checks, options);
   } else {
     inspectProjectSkills(options, checks);
   }

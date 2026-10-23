@@ -14,6 +14,26 @@ First introduction of this feature necessarily changes the gate and creates the 
 
 ## Policy
 
+### Baseline promotion after a reviewed update
+
+Exact-head input review is intentionally not inherited by later commits. After a protected update, propose the next baseline explicitly instead of repeatedly waiving historical changes:
+
+```text
+node <resume>/scripts/verification-baseline.mjs plan --project <root> --candidate <full-integrated-SHA> --json
+```
+
+The read-only plan binds the old externally pinned base, exact candidate, delivery request, full old/new policies and changed paths into a `baseline-...` request ID. Present it for **separate user approval**. Neither passing tests nor approval to merge main authorizes promotion.
+
+After that exact candidate has passed the old required checks and been delivered to main, the trusted operator supplies `HEHEHE_BASELINE_APPROVED_FROM`, `HEHEHE_BASELINE_APPROVED_TO` and `HEHEHE_BASELINE_APPROVAL_ID` matching the plan, then runs:
+
+```text
+node <resume>/scripts/verification-baseline.mjs promote --project <root> --candidate <full-integrated-SHA> --json
+```
+
+The old baseline, exact-head protected-input approval and fresh delivery receipt are still required for promotion. The command records the approved transition outside the source checkout and returns `launcher_environment`. It does **not** silently repin the process, an active run, global instructions, or CI. The operator must update the trusted launcher's `HEHEHE_VERIFICATION_BASE`, repository variable and repository-specific instructions to the approved TO value for new runs, and clear obsolete exact-head approval. Existing runs retain their old base. Never derive the replacement from HEAD or promote without the separate matching user decision.
+
+For this repository's solo-owner GitHub procedure, see the [repository delivery runbook](https://github.com/d0nghee/harness-hehehe/blob/main/docs/runbooks/solo-owner-delivery.md). Project-scoped installations follow their own repository's trusted launcher configuration.
+
 The schema rejects unknown fields, duplicate IDs, undefined required IDs, empty mandatory check sets, invalid paths and invalid limits. The repository's own policy is a working example; project owners choose their own commands and behavioral contracts.
 
 ```json

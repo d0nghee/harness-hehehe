@@ -9,7 +9,9 @@ Use when browser behavior must be verified by operating the app, not only by rea
 
 ## Required Tooling
 
-Invoke `browser:control-in-app-browser` before testing when it is available. Use it to open routes, interact with the page, inspect browser evidence, and capture screenshots.
+Inspect the current session's tool and skill inventory first. When `computer-use:computer-use` and `mcp__cua_repl` are supplied, read that provider's skill and follow its documented browser entry points. If only the legacy `browser:control-in-app-browser` provider is present, use its instructions instead. A cached directory is evidence of an installed skill, not evidence that live tools are attached to this chat.
+
+Use the available provider to open routes, interact with the page, inspect browser evidence, and capture screenshots. Do not reinstall a legacy browser plugin merely because its old cache path is absent. If the session offers no supported live browser tools, report that specific capability gap.
 
 ## Workflow
 

@@ -24,17 +24,18 @@ A new worktree starts from a committed Git object. Uncommitted source changes ar
 
 ## Branch and Path Rules
 
-- Default branch: `task/<normalized-task-slug>`.
+- Default branch: `task/<readable-task-label>-<full-task-identity-hash>`; the short hash includes the complete task string so mixed-language or truncated labels cannot share a branch by accident.
 - Keep the branch stable across dates.
 - Default directory: sibling `<repository>-worktrees/YYYYMMDD-<normalized-task-slug>`.
 - Keep task worktrees outside the primary repository directory to prevent recursive scans and accidental packaging.
 - Reuse a registered worktree when it already checks out the task branch.
+- When continuing a pre-hash task branch, pass its exact existing `--branch`; do not create a replacement just because the default naming format changed. Explicit branch overrides are operator task selection.
 - Do not check out one branch in two worktrees.
 - Do not overwrite an existing non-empty directory or symbolic-link target.
 
 ## Runtime Isolation
 
-The deterministic script returns stable values derived from the repository and task branch:
+The deterministic script returns stable values derived from the canonical Git common directory and task branch. Calling it from the source, task, or fixed review checkout therefore returns the same runtime identity:
 
 - `workspace_id`
 - `suggested_port`

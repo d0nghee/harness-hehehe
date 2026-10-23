@@ -17,7 +17,7 @@ This index contains durable information for analyzing and maintaining the hehehe
 
 ## Decisions and runbooks
 
-No separate decision record or operational runbook is currently required. The package has one npm publication workflow, described in the architecture overview. Add a focused document here when a future decision or procedure carries information that does not belong in the overview.
+- [Solo-owner delivery and baseline promotion](runbooks/solo-owner-delivery.md): required remote checks, exact candidate approval, interrupted-delivery recovery, and separately approved verification-baseline updates.
 
 ## Knowledge maintenance
 

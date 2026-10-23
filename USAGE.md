@@ -174,6 +174,8 @@ plugins/hehehe/templates/implementation-spec.md
 
 `hehehe:resume`의 `verify`는 사람이 검토한 커밋의 `.hehehe/verification-policy.json`에서 필수 검사를 읽습니다. 외부 실행 환경에서 `HEHEHE_VERIFICATION_BASE`에 해당 커밋의 전체 SHA를 지정해야 합니다. AI가 작성한 완료 기준이나 `PASS` 문구는 승인 근거가 아닙니다.
 
+보호된 검사 입력을 변경한 뒤 다음 작업을 시작하기 전에는 `verification-baseline.mjs plan`으로 기준 승격안을 만들고 별도 승인 후 `promote`를 실행합니다. 명령은 진행 중인 실행이나 환경 변수를 자동 교체하지 않으며, 신뢰 실행 환경의 기준은 사용자가 승인한 SHA로 갱신해야 합니다. 1인 운영의 원격 필수 검사, 고정 확인 폴더 및 복구 절차는 [전달 지침](docs/runbooks/solo-owner-delivery.md)을 참고하세요.
+
 ```text
 node <resume>/scripts/run-state.mjs verify --project <repository-root> --json
 node <resume>/scripts/run-state.mjs complete --project <repository-root> --json

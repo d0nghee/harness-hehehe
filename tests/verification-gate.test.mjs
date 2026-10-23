@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -181,6 +181,22 @@ test("a check that mutates the source cannot leave a passing receipt", async (t)
   assert.notEqual(result.code, 0);
   assert.match(result.stderr, /source changed/);
   assert.notEqual((await f.run(["complete"])).code, 0);
+});
+
+test("replacing a source parent with an external junction invalidates a passing receipt", async (t) => {
+  const f = await fixture(t);
+  assert.equal((await f.run(["verify"])).code, 0);
+  const outside = await mkdtemp(path.join(os.tmpdir(), "hehehe-outside-source-"));
+  t.after(() => rm(outside, { recursive: true, force: true }));
+  await writeFile(path.join(outside, "app.txt"), "ok\n");
+  await rename(path.join(f.project, "src"), path.join(f.project, "original-src"));
+  // Keep the original source outside discovery so the link itself is the only identity change.
+  await rename(path.join(f.project, "original-src"), path.join(outside, "original-src"));
+  await symlink(outside, path.join(f.project, "src"), "junction");
+  const completed = await f.run(["complete"]);
+  assert.notEqual(completed.code, 0);
+  assert.match(completed.stderr, /linked source path|outside the repository/);
+  assert.notEqual((await f.run(["verify"])).code, 0);
 });
 
 test("zero tests, skipped tests and malformed reports fail closed", async (t) => {

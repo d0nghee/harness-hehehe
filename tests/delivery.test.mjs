@@ -238,3 +238,75 @@ test("dirty review is never overwritten during interrupted-checkout recovery", (
   assert.equal(finishDelivery(f.root).status, "merged");
   assert.equal(git(f.reviewPath, "branch", "--show-current"), "main");
 });
+
+test("a failed journal update after main advancement can finish the approved checkout", (t) => {
+  const f = fixture(t);
+  const state = f.prepare();
+  approve(state);
+  const rename = fs.renameSync;
+  let injected = false;
+  fs.renameSync = (from, to) => {
+    if (!injected && path.basename(to) === "state.json" && git(f.root, "rev-parse", "main") === state.candidate) {
+      injected = true;
+      throw new Error("injected journal failure after ref update");
+    }
+    return rename(from, to);
+  };
+  try { assert.throws(() => mergeDelivery(f.root), /injected journal failure/); }
+  finally { fs.renameSync = rename; }
+  assert.equal(deliveryStatus(f.root).status, "approved_update_pending");
+  assert.equal(git(f.root, "rev-parse", "main"), state.candidate);
+  approvalNames.filter((name) => name.startsWith("HEHEHE_DELIVERY")).forEach((name) => delete process.env[name]);
+  assert.equal(finishDelivery(f.root).status, "merged");
+  assert.equal(git(f.reviewPath, "branch", "--show-current"), "main");
+});
+
+test("a crash after intent but before ref update requires exact approval and evidence on recovery", (t) => {
+  const f = fixture(t);
+  const state = f.prepare();
+  approve(state);
+  const rename = fs.renameSync;
+  let injected = false;
+  fs.renameSync = (from, to) => {
+    const intent = path.basename(to) === "state.json" && JSON.parse(fs.readFileSync(from, "utf8")).status === "approved_update_pending";
+    const result = rename(from, to);
+    if (!injected && intent) { injected = true; throw new Error("injected interruption after intent"); }
+    return result;
+  };
+  try { assert.throws(() => mergeDelivery(f.root), /injected interruption/); }
+  finally { fs.renameSync = rename; }
+  assert.equal(git(f.root, "rev-parse", "main"), f.base);
+  delete process.env.HEHEHE_DELIVERY_APPROVAL_ID;
+  assert.throws(() => finishDelivery(f.root), /exact external user approval/);
+  approve(state);
+  assert.equal(finishDelivery(f.root).status, "merged");
+  assert.equal(git(f.reviewPath, "rev-parse", "HEAD"), state.candidate);
+});
+
+test("pending ref recovery still rejects expired or missing verification", (t) => {
+  const f = fixture(t);
+  const state = f.prepare();
+  approve(state);
+  const metadata = path.join(f.root, ".git/hehehe-delivery/state.json");
+  fs.writeFileSync(metadata, JSON.stringify({ ...state, status: "approved_update_pending", approved_candidate: state.candidate }));
+  const now = Date.now;
+  Date.now = () => now() + 3_601_000;
+  try { assert.throws(() => finishDelivery(f.root), /receipt expired/); }
+  finally { Date.now = now; }
+  const receipts = path.join(f.root, ".git/hehehe-verification");
+  for (const file of fs.readdirSync(receipts).filter((file) => file.endsWith(".json"))) fs.unlinkSync(path.join(receipts, file));
+  assert.throws(() => finishDelivery(f.root), /verification has not run/);
+  assert.equal(git(f.root, "rev-parse", "main"), f.base);
+});
+
+test("pending ref recovery never replaces an independently advanced target", (t) => {
+  const f = fixture(t);
+  const state = f.prepare();
+  approve(state);
+  const metadata = path.join(f.root, ".git/hehehe-delivery/state.json");
+  fs.writeFileSync(metadata, JSON.stringify({ ...state, status: "approved_update_pending", approved_candidate: state.candidate }));
+  const moved = commit(f.root, "independent.txt", "independent advancement\n");
+  git(f.root, "update-ref", "refs/heads/main", moved, f.base);
+  assert.throws(() => finishDelivery(f.root), /identities changed/);
+  assert.equal(git(f.root, "rev-parse", "main"), moved);
+});
