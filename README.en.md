@@ -241,6 +241,8 @@ Migration or removal of the old project `plugins/hehehe` folder requires confirm
 
 Global installation and removal verify ownership before changing an existing folder. New installations carry a marker bound to the target path. Older unmarked installations require the exact marketplace registration, valid plugin/catalog and paths belonging to the bundled payload layout. Unverified folders, extra personal paths in legacy installations, Git checkouts and linked paths are rejected, including with `--dry-run`. A marked installation directory is managed as a whole; keep personal files elsewhere.
 
+Overlapping global install/removal commands for the same home are rejected while the first operation holds its lock. Retry after that operation finishes. `--dry-run` creates no locks or files.
+
 Run the same installation command again to replace the current installation with the latest release.
 
 ```bash

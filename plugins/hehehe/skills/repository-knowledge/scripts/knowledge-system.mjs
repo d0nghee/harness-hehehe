@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { isUtf8 } from "node:buffer";
 import { createHash } from "node:crypto";
 import {
   access,
@@ -194,6 +195,69 @@ async function sourceFiles(project, sourcePaths) {
   return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
+async function hasGitMetadata(project) {
+  let directory = project;
+  while (true) {
+    const metadataPath = path.join(directory, ".git");
+    let metadata;
+    try {
+      metadata = await lstat(metadataPath);
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+    if (metadata) {
+      // Links count even if dangling: access() would hide their presence and
+      // incorrectly permit text normalization when Git cannot read attributes.
+      if (metadata.isSymbolicLink()) return true;
+      if (metadata.isDirectory() && await exists(path.join(metadataPath, "HEAD"))) return true;
+      if (metadata.isFile() && /^gitdir:\s*\S/m.test(await readFile(metadataPath, "utf8"))) return true;
+    }
+    const parent = path.dirname(directory);
+    if (parent === directory) return false;
+    directory = parent;
+  }
+}
+
+async function byteSensitiveSources(project, files) {
+  if (files.length === 0) return new Set();
+  const paths = [...new Set(files.map((file) => file.relativePath))];
+  // One NUL-delimited query handles nested attributes and Git's binary macro
+  // without spawning Git for every source file or interpreting paths as options.
+  const result = spawnSync("git", ["-C", project, "check-attr", "-z", "--stdin", "text", "binary"], {
+    input: paths.join("\0") + "\0",
+    encoding: "utf8",
+    windowsHide: true,
+    maxBuffer: 32 * 1024 * 1024,
+    timeout: 10000,
+    env: { ...process.env, LC_ALL: "C" },
+  });
+  if (result.error || result.status !== 0) {
+    const unavailable = result.error?.code === "ENOENT"
+      || (result.status === 128 && result.stderr?.includes("not a git repository"));
+    if (unavailable && !await hasGitMetadata(project)) return new Set();
+    throw new Error(`Could not inspect knowledge source text/binary attributes: ${result.error?.message ?? result.stderr?.trim() ?? result.status}`);
+  }
+  const attributes = new Map(paths.map((file) => [file, new Map()]));
+  const fields = result.stdout.split("\0");
+  if (fields.pop() !== "" || fields.length % 3 !== 0) {
+    throw new Error("Invalid Git attribute response for knowledge sources");
+  }
+  for (let index = 0; index < fields.length; index += 3) {
+    const [file, attribute, value] = fields.slice(index, index + 3);
+    const entry = attributes.get(file);
+    if (!entry || !["text", "binary"].includes(attribute) || entry.has(attribute)) {
+      throw new Error("Unexpected Git attribute response for knowledge sources");
+    }
+    entry.set(attribute, value);
+  }
+  const sensitive = new Set();
+  for (const [file, entry] of attributes) {
+    if (entry.size !== 2) throw new Error(`Missing Git text/binary attributes for knowledge source: ${file}`);
+    if (entry.get("text") === "unset" || !["unspecified", "unset"].includes(entry.get("binary"))) sensitive.add(file);
+  }
+  return sensitive;
+}
+
 export async function fingerprintSources(projectDir, sourcePaths) {
   const project = path.resolve(projectDir);
   const normalizedSources = sourcePaths
@@ -203,9 +267,15 @@ export async function fingerprintSources(projectDir, sourcePaths) {
   for (const source of normalizedSources) {
     hash.update(`source:${source}\0`);
   }
-  for (const file of await sourceFiles(project, normalizedSources)) {
+  const files = await sourceFiles(project, normalizedSources);
+  const byteSensitive = await byteSensitiveSources(project, files);
+  for (const file of files) {
     hash.update(`file:${file.relativePath}\0`);
-    hash.update(await readFile(file.absolutePath));
+    const contents = await readFile(file.absolutePath);
+    // Canonicalize UTF-8 text only. Binary attributes, NUL and invalid UTF-8
+    // retain exact bytes; BOM, lone CR and final-newline changes remain visible.
+    hash.update(!byteSensitive.has(file.relativePath) && !contents.includes(0) && isUtf8(contents)
+      ? contents.toString("utf8").replaceAll("\r\n", "\n") : contents);
     hash.update("\0");
   }
   return hash.digest("hex");

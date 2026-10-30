@@ -27,6 +27,8 @@ Legacy project marketplace migration/removal treats the old plugin folder as a w
 
 Global ownership uses a target-bound marker at `.codex-plugin/hehehe-installation.json`, prepared inside the staging payload before replacement. Unmarked older installations require the exact local marketplace entry, valid manifest/skill catalog and no paths outside the bundled payload layout. Git metadata, linked children and linked target/marketplace ancestors fail closed. Missing installations are a removal no-op; foreign or duplicate hehehe registrations are never overwritten. Marked installation directories are managed as a whole, so personal data belongs outside them. The marker is local ownership metadata, not authentication against an unrestricted same-account process.
 
+Real global operations hold one home-specific installer lock under `.agents/.hehehe-global-installer` through ownership validation, payload and marketplace changes, and Codex activation/deactivation. Competing operations fail without mutation; separate homes remain independent and dry runs do not create locks. Global and project operations share lock ownership/recovery mechanics while retaining separate metadata paths. A valid abandoned generation is retired with its evidence; invalid or linked lock state fails closed. This coordinates hehehe commands, not unrelated programs that directly edit the shared marketplace.
+
 Installer settings JSON is committed by renaming an exclusive temporary file over the existing regular file, without first moving away the old JSON. Plugin-directory replacement retains its backup if rollback fails or the target becomes occupied, including when staging cleanup fails. The error reports the preserved path. Successful global retries do not delete separately retained backups; manual restoration must not overwrite an uninspected target. Project operations retain their existing transaction and lock recovery.
 
 ## Workflow and knowledge flows
@@ -45,6 +47,8 @@ Codex semantic inspection
 ```
 
 Architecture profiles and repository knowledge are independent. Profiles control coupling-gate strictness; repository knowledge provides a common analysis and maintenance baseline.
+
+Knowledge fingerprints normalize CRLF to LF for valid UTF-8 text without NUL bytes. Git `-text`/binary attributes, invalid UTF-8 and NUL-containing files retain exact bytes; BOM, lone CR and final-newline changes remain visible. One batched attribute query avoids a Git process per file, and folders without Git still support text classification. Unexpected attribute-query failures in repositories are errors. Legacy CRLF-based fingerprints may need one semantic review and explicit re-record after upgrade; checks never silently refresh a fingerprint. Identical LF/CRLF checkouts then share the same document evidence while real content changes remain stale.
 
 `observability` is another independent, task-adaptive baseline:
 

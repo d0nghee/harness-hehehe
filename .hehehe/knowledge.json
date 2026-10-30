@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-23T08:50:57.330Z",
+  "updated_at": "2026-10-30T06:10:00.174Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -28,6 +28,8 @@
         "plugins/hehehe/skills/pr-loop/SKILL.md",
         "plugins/hehehe/skills/pr-loop/references/pr-policy.md",
         "plugins/hehehe/skills/repository-knowledge/SKILL.md",
+        "plugins/hehehe/skills/repository-knowledge/references/knowledge-standard.md",
+        "plugins/hehehe/skills/repository-knowledge/scripts/knowledge-system.mjs",
         "plugins/hehehe/skills/resume/SKILL.md",
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/isolation-policy.md",
@@ -44,8 +46,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-23T08:50:57.114Z",
-      "source_fingerprint": "49ea76cbbc174de8526de1f6207c30a3b9c2cdf7dc3c1bf9b0df62efe03beb77"
+      "last_verified": "2026-10-30T06:09:59.849Z",
+      "source_fingerprint": "a04eee965ff65e9412e319bc8f1ce3e2f97ef13890a8497e2e7985c610451685"
     },
     {
       "path": "docs/README.md",
@@ -60,8 +62,8 @@
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-23T08:50:57.219Z",
-      "source_fingerprint": "263eb71d53eb1b0a606492951a6855c992cbc782f479832eccfa7873cac1bd91"
+      "last_verified": "2026-10-30T06:10:00.010Z",
+      "source_fingerprint": "7e758608c7a84996a7cda8f105b3176dc29ffac4b14dcf4409a6420a7706675a"
     },
     {
       "path": "docs/runbooks/solo-owner-delivery.md",
@@ -73,12 +75,14 @@
         "lib/confirmation.mjs",
         "lib/installer.mjs",
         "plugins/hehehe/skills/doctor/scripts/doctor.mjs",
+        "plugins/hehehe/skills/repository-knowledge/references/knowledge-standard.md",
+        "plugins/hehehe/skills/repository-knowledge/scripts/knowledge-system.mjs",
         "plugins/hehehe/skills/resume/references",
         "plugins/hehehe/skills/resume/scripts",
         "scripts/repository-protection.mjs"
       ],
-      "last_verified": "2026-10-23T08:50:57.328Z",
-      "source_fingerprint": "77425738bfafd18b625d3425de4cfd56fa9424f1b47943ce97bf2987e9160156"
+      "last_verified": "2026-10-30T06:10:00.173Z",
+      "source_fingerprint": "0ca7f5e117093a41cbe9e22276cd8729dcd7a1f44de4ba822eee1bca25589bf5"
     }
   ]
 }

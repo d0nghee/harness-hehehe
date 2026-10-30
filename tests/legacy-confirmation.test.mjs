@@ -21,6 +21,9 @@ async function fixture(t, modern = false) {
   const git = (...args) => execFileSync("git", ["-C", target, ...args], { windowsHide: true, stdio: "pipe" });
   git("init", "-b", "main"); git("config", "user.name", "Confirmation Fixture");
   git("config", "user.email", "confirmation@example.test");
+  // Keep Git's background work from changing metadata during full-file snapshots.
+  git("config", "maintenance.auto", "false");
+  git("config", "gc.auto", "0");
   fs.writeFileSync(path.join(target, "personal.txt"), "committed work\n");
   git("add", "."); git("commit", "-m", "fixture");
   fs.appendFileSync(path.join(target, "personal.txt"), "uncommitted work\n");

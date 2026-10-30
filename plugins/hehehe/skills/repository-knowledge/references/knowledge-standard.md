@@ -74,6 +74,10 @@ Do not create placeholders for absent concerns.
 
 Use narrow `source_paths`. A source path is evidence that can make a document stale, not every file casually mentioned by the document. A repository-wide `.` source is allowed only when no narrower stable boundary exists.
 
+Fingerprints normalize CRLF to LF only for valid UTF-8 text without NUL bytes. Explicit Git `-text`/binary attributes and invalid UTF-8 or NUL-containing files preserve exact bytes. BOM, lone CR, final-newline and actual content changes remain significant. Non-Git folders use the same content classification. Git attributes are queried in a batch; a repository attribute-query failure is an error rather than permission to ignore binary declarations.
+
+Existing raw CRLF fingerprints may report stale after this algorithm upgrade. Review the affected document against its current sources and explicitly `record` once. Never auto-refresh a manifest or accept stale evidence to hide the migration. After recording, identical LF/CRLF checkouts must remain fresh, while real source or binary changes must still become stale.
+
 ## Durable Decision Promotion
 
 Promote a run decision only when all are true:
