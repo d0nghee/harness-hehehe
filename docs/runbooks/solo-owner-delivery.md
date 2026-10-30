@@ -17,6 +17,8 @@ No independent review count is configured because the sole owner cannot approve 
 
 Workflow execution requires an externally reviewed baseline. Manual CI uses the `HEHEHE_VERIFICATION_BASE` repository variable; PR CI loads the tools and policy from the protected base commit. `HEHEHE_VERIFICATION_APPROVED_HEAD` authorizes only an independently reviewed exact PR head with protected changes. Do not set it to a branch name, an unreviewed HEAD, or a future candidate, and clear it after use. CI permissions remain read-only; do not execute untrusted head code in a privileged `pull_request_target` workflow.
 
+Package publication is a distinct authorized operation described in the [release runbook](releases.md). Main pushes validate and report the release plan without publishing. Keep local-only work pending; source delivery does not certify npm or GitHub Release publication. The explicit manual publishing job has narrowly scoped publication permissions and uses tools from an independently adopted baseline, rather than trusting a newly proposed head.
+
 ## One candidate and two distinct approvals
 
 1. Implement and run `npm run validate` in one task workspace. Preserve unrelated source changes. Review the full diff and freeze intentional commits.

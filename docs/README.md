@@ -18,6 +18,7 @@ This index contains durable information for analyzing and maintaining the hehehe
 ## Decisions and runbooks
 
 - [Solo-owner delivery and baseline promotion](runbooks/solo-owner-delivery.md): required remote checks, exact candidate approval, interrupted-delivery recovery, and separately approved verification-baseline updates.
+- [Approval-bound package releases](runbooks/releases.md): pending-change plans, frozen artifacts, trusted checks, publication authority and partial-release recovery.
 
 ## Knowledge maintenance
 

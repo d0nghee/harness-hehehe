@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "package_name": "harness-hehehe",
+  "repository": "d0nghee/harness-hehehe",
+  "target_branch": "main",
+  "registry": "https://registry.npmjs.org",
+  "dist_tag": "latest",
+  "tag_prefix": "v",
+  "changelog": "CHANGELOG.md"
+}

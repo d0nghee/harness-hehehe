@@ -1,0 +1,12 @@
+# Release-aware delivery
+
+Apply this reference when the repository has configured release commands or the user requested publication. Use the project's reviewed release policy and commands; do not invent a workflow, infer a baseline from HEAD, or impose publication on projects without a release lifecycle.
+
+- Inspect the read-only release plan before handoff. Report local main delivery, remote upload, package publication and release-note publication separately. A local-only request may leave release work pending; never convert it to publication authority.
+- When publication is requested, prepare the version, synchronized manifests, changelog and release notes before freezing the candidate. Bind the full candidate SHA, version, tag, immutable package integrity and release request ID in the review. Publication authority must cover that exact candidate and package. The user may approve local main, remote upload and publication together when those scopes are expressly presented; passing checks alone approves none of them.
+- Execute the existing trusted completion checks and the configured release checks. Missing, failing, expired, source-stale or package-stale evidence blocks publication. Release-policy and tool changes require independent review and, where necessary, separately approved baseline adoption. Do not change existing checks or create exemptions to get a release through.
+- Publish the exact verified package file. An existing version is a successful retry only when its actual package matches the approved artifact. Conflicting package bytes, tags or release notes stop the operation; never overwrite a tag or automatically select a new version after approval.
+- Record each external step and resume an interrupted release with the same request, SHA, version and package. After a partial failure, reconcile actual remote state and perform only missing steps. Do not call a successful npm publish alone a completed release.
+- Mark a release complete only after the package contents, expected distribution tag, Git tag commit and published release notes match the approved result. Report partial or pending states honestly and preserve evidence for the next attempt.
+
+This procedure does not create an independent human identity when the AI has unrestricted access to the same account and files. Use operator-controlled credentials or platform approvals when stronger separation is required.

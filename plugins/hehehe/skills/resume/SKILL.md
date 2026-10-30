@@ -18,6 +18,7 @@ Resolve both scripts relative to this `SKILL.md`:
 Read [references/isolation-policy.md](references/isolation-policy.md) before creating or retiring a worktree.
 Read [references/verification-policy.md](references/verification-policy.md) before verification or completion. The operator/CI must supply a reviewed `HEHEHE_VERIFICATION_BASE`; never select a weaker base, approve a policy change yourself, or substitute a handwritten pass report.
 Read [references/integration-delivery.md](references/integration-delivery.md) for requested/configured integrated delivery. The lead prepares one frozen, tested candidate and one stable review path; main is updated only after the user approves that exact result.
+Read [references/release-delivery.md](references/release-delivery.md) when a configured project release lifecycle or a publication request is in scope. A local delivery can leave a release pending; it never authorizes publication.
 
 ## Modes
 

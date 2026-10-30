@@ -4,25 +4,148 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact approved remote main commit SHA
+        required: true
+        type: string
+      version:
+        description: Exact approved stable package version
+        required: true
+        type: string
+      request:
+        description: Exact approved release request ID
+        required: true
+        type: string
+      integrity:
+        description: Exact approved sha512 tarball integrity
+        required: true
+        type: string
 
 permissions:
   contents: read
-  id-token: write
+
+concurrency:
+  group: hehehe-release-lifecycle
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  plan:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      HEHEHE_VERIFICATION_BASE: ${{ vars.HEHEHE_VERIFICATION_BASE }}
+      HEHEHE_VERIFICATION_APPROVED_HEAD: ${{ vars.HEHEHE_VERIFICATION_APPROVED_HEAD }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - run: npm run validate
+      - name: Report pending release using trusted tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HEHEHE_VERIFICATION_BASE" =~ ^[0-9a-f]{40}$ ]]
+          TOOL_ROOT="$RUNNER_TEMP/hehehe-release-plan-tools"
+          git worktree add --detach "$TOOL_ROOT" "$HEHEHE_VERIFICATION_BASE"
+          if [[ ! -f "$TOOL_ROOT/scripts/release.mjs" ]]; then
+            echo '::error::The approved baseline has no release tools. Separately approve and promote a release-capable baseline; no HEAD fallback is allowed.'
+            exit 1
+          fi
+          node "$TOOL_ROOT/scripts/release.mjs" plan --project "$GITHUB_WORKSPACE" --json > "$RUNNER_TEMP/release-plan.json"
+          {
+            echo '### Release plan only — publication awaits exact operator approval'
+            echo '```json'
+            cat "$RUNNER_TEMP/release-plan.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HEHEHE_VERIFICATION_BASE: ${{ vars.HEHEHE_VERIFICATION_BASE }}
+      HEHEHE_VERIFICATION_APPROVED_HEAD: ${{ vars.HEHEHE_VERIFICATION_APPROVED_HEAD }}
+      RELEASE_SHA: ${{ inputs.sha }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_REQUEST: ${{ inputs.request }}
+      RELEASE_INTEGRITY: ${{ inputs.integrity }}
+    steps:
+      - name: Validate the operator's exact release identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$RELEASE_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          [[ "$RELEASE_REQUEST" =~ ^release-[0-9a-f]{24}$ ]]
+          [[ "$RELEASE_INTEGRITY" =~ ^sha512-[A-Za-z0-9+/]{86}==$ ]]
+          [[ "$HEHEHE_VERIFICATION_BASE" =~ ^[0-9a-f]{40}$ ]]
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
-      - run: npm run validate
-      - name: Check whether this version needs publication
-        id: version
-        run: node scripts/publish-status.mjs
-      - name: Publish new version
-        if: steps.version.outputs.publish == 'true'
-        run: npm publish
+      - name: Bind remote main and load tools from the approved baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_MAIN="$(gh api --hostname github.com "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          [[ "$REMOTE_MAIN" == "$RELEASE_SHA" ]]
+          TOOL_ROOT="$RUNNER_TEMP/hehehe-release-publish-tools"
+          git worktree add --detach "$TOOL_ROOT" "$HEHEHE_VERIFICATION_BASE"
+          if [[ ! -f "$TOOL_ROOT/scripts/release.mjs" ]]; then
+            echo '::error::The approved baseline has no release tools. Separately approve and promote a release-capable baseline; no HEAD fallback is allowed.'
+            exit 1
+          fi
+          printf 'HEHEHE_RELEASE_TOOLS=%s\n' "$TOOL_ROOT" >> "$GITHUB_ENV"
+      - name: Reconstruct and compare the exact approved request
+        shell: bash
+        run: |
+          set -euo pipefail
+          node "$HEHEHE_RELEASE_TOOLS/scripts/release.mjs" prepare --project "$GITHUB_WORKSPACE" --request "$RELEASE_REQUEST" --json > "$RUNNER_TEMP/release-prepared.json"
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const record = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/release-prepared.json', 'utf8'));
+          if (record.head !== process.env.RELEASE_SHA || record.version !== process.env.RELEASE_VERSION
+            || record.request_id !== process.env.RELEASE_REQUEST || record.artifact?.integrity !== process.env.RELEASE_INTEGRITY) {
+            throw new Error('Reconstructed release differs from the exact operator approval');
+          }
+          NODE
+      - name: Run the pinned required verification
+        env:
+          GH_TOKEN: ""
+          GITHUB_TOKEN: ""
+          ACTIONS_ID_TOKEN_REQUEST_URL: ""
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ""
+          NODE_AUTH_TOKEN: ""
+          NPM_TOKEN: ""
+        shell: bash
+        run: node "$HEHEHE_RELEASE_TOOLS/scripts/release.mjs" verify --project "$GITHUB_WORKSPACE" --request "$RELEASE_REQUEST" --json
+      - name: Publish only the explicitly approved identities
+        env:
+          HEHEHE_RELEASE_APPROVED_HEAD: ${{ inputs.sha }}
+          HEHEHE_RELEASE_APPROVED_VERSION: ${{ inputs.version }}
+          HEHEHE_RELEASE_APPROVAL_ID: ${{ inputs.request }}
+          HEHEHE_RELEASE_APPROVED_INTEGRITY: ${{ inputs.integrity }}
+        shell: bash
+        run: node "$HEHEHE_RELEASE_TOOLS/scripts/release.mjs" publish --project "$GITHUB_WORKSPACE" --request "$RELEASE_REQUEST" --json
+      - name: Report the reconciled release status
+        shell: bash
+        run: node "$HEHEHE_RELEASE_TOOLS/scripts/release.mjs" status --project "$GITHUB_WORKSPACE" --request "$RELEASE_REQUEST" --json

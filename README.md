@@ -297,3 +297,5 @@ hehehe 스킬은 내부적으로 영어로 추론하고 사용자에게 보내�
 ## 업데이트 내역
 
 **최신 버전 v0.3.14** · [버전별 업데이트 보기](https://github.com/d0nghee/harness-hehehe/releases) · [전체 변경 기록](CHANGELOG.md)
+
+저장소 main의 변경과 실제 배포 버전은 따로 확인합니다. 이 저장소의 `npm run release:plan`은 미배포 변경과 다음 릴리스에 필요한 작업을 보여줍니다. main 푸시는 검증과 계획 확인만 수행하며, npm·GitHub Release 게시는 정확한 후보와 배포 파일을 승인한 뒤 실행합니다. 로컬 구현만 요청한 작업은 릴리스 대기로 남깁니다. [릴리스 절차](docs/runbooks/releases.md)

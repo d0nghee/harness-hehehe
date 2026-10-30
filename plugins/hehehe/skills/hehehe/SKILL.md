@@ -186,6 +186,8 @@ For non-trivial application work, run the applicable backend or frontend complet
 
 Mark run state complete only after required evidence passes. Use `hehehe:resume` to continue an interrupted active run and `hehehe:doctor` to diagnose plugin or project setup problems.
 
+For projects with a configured release lifecycle, inspect its read-only release plan during handoff and report source delivery and package publication separately. Honor local-only or publication-deferred scope: show pending release work without publishing it. A publication request requires one exact candidate and package, explicit publication authority, and checked external results; see `hehehe:resume`'s [release delivery reference](../resume/references/release-delivery.md).
+
 Use the operator/CI-pinned verification policy through `hehehe:resume` `verify` and `complete`. AI-authored success criteria and Markdown pass claims cannot authorize completion. Never relax required checks or existing protected verification inputs to pass a task; policy changes require an independently reviewed baseline. Missing, failed, skipped, expired or source-stale verification blocks completion.
 
 Do not over-report internal pipeline files unless the user asks for them.
