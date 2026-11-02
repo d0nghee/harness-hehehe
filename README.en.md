@@ -32,6 +32,7 @@ See [USAGE.md](USAGE.md) for the complete skill list.
 ## Requirements
 
 - Node.js 20 or later
+- Cross-session experience memory additionally needs Python 3.10+ with standard-library SQLite FTS5. No runtime is installed automatically.
 - Codex CLI
 - Claude CLI is optional and is required only when you request an independent cross-review
 
@@ -135,6 +136,12 @@ $hehehe:resume Resume an interrupted task workspace and hehehe run
 `doctor` reports `PASS`, `DEGRADED`, or `BLOCKED` with supporting evidence without modifying files. `resume` reconciles the task branch, worktree, local runtime identity, and saved run goal, then continues from the next step.
 
 Task labels include a hash of the complete identity, and runtime IDs use the Git common directory so they remain stable across worktree entry points. Continue older task branches with their exact `--branch`. Doctor compares actual cached files and recognizes installed browser providers; live session tool availability remains a separate check.
+
+## Cross-Session Work Experiences
+
+`hehehe:experience-memory` records selected problems, causes and resolutions with source references and retrieves them through a local SQLite index. `resume init` returns related context for a new goal; `status` recalls without writes. Deleted, edited, expired or current-source-mismatched experiences are excluded. Memory is advisory; existing gates still own approval, mandatory verification and completion.
+
+There is no automatic transcript or raw-log collection. Canonical notes stay in each run's `experience.json`; the cache is `hehehe-memory/experience.sqlite` inside the Git common directory. See the [experience-memory skill](plugins/hehehe/skills/experience-memory/SKILL.md) for usage and retention.
 
 ## Trusted Completion Gate
 

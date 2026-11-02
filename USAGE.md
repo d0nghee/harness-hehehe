@@ -118,6 +118,7 @@ $hehehe:team-resolve
 - `hehehe:evaluate`: 명시 기준에 따라 구현을 평가
 - `hehehe:browser-validate`: 웹 UI 또는 로컬 앱 워크플로우를 브라우저로 검증
 - `hehehe:clean`: 구현 후 코드 위생 정리
+- `hehehe:experience-memory`: 출처가 있는 작업 경험을 로컬 SQLite에 색인하고 다음 작업에서 관련 기억을 회상. Python 3.10+와 SQLite FTS5 필요
 - `hehehe:maintain-codebase`: 주기적 저장소 드리프트 감사, 삭제 근거 검증, 한 가지 대상의 제한된 리팩터링과 유지보수 PR 준비
 - `hehehe:pr-loop`: 정확한 PR head SHA를 기준으로 리뷰·CI 실패를 수정하고 허용된 ready 또는 merge 상태까지 반복
 - `hehehe:update-docs`: 완료된 코드 변경과 관련 문서 동기화
@@ -149,9 +150,12 @@ hehehe 워크플로우는 프로젝트 안에 `.hehehe/` 폴더를 사용할 수
 .hehehe/current.json
 .hehehe/knowledge.json
 .hehehe/runs/<run-id>/state.json
+.hehehe/runs/<run-id>/experience.json
 ```
 
 유지 대상 저장소의 장기 지식은 루트 `AGENTS.md`, `docs/README.md`, `docs/architecture/overview.md`를 공통 기준으로 사용합니다. 실제로 존재하는 관심사만 세부 문서로 추가하며 빈 문서를 기계적으로 만들지 않습니다.
+
+재사용할 만한 해결 경험은 `hehehe:experience-memory`로 기록합니다. `resume init`의 `memory_context`는 새 목표와 관련된 기록을 자동 검색하고, `resume status`는 DB를 바꾸지 않고 회상합니다. 원문과 현재 소스를 확인한 뒤 참고하며, 현재 운영 규칙·승인·검증 결과는 따로 직접 읽어야 합니다. 검증된 완료 후에만 해당 실행의 경험이 색인 대상이 됩니다. 원본 실행이나 워크트리를 삭제하면 그 기록은 회상에서 제외되므로 필요한 원본은 보존하세요. [입력 형식과 런타임](plugins/hehehe/skills/experience-memory/references/memory-format.md)
 
 템플릿은 플러그인 번들에 들어 있습니다.
 

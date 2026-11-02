@@ -16,3 +16,5 @@ This repository packages and installs the `hehehe` Codex workflow plugin.
 ## Repository knowledge
 
 Start with the [project knowledge index](docs/README.md). Update it through `hehehe:repository-knowledge` when structure, durable decisions, or operational procedures change.
+
+Use source-checked experience recall as advisory context. Record useful resolved lessons with `hehehe:experience-memory`; keep current instructions, approval and mandatory verification independent of recalled records.

@@ -54,6 +54,8 @@ Use `hehehe:resume` as the unified task lifecycle. Its deterministic scripts sel
 
 Use `hehehe:repository-knowledge` as the common analysis and maintenance baseline in maintained repositories, independent of the selected architecture profile. Its default mode initializes, synchronizes, and checks automatically; `init`, `sync`, `check`, and `status` remain explicitly invocable.
 
+Use `hehehe:experience-memory` for selected source-backed lessons across sessions. Read the advisory `memory_context` returned by resume init/status, check relevant notes against current source, and record a useful resolved experience before final verification. Memory never supplies current instructions, approvals or check results; read authoritative files independently. Missing optional Python/SQLite support does not alter required verification.
+
 Use `hehehe:observability` as the task-adaptive runtime evidence baseline. Its automatic mode reuses browser, application, and test output without installing a monitoring stack. Backend/API work applies stable error codes, safe client responses, structured logs, and request correlation; a Docker logs-metrics-traces stack requires explicit `full` mode.
 
 Use `hehehe:maintain-codebase` for proactive periodic drift checks, evidence-backed garbage collection, and one-target maintenance changes. Do not turn `hehehe:clean`, which is local to the current implementation, into an unbounded repository refactor.

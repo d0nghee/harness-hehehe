@@ -85,10 +85,10 @@ Never create another date-labelled worktree when the task branch is already regi
 3. If isolation is justified, inspect every dirty path and run workspace `create` from the intended committed base. Never move source changes silently.
 4. Change into the selected worktree before reading, initializing, or updating run state.
 5. Read run status. Resume only when the goal, branch, and worktree match; otherwise initialize a new run.
-6. Read done criteria, build log, checks, and final report. Verify recorded claims against files and command output.
+6. Read done criteria, build log, checks, and final report. Verify recorded claims against files and command output. Init/status also returns optional advisory `memory_context`; inspect relevant experience sources using `hehehe:experience-memory`, while reading current rules and verification policy independently. Init refreshes the cache; status remains read-only.
 7. Continue from `next_step` and advance state after each material phase transition.
 8. Keep apps, logs, Compose projects, and optional development databases scoped to the recorded runtime identity. Probe the suggested port before binding.
-9. Complete only when required evidence passes. Preserve the workspace for review, commit, merge, or an explicit retirement request.
+9. Before final verification, use `hehehe:experience-memory` to record a useful resolved lesson when one exists. Complete only when required evidence passes; after success, completion refreshes the optional experience index. Memory failures are reported without changing the gate outcome. Preserve the workspace for review, commit, merge, or an explicit retirement request.
 
 For `hehehe:subagent-resolve`, select one task worktree before spawning agents. Agents share it unless the user explicitly requests a separate multi-branch integration strategy.
 

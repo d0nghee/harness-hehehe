@@ -32,6 +32,7 @@ Codex가 계획·구현·검증·수정을 끝까지 맡고, Claude는 필요할
 ## 요구 사항
 
 - Node.js 20 이상
+- 세션 간 경험 기억은 Python 3.10 이상과 표준 라이브러리 SQLite FTS5가 추가로 필요합니다. 자동 설치하지 않습니다.
 - Codex CLI
 - Claude CLI는 선택 사항이며 독립 교차 리뷰를 요청할 때만 필요
 
@@ -141,6 +142,12 @@ $hehehe:resume 중단된 작업공간과 hehehe 실행을 이어서 진행해줘
 `doctor`는 파일을 수정하지 않고 `PASS`, `DEGRADED`, `BLOCKED` 상태와 근거를 보고합니다. `resume`은 작업 브랜치·worktree·로컬 런타임 식별자와 저장된 실행 목표를 함께 대조한 후 다음 단계부터 진행합니다.
 
 작업명 전체의 해시로 한영 혼합 이름의 충돌을 방지하고, Git 공통 저장소를 기준으로 어느 worktree에서 재개해도 같은 런타임 식별자를 사용합니다. 기존 작업 브랜치는 `--branch`로 정확히 지정해 이어갑니다. `doctor`는 캐시 파일의 실제 내용과 브라우저 공급 스킬 설치 여부를 확인하며, 현재 채팅의 도구 사용 가능 여부는 별도로 확인합니다.
+
+## 세션 간 작업 경험
+
+`hehehe:experience-memory`는 선별한 문제·원인·해결 경험을 출처와 함께 기록하고 로컬 SQLite에서 검색합니다. 새 작업의 `resume init`은 관련 기억을 반환하며, `status`는 읽기 전용으로 회상합니다. 원문 삭제·내용 변경·만료·현재 코드와의 불일치는 회상에서 제외합니다. 기억은 참고 자료이며 승인·필수 검사·완료 판정은 기존 게이트가 담당합니다.
+
+전체 대화나 로그를 자동 수집하지 않습니다. 원본은 실행별 `experience.json`, 검색 DB는 Git 공통 디렉터리의 `hehehe-memory/experience.sqlite`에 보관합니다. 사용법과 보존 범위는 [경험 기억 스킬](plugins/hehehe/skills/experience-memory/SKILL.md)을 확인하세요.
 
 ## 완료 게이트
 

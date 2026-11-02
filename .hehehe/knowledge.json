@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-30T07:36:03.101Z",
+  "updated_at": "2026-11-02T08:45:03.566Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -19,6 +19,7 @@
         "plugins/hehehe/skills/browser-validate/SKILL.md",
         "plugins/hehehe/skills/doctor/SKILL.md",
         "plugins/hehehe/skills/doctor/scripts/doctor.mjs",
+        "plugins/hehehe/skills/experience-memory",
         "plugins/hehehe/skills/full-resolve/SKILL.md",
         "plugins/hehehe/skills/hehehe/SKILL.md",
         "plugins/hehehe/skills/maintain-codebase/SKILL.md",
@@ -39,6 +40,7 @@
         "plugins/hehehe/skills/resume/scripts/ci-verification.mjs",
         "plugins/hehehe/skills/resume/scripts/delivery-store.mjs",
         "plugins/hehehe/skills/resume/scripts/delivery.mjs",
+        "plugins/hehehe/skills/resume/scripts/memory-context.mjs",
         "plugins/hehehe/skills/resume/scripts/run-state.mjs",
         "plugins/hehehe/skills/resume/scripts/verification-baseline.mjs",
         "plugins/hehehe/skills/resume/scripts/verification-policy.mjs",
@@ -48,8 +50,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-30T07:36:02.573Z",
-      "source_fingerprint": "ecf70ce16757170046eb9bfcb384537add79c3b83e9f033d5bd42e7b8f413adf"
+      "last_verified": "2026-11-02T08:43:15.497Z",
+      "source_fingerprint": "5778f977020519e379fe6ad037bf6f79ff2de6b84401928ce39fdeaba17150b6"
     },
     {
       "path": "docs/README.md",
@@ -62,12 +64,14 @@
         "docs/architecture/overview.md",
         "docs/runbooks/releases.md",
         "docs/runbooks/solo-owner-delivery.md",
+        "plugins/hehehe/skills/experience-memory/SKILL.md",
+        "plugins/hehehe/skills/experience-memory/references/memory-format.md",
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/release-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-30T07:36:02.759Z",
-      "source_fingerprint": "efb765d630a606df37a7767bf258bc6394794eb4e0a27486b634a26b01f85855"
+      "last_verified": "2026-11-02T08:43:15.672Z",
+      "source_fingerprint": "1fe3da19d39c8c717c720ed57480b5093a3c1ef60e281537a9687b567d53edee"
     },
     {
       "path": "docs/runbooks/releases.md",
@@ -84,7 +88,7 @@
         "scripts/release-store.mjs",
         "scripts/release.mjs"
       ],
-      "last_verified": "2026-10-30T07:36:02.924Z",
+      "last_verified": "2026-11-02T08:33:20.836Z",
       "source_fingerprint": "0a621f3737c95887c973f6176883df49f0f75837da91ccdd61b3da40acfb214a"
     },
     {
@@ -105,8 +109,8 @@
         "plugins/hehehe/skills/resume/scripts",
         "scripts/repository-protection.mjs"
       ],
-      "last_verified": "2026-10-30T07:36:03.100Z",
-      "source_fingerprint": "20598c2f63909367e830df5282788b34bad829e3b76f27615337df7e3ad4659d"
+      "last_verified": "2026-11-02T08:45:03.564Z",
+      "source_fingerprint": "d6c6382865f41f7ca63e96c6311a786b743093d32f53be61177d97641a754601"
     }
   ]
 }
