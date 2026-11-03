@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -42,9 +42,7 @@ async function fixture(t, count = 1) {
     : `src/${String(index).padStart(2, "0")}-${"evidence-".repeat(11)}.txt`);
   for (const source of sourcePaths) await writeFile(path.join(project, source), "stable evidence\n");
   await git(project, "init", "-b", "main");
-  for (const [key, value] of [["user.name", "Memory Recall"], ["user.email", "recall@example.test"], ["maintenance.auto", "false"], ["gc.auto", "0"], ["core.autocrlf", "false"]]) {
-    await git(project, "config", key, value);
-  }
+  await appendFile(path.join(project, ".git/config"), "\n[user]\n\tname = Memory Recall\n\temail = recall@example.test\n[maintenance]\n\tauto = false\n[gc]\n\tauto = 0\n[core]\n\tautocrlf = false\n");
   await git(project, "add", "src");
   await git(project, "commit", "-m", "isolated recall evidence");
   const runId = "recall-source";

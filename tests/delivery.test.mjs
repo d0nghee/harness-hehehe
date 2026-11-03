@@ -32,9 +32,7 @@ function fixture(t, bootstrap = false) {
   const reviewPath = path.join(container, "review");
   fs.mkdirSync(root);
   git(root, "init", "-b", "main");
-  git(root, "config", "user.name", "Delivery Test");
-  git(root, "config", "user.email", "delivery@example.test");
-  git(root, "config", "core.autocrlf", "false");
+  fs.appendFileSync(path.join(root, ".git/config"), "\n[user]\n\tname = Delivery Test\n\temail = delivery@example.test\n[core]\n\tautocrlf = false\n", "utf8");
   commit(root, "base.txt", "base\n");
   if (!bootstrap) commit(root, ".hehehe/verification-policy.json", JSON.stringify(policy), "reviewed verification baseline");
   const base = git(root, "rev-parse", "HEAD");
@@ -209,21 +207,35 @@ test("existing main checkout can be the single fixed review directory", (t) => {
   assert.equal(git(f.root, "branch", "--show-current"), "main");
 });
 
-test("expired delivery evidence blocks merge until the unchanged candidate is reverified", async (t) => {
+test("expired delivery evidence blocks merge until the unchanged candidate is reverified", (t) => {
   const f = fixture(t);
-  const shortPolicy = { ...policy, max_age_seconds: 3 };
-  git(f.root, "switch", "main");
-  const base = commit(f.root, ".hehehe/verification-policy.json", JSON.stringify(shortPolicy));
-  git(f.root, "switch", "task/feature");
-  git(f.root, "merge", "--no-edit", "main");
-  process.env.HEHEHE_VERIFICATION_BASE = base;
-  const state = f.prepare();
-  approve(state);
-  await new Promise((resolve) => setTimeout(resolve, 3100));
-  assert.throws(() => mergeDelivery(f.root), /receipt expired/);
-  assert.equal(git(f.root, "rev-parse", "main"), base);
-  verifyDelivery(f.root);
-  assert.equal(mergeDelivery(f.root).status, "merged");
+  const ActualDate = Date;
+  let clock = ActualDate.now();
+  // Keep generated receipt timestamps and age checks on one monotonic test
+  // clock. Process/Git startup may take longer than this fixture's lifetime.
+  globalThis.Date = class extends ActualDate {
+    constructor(...values) { super(...(values.length ? values : [clock])); }
+    static now() { return clock; }
+  };
+  try {
+    const shortPolicy = { ...policy, max_age_seconds: 3 };
+    git(f.root, "switch", "main");
+    const base = commit(f.root, ".hehehe/verification-policy.json", JSON.stringify(shortPolicy));
+    git(f.root, "switch", "task/feature");
+    git(f.root, "merge", "--no-edit", "main");
+    process.env.HEHEHE_VERIFICATION_BASE = base;
+    const state = f.prepare();
+    approve(state);
+    clock += 3100;
+    assert.throws(() => mergeDelivery(f.root), /receipt expired/);
+    assert.equal(git(f.root, "rev-parse", "main"), base);
+    const refreshed = verifyDelivery(f.root);
+    assert.equal(refreshed.request_id, state.request_id);
+    assert.equal(refreshed.candidate, state.candidate);
+    assert.ok(Date.parse(refreshed.verified_at) > Date.parse(state.verified_at));
+    assert.equal(Date.parse(refreshed.verified_at), clock);
+    assert.equal(mergeDelivery(f.root).status, "merged");
+  } finally { globalThis.Date = ActualDate; }
 });
 
 test("dirty review is never overwritten during interrupted-checkout recovery", (t) => {
