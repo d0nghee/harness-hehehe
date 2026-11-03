@@ -3,7 +3,6 @@
 import json
 import errno
 import os
-import re
 import sqlite3
 import stat
 import sys
@@ -13,11 +12,12 @@ from pathlib import Path
 MAX_BYTES = 1024 * 1024
 APP_ID = 0x48454D31
 SCHEMA_VERSION = 1
+TOKENIZER = 'unicode61'
 SCHEMA = (
     "CREATE TABLE memory_records (repo_id TEXT NOT NULL, record_id TEXT NOT NULL, "
     "payload TEXT NOT NULL, PRIMARY KEY (repo_id, record_id)) WITHOUT ROWID",
     "CREATE VIRTUAL TABLE memory_fts USING fts5(repo_id UNINDEXED, record_id UNINDEXED, "
-    "body, tokenize='unicode61')",
+    f"body, tokenize='{TOKENIZER}')",
 )
 
 
@@ -104,21 +104,47 @@ def checked_records(records):
     return rows
 
 
-def search_query(terms):
+def search_query(terms, ignored_terms=()):
     if isinstance(terms, list) and all(isinstance(term, str) for term in terms):
         source = ' '.join(terms)
     elif isinstance(terms, str):
         source = terms
     else:
         reject('MEMORY_INVALID_INPUT')
-    tokens = []
-    for token in re.findall(r'[^\W_]+', source, re.UNICODE):
-        token = token[:128].lower()
-        if token not in tokens:
-            tokens.append(token)
-        if len(tokens) == 16:
-            break
-    return ' OR '.join('"' + token + '"*' for token in tokens)
+    if (not isinstance(ignored_terms, (list, tuple)) or len(ignored_terms) > 256
+            or any(not isinstance(term, str) or not term or len(term) > 128
+                   or '\0' in term for term in ignored_terms) or '\0' in source):
+        reject('MEMORY_INVALID_INPUT')
+    try:
+        if len(source.encode('utf-8')) > 32768:
+            reject('MEMORY_INVALID_INPUT')
+        for term in ignored_terms:
+            term.encode('utf-8')
+    except UnicodeError:
+        reject('MEMORY_INVALID_INPUT')
+    # Ask the same tokenizer that owns the persisted index. Reimplementing its
+    # word boundaries with language regexes loses combining marks and letters
+    # that unicode61 legitimately emits as one-character tokens.
+    connection = sqlite3.connect(':memory:')
+    try:
+        if hasattr(connection, 'enable_load_extension'):
+            connection.enable_load_extension(False)
+        connection.execute('PRAGMA trusted_schema=OFF')
+        connection.execute(f"CREATE VIRTUAL TABLE query_tokens USING fts5(body, tokenize='{TOKENIZER}')")
+        connection.execute("CREATE VIRTUAL TABLE query_terms USING fts5vocab(query_tokens, 'instance')")
+        connection.execute('INSERT INTO query_tokens (body) VALUES (?)', (source,))
+        ignored = set(ignored_terms)
+        seen = set()
+        tokens = []
+        for (token,) in connection.execute('SELECT term FROM query_terms ORDER BY offset'):
+            if token not in ignored and token not in seen:
+                seen.add(token)
+                tokens.append(token)
+            if len(tokens) == 16:
+                break
+        return ' OR '.join('"' + token.replace('"', '""') + '"*' for token in tokens)
+    finally:
+        connection.close()
 
 
 def response(count, exists, records=None):
@@ -258,7 +284,7 @@ def operate(request):
     if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 50:
         reject('MEMORY_INVALID_INPUT')
     rows = checked_records(request.get('records')) if operation == 'sync' else None
-    query = search_query(request.get('terms', [])) if operation == 'search' else None
+    query = search_query(request.get('terms', []), request.get('ignored_terms', [])) if operation == 'search' else None
     exists = path.exists()
     if not exists and operation != 'sync':
         return response(0, False, [] if operation == 'search' else None)

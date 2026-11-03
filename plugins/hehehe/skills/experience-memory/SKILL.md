@@ -33,6 +33,8 @@ node scripts/memory.mjs record --project <root> --input <experience-input.json> 
 
 Select relevant tracked source files that support the note. The command measures their digests and writes the canonical `experience.json` beside the current run. Do not copy a conversation, raw logs, environments, credentials or personal data. Review prose before recording; automated secret checks are only an additional safeguard. Mark uncertainty plainly instead of presenting a hypothesis as a settled result.
 
+Field limits and the normalized search-text byte budget are checked before publishing. `MEMORY_LIMIT_EXCEEDED` leaves the existing note intact; shorten the input using the format reference rather than changing limits. Old invalid or over-budget notes are excluded individually during synchronization. Keyword boundaries come from SQLite's actual tokenizer for both indexing and queries.
+
 Only notes whose originating run is complete enter the index. `resume complete` first enforces the existing trusted verification gate, then refreshes the optional index. A note's presence or its historical outcome is never current verification evidence.
 
 ## Retention and repair
