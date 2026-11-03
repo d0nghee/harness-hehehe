@@ -14,7 +14,7 @@ hehehe is a dependency-free Node.js ESM package that distributes a Codex workflo
 | [`plugins/hehehe/`](../../plugins/hehehe/) | Plugin manifest, sorted skill catalog, skills, bundled scripts, references, and workflow templates |
 | [`tests/`](../../tests/) | Node test fixtures for installer safety and deterministic bundled scripts |
 | [`.github/workflows/quality.yml`](../../.github/workflows/quality.yml) | Pull-request validation plus scheduled package and maintenance audits |
-| [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) | Validation and npm publication on pushes to `main` |
+| [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) | Validation and pending-release reporting on pushes to `main`; publication through an explicitly approved manual dispatch |
 | `.hehehe/runs/` | Run-scoped implementation evidence, not long-lived project documentation |
 
 ## Installation flows
@@ -49,6 +49,8 @@ Codex semantic inspection
 Architecture profiles and repository knowledge are independent. Profiles control coupling-gate strictness; repository knowledge provides a common analysis and maintenance baseline.
 
 `experience-memory` adds optional repository-scoped historical context. Canonical curated notes stay with their runs; a rebuildable SQLite FTS5 cache in the Git common directory is shared by registered worktrees. The Node experience service owns eligibility, repository/source checks and bounded recall, `source-evidence.mjs` owns safe source reads, and `sqlite-store.mjs` plus the isolated Python standard-library worker own parameterized SQL and schema/transaction boundaries. No npm dependency or external service is added; only this feature needs Python 3.10+ with FTS5.
+
+The application validator rejects unpaired UTF-16 surrogates in prose, tags and source paths before writing. It checks tag uniqueness after trimming and CRLF normalization. The same validation excludes malformed retained notes individually during synchronization, preserving healthy context without rewriting historical notes or changing verification authority.
 
 Oversized recall uses an explicitly marked compact projection only after full source validation; canonical notes and exact origin references are preserved within the bounded context contract. Only derived index/query text is normalized. First-store creation initializes a private sibling SQLite DB, commits and syncs it, then uses a native atomic no-replace rename (Windows, Linux or macOS); unsupported primitives fail safely and no existing/foreign DB is replaced. Crash-left unpublished private scratch is ignored, not automatically removed. See the record reference for projection fields and runtime requirements.
 

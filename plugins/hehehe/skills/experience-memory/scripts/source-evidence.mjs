@@ -19,7 +19,7 @@ export const samePath = (left, right) => process.platform === "win32"
 export const runPattern = /^[a-z0-9][a-z0-9-]{2,79}$/;
 
 export function relativeFile(value) {
-  if (typeof value !== "string" || value.length > 400 || !value || /[\\:\x00-\x1f\x7f]/.test(value)
+  if (typeof value !== "string" || value.length > 400 || !value || /[\\:\x00-\x1f\x7f\ud800-\udfff]/u.test(value)
     || value.split("/").some((part) => !part || part === "." || part === ".." || /[. ]$/.test(part)
       || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part))) fail("MEMORY_UNSAFE_PATH");
   return value;

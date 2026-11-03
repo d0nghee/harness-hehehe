@@ -30,7 +30,7 @@ function assertNoSecrets(text) {
 }
 function text(value, maximum) {
   if (typeof value !== "string" || !value.trim() || value.length > maximum
-    || /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/.test(value)) fail();
+    || /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ud800-\udfff]/u.test(value)) fail();
   assertNoSecrets(value);
   return value.trim().replaceAll("\r\n", "\n");
 }
@@ -38,8 +38,9 @@ function fields(value) {
   if (value.schema_version !== 1) fail();
   const result = { schema_version: 1 };
   for (const [key, maximum] of Object.entries(textLimits)) result[key] = text(value[key], maximum);
-  if (!Array.isArray(value.tags) || value.tags.length > 8 || new Set(value.tags).size !== value.tags.length) fail();
+  if (!Array.isArray(value.tags) || value.tags.length > 8) fail();
   result.tags = value.tags.map((tag) => text(tag, 40));
+  if (new Set(result.tags).size !== result.tags.length) fail();
   return result;
 }
 function date(value) {
