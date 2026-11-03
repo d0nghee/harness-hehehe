@@ -143,6 +143,8 @@ Task labels include a hash of the complete identity, and runtime IDs use the Git
 
 There is no automatic transcript or raw-log collection. Canonical notes stay in each run's `experience.json`; the cache is `hehehe-memory/experience.sqlite` inside the Git common directory. See the [experience-memory skill](plugins/hehehe/skills/experience-memory/SKILL.md) for usage and retention.
 
+Long records return an explicitly marked compact projection with the original source reference; canonical notes remain intact. Index and query text share Unicode normalization, and a new database is published only after initialization completes so an interrupted first creation can be retried.
+
 ## Trusted Completion Gate
 
 AI-authored acceptance criteria and handwritten `PASS` reports cannot authorize completion. The `resume` `verify` command reads mandatory checks, changed-path rules, protected inputs, and result expiry from a reviewed commit's `.hehehe/verification-policy.json`. The `complete` command validates actual execution evidence.

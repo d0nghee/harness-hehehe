@@ -110,6 +110,29 @@ function atomicNote(root, relative, note) {
   }
 }
 
+function contextRecord(note, origin, maximum) {
+  const full = { ...note, origin };
+  if (JSON.stringify(full).length <= maximum) return full;
+  // This is an explicitly marked projection, not a replacement canonical note.
+  // Full source validation has already happened; the exact origin retains all metadata.
+  const compact = { schema_version: note.schema_version, id: note.id, title: note.title,
+    problem: note.problem, cause: note.cause, resolution: note.resolution, outcome: note.outcome,
+    tags: note.tags, head: note.head, trust: note.trust, origin,
+    context_compacted: true, source_count: note.sources.length };
+  const fields = ["problem", "cause", "resolution", "outcome"];
+  while (JSON.stringify(compact).length > maximum) {
+    const field = fields.filter((key) => Array.from(compact[key]).length > 32)
+      .sort((left, right) => compact[right].length - compact[left].length)[0];
+    if (!field) return null; // The remaining array budget cannot hold a useful projection.
+    compact.truncated_fields ??= [];
+    if (!compact.truncated_fields.includes(field)) compact.truncated_fields.push(field);
+    const characters = Array.from(compact[field]);
+    const excess = JSON.stringify(compact).length - maximum;
+    compact[field] = `${characters.slice(0, Math.max(31, characters.length - Math.max(1, excess) - 1)).join("")}…`;
+  }
+  return compact;
+}
+
 export function createExperienceService(invokeStore) {
   if (typeof invokeStore !== "function") fail("MEMORY_INVALID_INPUT");
 
@@ -164,7 +187,7 @@ export function createExperienceService(invokeStore) {
           // requesting checkout at recall, not the checkout running this sync.
           if (records.length >= 512) fail("MEMORY_LIMIT_EXCEEDED");
           records.push({ id: hash(`${payload.origin.root}\0${payload.origin.path}`),
-            text: [...Object.keys(textLimits).map((key) => payload.note[key]), ...payload.note.tags].join("\n"), payload });
+            text: [...Object.keys(textLimits).map((key) => payload.note[key]), ...payload.note.tags].join("\n").normalize("NFKC").toLowerCase(), payload });
         }
       }
       const request = { operation: "sync", database: repo.database, repoId: repo.repoId, records };
@@ -189,7 +212,7 @@ export function createExperienceService(invokeStore) {
       const response = store({ operation: "search", database: repo.database, repoId: repo.repoId, terms: queryTerms(query), limit: 50 });
       const records = [];
       const origins = new Map();
-      let size = 0;
+      let size = 2; // The surrounding JSON array delimiters are part of the context budget.
       let omitted = 0;
       for (const cached of response.records ?? []) {
         try {
@@ -203,11 +226,11 @@ export function createExperienceService(invokeStore) {
           if (canonical(actual) !== canonical(cached)) fail("MEMORY_STALE");
           if (git(repo.root, ["merge-base", "--is-ancestor", actual.note.head, repo.head], { allowExit: true }).status !== 0) fail("MEMORY_STALE");
           if (canonical(sourceEvidence(repo, actual.note.sources.map((source) => source.path))) !== canonical(actual.note.sources)) fail("MEMORY_STALE");
-          const result = { ...actual.note, origin: actual.origin };
-          const length = JSON.stringify(result).length;
-          if (size + length > 6000 || records.length >= limit) { omitted += 1; continue; }
+          const separator = records.length ? 1 : 0;
+          const result = records.length < limit ? contextRecord(actual.note, actual.origin, 6000 - size - separator) : null;
+          if (!result) { omitted += 1; continue; }
           records.push(result);
-          size += length;
+          size += JSON.stringify(result).length + separator;
         } catch { omitted += 1; }
       }
       return { status: records.length ? "ok" : "empty", authority, trust: "untrusted-context",

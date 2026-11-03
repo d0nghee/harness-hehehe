@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-02T08:45:03.566Z",
+  "updated_at": "2026-11-03T01:01:26.137Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -50,8 +50,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-11-02T08:43:15.497Z",
-      "source_fingerprint": "5778f977020519e379fe6ad037bf6f79ff2de6b84401928ce39fdeaba17150b6"
+      "last_verified": "2026-11-03T01:01:25.894Z",
+      "source_fingerprint": "08bb72cb45bb9b031095b75ae81495e9c4ac702632e609670cecd127aa386807"
     },
     {
       "path": "docs/README.md",
@@ -70,8 +70,8 @@
         "plugins/hehehe/skills/resume/references/release-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-11-02T08:43:15.672Z",
-      "source_fingerprint": "1fe3da19d39c8c717c720ed57480b5093a3c1ef60e281537a9687b567d53edee"
+      "last_verified": "2026-11-03T01:01:26.136Z",
+      "source_fingerprint": "743151c558b8b9b17dd158c1d0262cd2402ab54394721bcf8ba7c2a270c8766f"
     },
     {
       "path": "docs/runbooks/releases.md",

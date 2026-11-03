@@ -1,11 +1,13 @@
 """One-request stdlib SQLite worker. No network, extension loading, or migrations."""
 
 import json
+import errno
 import os
 import re
 import sqlite3
 import stat
 import sys
+import tempfile
 from pathlib import Path
 
 MAX_BYTES = 1024 * 1024
@@ -111,7 +113,7 @@ def search_query(terms):
         reject('MEMORY_INVALID_INPUT')
     tokens = []
     for token in re.findall(r'[^\W_]+', source, re.UNICODE):
-        token = token[:128].casefold()
+        token = token[:128].lower()
         if token not in tokens:
             tokens.append(token)
         if len(tokens) == 16:
@@ -130,6 +132,111 @@ def response(count, exists, records=None):
 def identity(path):
     info = path.stat()
     return info.st_dev, info.st_ino
+
+
+def publish_no_replace(source, target):
+    # Python's Windows rename never overwrites. POSIX rename does, so request
+    # the native exclusive variant rather than a racy exists/replace fallback.
+    if os.name == 'nt':
+        os.rename(source, target)
+        return
+    import ctypes
+    library = ctypes.CDLL(None, use_errno=True)
+    if sys.platform.startswith('linux'):
+        rename = getattr(library, 'renameat2', None)
+        if rename is None:
+            reject('MEMORY_STORE_ERROR')
+        rename.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int,
+                           ctypes.c_char_p, ctypes.c_uint]
+        rename.restype = ctypes.c_int
+        # Linux AT_FDCWD=-100; RENAME_NOREPLACE=1.
+        result = rename(-100, os.fsencode(source), -100, os.fsencode(target), 1)
+    elif sys.platform == 'darwin':
+        rename = getattr(library, 'renamex_np', None)
+        if rename is None:
+            reject('MEMORY_STORE_ERROR')
+        rename.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint]
+        rename.restype = ctypes.c_int
+        # Darwin RENAME_EXCL=0x00000004.
+        result = rename(os.fsencode(source), os.fsencode(target), 4)
+    else:
+        reject('MEMORY_STORE_ERROR')
+    if result != 0:
+        code = ctypes.get_errno()
+        raise OSError(code, os.strerror(code))
+
+
+def fsync_directory(directory):
+    # Windows does not expose a directory fsync through os.open/os.fsync.
+    if os.name == 'nt':
+        return
+    descriptor = os.open(directory, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0)
+                         | getattr(os, 'O_NOFOLLOW', 0))
+    try:
+        try:
+            os.fsync(descriptor)
+        except OSError as error:
+            if error.errno not in (errno.EINVAL, errno.ENOTSUP, errno.EBADF):
+                raise
+    finally:
+        os.close(descriptor)
+
+
+def initialize_database(path, expected):
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    safe_path(str(path))
+    descriptor, name = tempfile.mkstemp(prefix='.' + path.name + '.init-',
+                                        suffix='.tmp', dir=path.parent)
+    os.close(descriptor)
+    temporary = Path(name)
+    original = identity(temporary)
+    connection = None
+    try:
+        connection = sqlite3.connect(temporary.as_uri() + '?mode=rw', uri=True,
+                                     timeout=0.5, isolation_level=None)
+        if hasattr(connection, 'enable_load_extension'):
+            connection.enable_load_extension(False)
+        connection.execute('PRAGMA trusted_schema=OFF')
+        connection.execute('BEGIN IMMEDIATE')
+        for statement in SCHEMA:
+            connection.execute(statement)
+        connection.execute('PRAGMA application_id=' + str(APP_ID))
+        connection.execute('PRAGMA user_version=' + str(SCHEMA_VERSION))
+        check_schema(connection, expected)
+        connection.commit()
+        connection.close()
+        connection = None
+        safe_path(str(temporary))
+        if identity(temporary) != original:
+            reject('MEMORY_UNSAFE_PATH')
+        descriptor = os.open(temporary, os.O_RDWR | getattr(os, 'O_NOFOLLOW', 0))
+        try:
+            if (os.fstat(descriptor).st_dev, os.fstat(descriptor).st_ino) != original:
+                reject('MEMORY_UNSAFE_PATH')
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+        safe_path(str(path))
+        try:
+            publish_no_replace(temporary, path)
+        except FileExistsError:
+            # A racing creator won. The caller still validates its schema and
+            # uses the existing transaction; no path is overwritten or adopted.
+            return
+        fsync_directory(path.parent)
+    finally:
+        if connection is not None:
+            if connection.in_transaction:
+                connection.rollback()
+            connection.close()
+        # Only remove this invocation's private file, never the canonical DB or
+        # unknown remnants from an interrupted invocation. SQLite owns sidecars.
+        try:
+            if identity(temporary) == original:
+                safe_path(str(temporary))
+                temporary.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def operate(request):
@@ -155,16 +262,8 @@ def operate(request):
     exists = path.exists()
     if not exists and operation != 'sync':
         return response(0, False, [] if operation == 'search' else None)
-    created = False
     if not exists:
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        safe_path(database)
-        try:
-            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, 'O_NOFOLLOW', 0), 0o600)
-            os.close(fd)
-            created = True
-        except FileExistsError:
-            pass
+        initialize_database(path, expected)
     safe_path(database)
     original = identity(path)
     connection = sqlite3.connect(path.as_uri() + ('?mode=rw' if operation == 'sync' else '?mode=ro'),
@@ -179,13 +278,7 @@ def operate(request):
         connection.execute('PRAGMA busy_timeout=500')
         if operation == 'sync':
             connection.execute('BEGIN IMMEDIATE')
-            if created:
-                for statement in SCHEMA:
-                    connection.execute(statement)
-                connection.execute('PRAGMA application_id=' + str(APP_ID))
-                connection.execute('PRAGMA user_version=' + str(SCHEMA_VERSION))
-            else:
-                check_schema(connection, expected)
+            check_schema(connection, expected)
             # WAL mode is never enabled by this implementation or accepted as its own store.
             if connection.execute('PRAGMA journal_mode').fetchone()[0].lower() != 'delete':
                 reject('MEMORY_SCHEMA_UNSUPPORTED')

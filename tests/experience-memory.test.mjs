@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import test, { describe } from "node:test";
 
@@ -121,9 +122,15 @@ test("changed, missing or tampered original evidence is excluded at read time", 
 
 test("expired evidence and an unmerged source commit cannot supply current context", async (t) => {
   const f = await fixture(t);
-  await f.seed(experience({ expires_at: new Date(Date.now() + 2000).toISOString() }));
-  await new Promise((resolve) => setTimeout(resolve, 2100));
-  assert.equal(results(await run(f.project, ["recall", "--query", "serialization"])).length, 0);
+  const { recorded: initialRecord } = await f.seed(experience({ expires_at: new Date(Date.now() + 86400000).toISOString() }));
+  assert.equal(results(await run(f.project, ["recall", "--query", "serialization"])).length, 1);
+  // Advance only this disposable recall process past the captured expiry. Slow
+  // Git/process startup must not expire an input before it can be recorded.
+  const clock = path.join(f.root, "expired-recall-clock.mjs");
+  await writeFile(clock, `Date.now = () => ${Date.parse(initialRecord.value.record.expires_at) + 1};\n`);
+  const expiredEnvironment = { ...process.env,
+    NODE_OPTIONS: [process.env.NODE_OPTIONS, `--import=${pathToFileURL(clock).href}`].filter(Boolean).join(" ") };
+  assert.equal(results(await run(f.project, ["recall", "--query", "serialization"], expiredEnvironment)).length, 0);
   const branch = path.join(f.root, "unmerged");
   await git(f.project, "worktree", "add", "--detach", branch, "HEAD");
   await git(branch, "commit", "--allow-empty", "-m", "unmerged worker revision");
@@ -132,8 +139,8 @@ test("expired evidence and an unmerged source commit cannot supply current conte
   assert.equal(recorded.code, 0, recorded.stderr);
   await current(branch, "unmerged-source", "complete");
   assert.equal((await run(branch, ["sync"])).code, 0);
-  assert.equal(results(await run(branch, ["recall", "--query", "serialization"])).length, 1);
-  assert.equal(results(await run(f.project, ["recall", "--query", "serialization"])).length, 0);
+  assert.equal(results(await run(branch, ["recall", "--query", "serialization"], expiredEnvironment)).length, 1);
+  assert.equal(results(await run(f.project, ["recall", "--query", "serialization"], expiredEnvironment)).length, 0);
 });
 
 test("SQL, shell and approval-looking text remain inert untrusted data", async (t) => {

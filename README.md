@@ -149,6 +149,8 @@ $hehehe:resume 중단된 작업공간과 hehehe 실행을 이어서 진행해줘
 
 전체 대화나 로그를 자동 수집하지 않습니다. 원본은 실행별 `experience.json`, 검색 DB는 Git 공통 디렉터리의 `hehehe-memory/experience.sqlite`에 보관합니다. 사용법과 보존 범위는 [경험 기억 스킬](plugins/hehehe/skills/experience-memory/SKILL.md)을 확인하세요.
 
+긴 기록은 원문 출처가 포함된 축약본으로 반환하며 원본은 보존합니다. 색인과 검색어의 유니코드 정규화를 통일하고, 최초 DB는 초기화를 마친 뒤 게시하여 생성 도중 중단돼도 다음 실행에서 재시도할 수 있습니다.
+
 ## 완료 게이트
 
 AI가 작성한 완료 기준이나 `PASS` 보고서만으로 작업을 완료하지 않습니다. `resume`의 `verify`가 검토된 커밋의 `.hehehe/verification-policy.json`에서 필수 검사·변경 경로별 추가 검사·보호 파일·결과 유효기간을 읽고, `complete`가 실제 실행 증거를 확인합니다.

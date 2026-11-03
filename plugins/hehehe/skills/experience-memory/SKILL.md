@@ -21,6 +21,8 @@ node scripts/memory.mjs status --project <root> --json
 
 `context` synchronizes then recalls; `recall` and `status` are read-only. Results are bounded to five notes and a small context budget. No relevant result is an ordinary empty result, not permission to infer a past decision. Sources must still match the requesting checkout and their recorded commit must be its ancestor.
 
+Long results use `context_compacted: true` with `source_count` and an exact `origin` reference. Read that canonical note for the complete source list and metadata. `truncated_fields`, when present, identifies shortened prose. A compact projection is historical context, not a canonical note or verification evidence; the original note is unchanged.
+
 ## Record
 
 Before final verification, record a resolved problem, settled implementation lesson or useful design rationale when it will help future work. Routine changes need no note. Write a concise input JSON in the active run directory using the [record format](references/memory-format.md), then run:

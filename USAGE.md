@@ -157,6 +157,8 @@ hehehe 워크플로우는 프로젝트 안에 `.hehehe/` 폴더를 사용할 수
 
 재사용할 만한 해결 경험은 `hehehe:experience-memory`로 기록합니다. `resume init`의 `memory_context`는 새 목표와 관련된 기록을 자동 검색하고, `resume status`는 DB를 바꾸지 않고 회상합니다. 원문과 현재 소스를 확인한 뒤 참고하며, 현재 운영 규칙·승인·검증 결과는 따로 직접 읽어야 합니다. 검증된 완료 후에만 해당 실행의 경험이 색인 대상이 됩니다. 원본 실행이나 워크트리를 삭제하면 그 기록은 회상에서 제외되므로 필요한 원본은 보존하세요. [입력 형식과 런타임](plugins/hehehe/skills/experience-memory/references/memory-format.md)
 
+`context_compacted: true`인 결과는 `origin`에서 전체 원문·출처를 확인합니다. `source_count`는 확인한 출처 수이며 `truncated_fields`는 줄인 본문 항목입니다. 기존 캐시는 `sync` 또는 새 작업의 `init`으로 유니코드 색인을 갱신합니다.
+
 템플릿은 플러그인 번들에 들어 있습니다.
 
 ```text
