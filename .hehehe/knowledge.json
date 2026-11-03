@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-03T05:43:13.076Z",
+  "updated_at": "2026-11-03T06:43:19.682Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
@@ -50,8 +50,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-11-03T05:43:12.885Z",
-      "source_fingerprint": "c31e7a58c785de73788e57e0c7bcf4f25ed4a877f82f519f80dd93ccbe8fa759"
+      "last_verified": "2026-11-03T06:43:19.589Z",
+      "source_fingerprint": "e8ca39ad0d4c451d144ab58a05eca008dc8c1b9662b6710518a20461c89f51e2"
     },
     {
       "path": "docs/README.md",
@@ -65,13 +65,14 @@
         "docs/runbooks/releases.md",
         "docs/runbooks/solo-owner-delivery.md",
         "plugins/hehehe/skills/experience-memory/SKILL.md",
+        "plugins/hehehe/skills/experience-memory/references/input-contracts.md",
         "plugins/hehehe/skills/experience-memory/references/memory-format.md",
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/release-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-11-03T05:43:13.075Z",
-      "source_fingerprint": "b38c6154ee2147da26716b175aad236c473888bbf19137634f5dfdd55c660508"
+      "last_verified": "2026-11-03T06:43:19.682Z",
+      "source_fingerprint": "067e62ea2d9d44f88f60246c6077c6a94e70ef84208cfa5999851be4976c01c7"
     },
     {
       "path": "docs/runbooks/releases.md",

@@ -19,6 +19,11 @@ function failure(code) {
   return { status: 'error', error_code: code, message: MESSAGES[code] };
 }
 
+function finiteJsonNumber(_key, value) {
+  if (typeof value === 'number' && !Number.isFinite(value)) throw new Error('non-finite JSON number');
+  return value;
+}
+
 function assertSafePath(database) {
   const absolute = path.resolve(database);
   const parsed = path.parse(absolute);
@@ -57,10 +62,11 @@ export function invokeStore(input) {
       || !['probe', 'status', 'search', 'sync'].includes(input.operation)) return failure('MEMORY_INVALID_INPUT');
     if (input.operation !== 'probe') {
       if (typeof input.database !== 'string' || !path.isAbsolute(input.database)
-        || input.database.length > 4096 || input.database.includes('\0')) return failure('MEMORY_INVALID_INPUT');
+        || input.database.length > 4096 || input.database.includes('\0')
+        || /[\ud800-\udfff]/u.test(input.database)) return failure('MEMORY_INVALID_INPUT');
       try { assertSafePath(input.database); } catch { return failure('MEMORY_UNSAFE_PATH'); }
     }
-    payload = JSON.stringify(input);
+    payload = JSON.stringify(input, finiteJsonNumber);
     if (Buffer.byteLength(payload) > MAX_BYTES) return failure('MEMORY_INVALID_INPUT');
   } catch { return failure('MEMORY_INVALID_INPUT'); }
 
@@ -74,7 +80,7 @@ export function invokeStore(input) {
     } catch { continue; }
     if (result.error || result.signal || result.status !== 0) continue;
     let output;
-    try { output = JSON.parse(result.stdout); } catch { continue; }
+    try { output = JSON.parse(result.stdout, finiteJsonNumber); } catch { continue; }
     if (output?.status === 'error') {
       const code = Object.hasOwn(MESSAGES, output.error_code) ? output.error_code : 'MEMORY_STORE_ERROR';
       if (code === 'MEMORY_RUNTIME_UNAVAILABLE') continue;

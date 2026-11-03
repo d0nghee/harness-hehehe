@@ -5,6 +5,7 @@ export const INDEX_TEXT_BYTES = 32768;
 export const QUERY_CHARACTERS = 400;
 export const NOTE_CANONICAL_BYTES = 18000;
 export const NOTE_READ_BYTES = 20000;
+export const MAX_RETENTION_MS = 90 * 86400000;
 const invalidText = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ud800-\udfff]/u;
 
 // Filter only after SQLite has produced its actual keyword tokens. A second
@@ -60,6 +61,18 @@ export function indexText(content) {
 export function queryText(query) {
   if (typeof query !== "string" || !query.trim() || query.length > QUERY_CHARACTERS) fail();
   return normalizedSearchText(query.trim());
+}
+
+export function utcDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value)) fail();
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) fail();
+  const normalized = new Date(timestamp).toISOString();
+  const expected = value.length === 20 ? `${value.slice(0, -1)}.000Z` : value;
+  // Date.parse may repair a nonexistent day or 24:00 into another date.
+  // Canonicalization may add milliseconds, but must not change the time supplied.
+  if (normalized !== expected) fail();
+  return normalized;
 }
 
 export function assertNoteSize(note) {

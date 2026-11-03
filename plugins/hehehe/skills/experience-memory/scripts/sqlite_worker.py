@@ -1,6 +1,7 @@
 """One-request stdlib SQLite worker. No network, extension loading, or migrations."""
 
 import json
+import math
 import errno
 import os
 import sqlite3
@@ -28,6 +29,24 @@ class StoreError(Exception):
 
 def reject(code):
     raise StoreError(code)
+
+
+def parse_json(text, code):
+    def number(value, convert):
+        try:
+            if convert is int and len(value.lstrip('-')) > 309:
+                reject(code)
+            parsed = convert(value)
+            if not math.isfinite(parsed):
+                reject(code)
+            return parsed
+        except (ValueError, OverflowError):
+            reject(code)
+    # Both bridge clients use finite JavaScript Number-compatible JSON. Python
+    # otherwise accepts huge integers whose Node decoding becomes Infinity.
+    return json.loads(text, parse_constant=lambda _: reject(code),
+                      parse_int=lambda value: number(value, int),
+                      parse_float=lambda value: number(value, float))
 
 
 def safe_path(database):
@@ -95,6 +114,9 @@ def checked_records(records):
                 or '\0' in record_id or record_id in seen or not isinstance(text, str)
                 or len(text.encode('utf-8')) > 32768 or '\0' in text):
             reject('MEMORY_INVALID_INPUT')
+        # SQL binding would reject lone surrogates, but only after a missing
+        # store was initialized. Validate every identity before any file effect.
+        record_id.encode('utf-8')
         payload = json.dumps(record['payload'], ensure_ascii=False, allow_nan=False,
                              separators=(',', ':'))
         if len(payload.encode('utf-8')) > 65536:
@@ -279,6 +301,8 @@ def operate(request):
     if (not isinstance(database, str) or not isinstance(repo_id, str) or not repo_id
             or len(repo_id) > 200 or '\0' in repo_id):
         reject('MEMORY_INVALID_INPUT')
+    database.encode('utf-8')
+    repo_id.encode('utf-8')
     path = safe_path(database)
     limit = request.get('limit', 3)
     if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 50:
@@ -340,7 +364,7 @@ def operate(request):
             if not isinstance(row[0], str) or len(row[0].encode('utf-8')) > 65536:
                 reject('MEMORY_STORE_CORRUPT')
             try:
-                payloads.append(json.loads(row[0], parse_constant=lambda _: reject('MEMORY_STORE_CORRUPT')))
+                payloads.append(parse_json(row[0], 'MEMORY_STORE_CORRUPT'))
             except (ValueError, TypeError, RecursionError):
                 reject('MEMORY_STORE_CORRUPT')
         return response(len(payloads), True, payloads)
@@ -355,7 +379,7 @@ def main():
         data = sys.stdin.buffer.read(MAX_BYTES + 1)
         if len(data) > MAX_BYTES:
             reject('MEMORY_INVALID_INPUT')
-        request = json.loads(data.decode('utf-8'), parse_constant=lambda _: reject('MEMORY_INVALID_INPUT'))
+        request = parse_json(data.decode('utf-8'), 'MEMORY_INVALID_INPUT')
         if not isinstance(request, dict):
             reject('MEMORY_INVALID_INPUT')
         result = operate(request)

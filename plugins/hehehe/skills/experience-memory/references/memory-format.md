@@ -2,7 +2,9 @@
 
 ## Curated input
 
-All fields below are required. `expires_at` is optional and defaults to 90 days; an explicit UTC ISO expiry must be in the future and within 90 days.
+All fields below are required. `expires_at` is optional and defaults to 90 days; an explicit expiry must be a real UTC calendar instant strictly in the future and at most 90 days after capture. Accepted spelling is `YYYY-MM-DDTHH:mm:ssZ` or `YYYY-MM-DDTHH:mm:ss.sssZ`, with a four-digit year, valid month/day/leap year, hours 00–23 and minutes/seconds 00–59. Optional milliseconds must have exactly three digits. The parser may add `.000` but never repairs an invalid day or time into another date. Offsets, surrounding whitespace and rollover such as November 31 or `24:00` are rejected.
+
+The [complete input inventory and verification map](input-contracts.md) covers every public field, operation/CLI option, retained metadata field, SQLite request and optional runtime setting, including normal, invalid and boundary cases.
 
 ```json
 {
@@ -36,6 +38,8 @@ The shared text contract also measures the complete derived search text after NF
 The SQLite cache is not authenticated authority. Recall rereads the canonical note and current sources instead of trusting a modified cached payload. Completed-run eligibility is not proof that an editable historical record is authentic. Neither notes nor cached records can grant approval or verification success.
 
 The first version bounds the original query to 400 UTF-16 code units/16 actual keyword terms, internally checks up to 50 candidates, returns at most five notes with a serialized records-array budget of 6000 code units, and limits synchronization to 512 notes/1 MiB of serialized input across at most 1024 run entries and 64 registered checkouts. Exceeding a collection bound reports a limit error rather than silently truncating a rebuilt cache. For an unusually long run goal, use a short explicit query. Query tokenization uses only an in-memory database and does not create or modify the persistent cache during read-only retrieval.
+
+Direct API recall/context options must be plain or null-prototype objects containing only `limit` or `sync`, respectively. Omission uses the existing defaults of three records and synchronization enabled. Invalid option containers, keys, values or queries fail before context synchronization, so a rejected call cannot create or refresh the cache. Internal bridge database/repository/record identity strings must be well-formed Unicode before any database initialization. Errors remain sanitized and memory remains advisory.
 
 Short results keep the complete existing shape. A result too large for the remaining context uses a projection marked `context_compacted: true`, retaining its `id`, `title`, problem/cause/resolution/outcome, tags, head, trust and exact `origin` reference. `source_count` gives the number of fully validated sources; the source list and other canonical-only metadata remain in the original note. `truncated_fields` explicitly lists any shortened prose. Projection happens only after full source/expiry validation, never changes the canonical note and must not be treated as that note's signed or complete representation. If the remaining context cannot hold a useful projection and origin reference, it is counted as omitted.
 

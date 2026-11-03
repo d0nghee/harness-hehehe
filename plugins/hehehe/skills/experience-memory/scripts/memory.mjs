@@ -8,12 +8,13 @@ import { MemoryError, readJson } from "./source-evidence.mjs";
 export const { recordExperience, syncExperiences, recallExperiences, memoryContext, memoryStatus } = createExperienceService(invokeStore);
 
 export function main(argv = process.argv.slice(2)) {
-  const command = argv[0];
   const options = { project: process.cwd(), json: false };
   const allowed = { record: ["project", "input", "json"], sync: ["project", "json"], recall: ["project", "query", "limit", "json"],
     context: ["project", "query", "json"], status: ["project", "json"] };
   try {
-    if (!allowed[command]) throw new MemoryError("MEMORY_INVALID_INPUT");
+    if (!Array.isArray(argv) || !Array.from(argv).every((argument) => typeof argument === "string")) throw new MemoryError("MEMORY_INVALID_INPUT");
+    const command = argv[0];
+    if (!Object.hasOwn(allowed, command)) throw new MemoryError("MEMORY_INVALID_INPUT");
     for (let index = 1; index < argv.length; index += 1) {
       if (argv[index] === "--json") { options.json = true; continue; }
       const name = argv[index].startsWith("--") ? argv[index].slice(2) : "";

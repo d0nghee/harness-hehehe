@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { MemoryError, fail, hash, canonical, checkedPath, readJson, repository, registeredRoots,
   samePath, runPattern, validateSourcePaths, sourceEvidence, git } from "./source-evidence.mjs";
 import { textLimits, memoryFields, indexText, queryText, queryStopwords,
-  assertNoteSize, NOTE_READ_BYTES } from "./text-contract.mjs";
+  assertNoteSize, NOTE_READ_BYTES, utcDate, MAX_RETENTION_MS } from "./text-contract.mjs";
 
 const authority = "advisory-only";
 const inputKeys = ["schema_version", ...Object.keys(textLimits), "tags", "source_paths", "expires_at"];
@@ -15,10 +15,10 @@ function object(value, keys) {
   if (!value || typeof value !== "object" || Array.isArray(value)
     || Object.keys(value).some((key) => !keys.includes(key))) fail();
 }
-function date(value) {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value)
-    || Number.isNaN(Date.parse(value))) fail();
-  return new Date(value).toISOString();
+function optionsObject(value, keys) {
+  object(value, keys);
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== null && prototype !== Object.prototype) fail();
 }
 function safe(action) {
   try { return action(); } catch (error) {
@@ -35,7 +35,8 @@ function runState(root, runId, completeOnly = false) {
 }
 function currentRun(repo) {
   const pointer = readJson(repo.root, ".hehehe/current.json", 4096);
-  const match = /^runs\/([a-z0-9][a-z0-9-]{2,79})\/state\.json$/.exec(pointer.active_run ?? "");
+  if (typeof pointer.active_run !== "string") fail("MEMORY_INVALID_RUN");
+  const match = /^runs\/([a-z0-9][a-z0-9-]{2,79})\/state\.json$/.exec(pointer.active_run);
   if (pointer.schema_version !== 1 || !match) fail("MEMORY_INVALID_RUN");
   runState(repo.root, match[1]);
   return match[1];
@@ -49,16 +50,17 @@ function validateNote(note, repoId, runId) {
   const content = memoryFields(note);
   indexText(content);
   if (note.repo_id !== repoId || note.run_id !== runId || note.trust !== "untrusted-context"
-    || !/^[a-f0-9]{40,64}$/.test(note.head ?? "") || !/^[a-f0-9]{64}$/.test(note.source_fingerprint ?? "")) fail("MEMORY_INVALID_SOURCE");
-  date(note.recorded_at);
-  date(note.expires_at);
+    || typeof note.head !== "string" || !/^[a-f0-9]{40,64}$/.test(note.head)
+    || typeof note.source_fingerprint !== "string" || !/^[a-f0-9]{64}$/.test(note.source_fingerprint)) fail("MEMORY_INVALID_SOURCE");
+  utcDate(note.recorded_at);
+  utcDate(note.expires_at);
   if (Date.parse(note.expires_at) <= Date.parse(note.recorded_at)
-    || Date.parse(note.expires_at) - Date.parse(note.recorded_at) > 90 * 86400000) fail("MEMORY_INVALID_SOURCE");
+    || Date.parse(note.expires_at) - Date.parse(note.recorded_at) > MAX_RETENTION_MS) fail("MEMORY_INVALID_SOURCE");
   if (!Array.isArray(note.sources)) fail("MEMORY_INVALID_SOURCE");
   validateSourcePaths(note.sources.map((source) => source?.path));
   for (const source of note.sources) {
     object(source, ["path", "sha256"]);
-    if (!/^[a-f0-9]{64}$/.test(source.sha256 ?? "")) fail("MEMORY_INVALID_SOURCE");
+    if (typeof source.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(source.sha256)) fail("MEMORY_INVALID_SOURCE");
   }
   if (canonical(content) !== canonical(Object.fromEntries(Object.keys(content).map((key) => [key, note[key]])))
     || hash(canonical(note.sources)) !== note.source_fingerprint || identity(note) !== note.id) fail("MEMORY_INVALID_SOURCE");
@@ -126,10 +128,11 @@ export function createExperienceService(invokeStore) {
       object(inputObject, inputKeys);
       const content = memoryFields(inputObject);
       indexText(content);
+      const explicitExpiry = inputObject.expires_at === undefined ? null : utcDate(inputObject.expires_at);
       const sources = sourceEvidence(repo, validateSourcePaths(inputObject.source_paths));
       const recordedAt = new Date().toISOString();
-      const expiry = inputObject.expires_at === undefined ? new Date(Date.parse(recordedAt) + 90 * 86400000).toISOString() : date(inputObject.expires_at);
-      if (Date.parse(expiry) <= Date.now() || Date.parse(expiry) - Date.parse(recordedAt) > 90 * 86400000) fail();
+      const expiry = explicitExpiry ?? new Date(Date.parse(recordedAt) + MAX_RETENTION_MS).toISOString();
+      if (Date.parse(expiry) <= Date.now() || Date.parse(expiry) - Date.parse(recordedAt) > MAX_RETENTION_MS) fail();
       const note = { ...content, repo_id: repo.repoId, run_id: runId, recorded_at: recordedAt, expires_at: expiry,
         head: repo.head, sources, source_fingerprint: hash(canonical(sources)), trust: "untrusted-context" };
       note.id = identity(note);
@@ -176,8 +179,10 @@ export function createExperienceService(invokeStore) {
     });
   }
 
-  function recallExperiences(project, query, { limit = 3 } = {}) {
+  function recallExperiences(project, query, options = {}) {
     return safe(() => {
+      optionsObject(options, ["limit"]);
+      const limit = options.limit === undefined ? 3 : options.limit;
       if (!Number.isInteger(limit) || limit < 1 || limit > 5) fail();
       const repo = repository(project);
       const roots = registeredRoots(repo);
@@ -212,9 +217,12 @@ export function createExperienceService(invokeStore) {
     });
   }
 
-  function memoryContext(project, query, { sync = true } = {}) {
+  function memoryContext(project, query, options = {}) {
     try {
+      optionsObject(options, ["sync"]);
+      const sync = options.sync === undefined ? true : options.sync;
       if (typeof sync !== "boolean") fail();
+      queryText(query);
       if (sync) syncExperiences(project);
       return recallExperiences(project, query);
     } catch (error) {

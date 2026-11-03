@@ -35,6 +35,8 @@ Select relevant tracked source files that support the note. The command measures
 
 Field limits and the normalized search-text byte budget are checked before publishing. `MEMORY_LIMIT_EXCEEDED` leaves the existing note intact; shorten the input using the format reference rather than changing limits. Old invalid or over-budget notes are excluded individually during synchronization. Keyword boundaries come from SQLite's actual tokenizer for both indexing and queries.
 
+Explicit expiry dates must exist in the UTC calendar; rollover is an input error. Consult the [complete input contracts and test map](references/input-contracts.md) for record fields, operation options, files, retained metadata, collection bounds and optional runtime inputs. Invalid context queries/options are rejected before synchronization.
+
 Only notes whose originating run is complete enter the index. `resume complete` first enforces the existing trusted verification gate, then refreshes the optional index. A note's presence or its historical outcome is never current verification evidence.
 
 ## Retention and repair

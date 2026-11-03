@@ -121,7 +121,7 @@ export function sourceEvidence(repo, paths) {
   const tracked = git(repo.root, ["ls-files", "--stage", "-z", "--", ...sources]).split("\0").filter(Boolean);
   const modes = new Map();
   for (const entry of tracked) {
-    const match = /^(100644|100755) [a-f0-9]{40,64} 0\t(.+)$/.exec(entry);
+    const match = /^(100644|100755) [a-f0-9]{40,64} 0\t(.+)$/s.exec(entry);
     if (!match || !sources.includes(match[2]) || modes.has(match[2])) fail("MEMORY_INVALID_SOURCE");
     modes.set(match[2], match[1]);
   }
