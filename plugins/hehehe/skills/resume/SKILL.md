@@ -18,6 +18,7 @@ Resolve both scripts relative to this `SKILL.md`:
 Read [references/isolation-policy.md](references/isolation-policy.md) before creating or retiring a worktree.
 Read [references/verification-policy.md](references/verification-policy.md) before verification or completion. The operator/CI must supply a reviewed `HEHEHE_VERIFICATION_BASE`; never select a weaker base, approve a policy change yourself, or substitute a handwritten pass report.
 Read [references/integration-delivery.md](references/integration-delivery.md) for requested/configured integrated delivery. The lead prepares one frozen, tested candidate and one stable review path; main is updated only after the user approves that exact result.
+Read [references/release-delivery.md](references/release-delivery.md) when a configured project release lifecycle or a publication request is in scope. A local delivery can leave a release pending; it never authorizes publication.
 
 ## Modes
 
@@ -84,10 +85,10 @@ Never create another date-labelled worktree when the task branch is already regi
 3. If isolation is justified, inspect every dirty path and run workspace `create` from the intended committed base. Never move source changes silently.
 4. Change into the selected worktree before reading, initializing, or updating run state.
 5. Read run status. Resume only when the goal, branch, and worktree match; otherwise initialize a new run.
-6. Read done criteria, build log, checks, and final report. Verify recorded claims against files and command output.
+6. Read done criteria, build log, checks, and final report. Verify recorded claims against files and command output. Init/status also returns optional advisory `memory_context`; inspect relevant experience sources using `hehehe:experience-memory`, while reading current rules and verification policy independently. Init refreshes the cache; status remains read-only.
 7. Continue from `next_step` and advance state after each material phase transition.
 8. Keep apps, logs, Compose projects, and optional development databases scoped to the recorded runtime identity. Probe the suggested port before binding.
-9. Complete only when required evidence passes. Preserve the workspace for review, commit, merge, or an explicit retirement request.
+9. Before final verification, use `hehehe:experience-memory` to record a useful resolved lesson when one exists. Complete only when required evidence passes; after success, completion refreshes the optional experience index. Memory failures are reported without changing the gate outcome. Preserve the workspace for review, commit, merge, or an explicit retirement request.
 
 For `hehehe:subagent-resolve`, select one task worktree before spawning agents. Agents share it unless the user explicitly requests a separate multi-branch integration strategy.
 

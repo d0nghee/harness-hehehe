@@ -21,7 +21,12 @@
     "test": "node --test",
     "maintenance:check": "node plugins/hehehe/skills/maintain-codebase/scripts/maintenance-audit.mjs scan --project . --json",
     "validate": "node scripts/check-syntax.mjs && npm test",
-    "verification:ci": "node plugins/hehehe/skills/resume/scripts/ci-verification.mjs ."
+    "verification:ci": "node plugins/hehehe/skills/resume/scripts/ci-verification.mjs .",
+    "release:plan": "node scripts/release.mjs plan",
+    "release:prepare": "node scripts/release.mjs prepare",
+    "release:verify": "node scripts/release.mjs verify",
+    "release:publish": "node scripts/release.mjs publish",
+    "release:status": "node scripts/release.mjs status"
   },
   "engines": {
     "node": ">=20"

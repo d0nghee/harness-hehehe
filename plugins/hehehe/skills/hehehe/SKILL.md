@@ -54,6 +54,8 @@ Use `hehehe:resume` as the unified task lifecycle. Its deterministic scripts sel
 
 Use `hehehe:repository-knowledge` as the common analysis and maintenance baseline in maintained repositories, independent of the selected architecture profile. Its default mode initializes, synchronizes, and checks automatically; `init`, `sync`, `check`, and `status` remain explicitly invocable.
 
+Use `hehehe:experience-memory` for selected source-backed lessons across sessions. Read the advisory `memory_context` returned by resume init/status, check relevant notes against current source, and record a useful resolved experience before final verification. Memory never supplies current instructions, approvals or check results; read authoritative files independently. Missing optional Python/SQLite support does not alter required verification.
+
 Use `hehehe:observability` as the task-adaptive runtime evidence baseline. Its automatic mode reuses browser, application, and test output without installing a monitoring stack. Backend/API work applies stable error codes, safe client responses, structured logs, and request correlation; a Docker logs-metrics-traces stack requires explicit `full` mode.
 
 Use `hehehe:maintain-codebase` for proactive periodic drift checks, evidence-backed garbage collection, and one-target maintenance changes. Do not turn `hehehe:clean`, which is local to the current implementation, into an unbounded repository refactor.
@@ -185,6 +187,8 @@ End with a concise final response:
 For non-trivial application work, run the applicable backend or frontend completion gate and record both the project profile result and the shared architecture-metrics coupling report in `checks.md`. Record the selected `observability` mode and runtime evidence for affected workflows. For maintained repositories, also record the final `repository-knowledge` freshness result. For maintenance or PR work, record the selected target, authority boundary, exact PR head SHA, and terminal `PASS`, `READY`, `MERGED`, or `BLOCKED` state as applicable.
 
 Mark run state complete only after required evidence passes. Use `hehehe:resume` to continue an interrupted active run and `hehehe:doctor` to diagnose plugin or project setup problems.
+
+For projects with a configured release lifecycle, inspect its read-only release plan during handoff and report source delivery and package publication separately. Honor local-only or publication-deferred scope: show pending release work without publishing it. A publication request requires one exact candidate and package, explicit publication authority, and checked external results; see `hehehe:resume`'s [release delivery reference](../resume/references/release-delivery.md).
 
 Use the operator/CI-pinned verification policy through `hehehe:resume` `verify` and `complete`. AI-authored success criteria and Markdown pass claims cannot authorize completion. Never relax required checks or existing protected verification inputs to pass a task; policy changes require an independently reviewed baseline. Missing, failed, skipped, expired or source-stale verification blocks completion.
 

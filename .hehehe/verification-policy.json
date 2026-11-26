@@ -20,6 +20,7 @@
   "change_rules": [],
   "protected_paths": [
     ".hehehe/verification-policy.json",
+    ".hehehe/release-policy.json",
     "package.json",
     "scripts/**",
     "tests/**",

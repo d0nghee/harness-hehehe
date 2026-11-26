@@ -287,6 +287,13 @@ function printResult(value, asJson) {
   process.stdout.write(`${value.run_id}: ${value.status} / ${value.phase}\n`);
   process.stdout.write(`Goal: ${value.goal}\n`);
   process.stdout.write(`Next: ${value.next_step ?? "none"}\n`);
+  if (value.memory_context) {
+    process.stdout.write(`Experience memory: ${value.memory_context.status} (advisory only)\n`);
+    for (const record of value.memory_context.records ?? []) {
+      process.stdout.write(`- ${JSON.stringify(record.title)}\n`);
+    }
+  }
+  if (value.memory_capture) process.stdout.write(`Experience index: ${value.memory_capture.status} (advisory only)\n`);
 }
 
 let mutationLock;
@@ -326,6 +333,19 @@ try {
     result = verify(options.project);
   } else {
     throw new Error(`unknown command: ${command}`);
+  }
+  if (["init", "status", "complete"].includes(command) && result.goal) {
+    // The trusted CI runner deliberately carries only mandatory verification tools.
+    // An absent optional memory module must not change its verification behavior.
+    let memory;
+    try { memory = await import("./memory-context.mjs"); } catch { /* optional payload */ }
+    const unavailable = { status: "unavailable", authority: "advisory-only", error_code: "MEMORY_SKILL_UNAVAILABLE", records: [] };
+    if (command === "complete") {
+      // complete() has already enforced the original trusted receipt before memory runs.
+      result = { ...result, memory_capture: memory ? await memory.captureRunMemory(options.project) : unavailable };
+    } else {
+      result = { ...result, memory_context: memory ? await memory.recallRunMemory(options.project, result.goal, command === "init") : unavailable };
+    }
   }
   printResult(result, options.json);
 } catch (error) {

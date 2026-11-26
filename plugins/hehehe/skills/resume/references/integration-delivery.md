@@ -66,3 +66,5 @@ After a protected-input update lands, use the separate baseline-promotion proced
 | `merged` | Exact candidate is on local main and the same review path checks out main |
 
 Local main delivery does not claim remote CI success, remote push, npm release or deployment. Those remain separate authorized operations and must respect platform protections.
+
+For configured package publication, also use the [release delivery reference](release-delivery.md). Inspect the release plan at handoff so unpublished changes stay visible, including when the user requests local-only work. Release preparation and publication have separate evidence and approval identities; a successful source delivery receipt does not attest to a published package.

@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-30T06:10:00.174Z",
+  "updated_at": "2026-11-03T06:43:19.682Z",
   "documents": [
     {
       "path": "docs/architecture/overview.md",
       "kind": "architecture",
       "source_paths": [
         ".github/workflows",
+        ".hehehe/release-policy.json",
         ".hehehe/verification-policy.json",
         "AGENTS.md",
         "bin",
@@ -18,6 +19,7 @@
         "plugins/hehehe/skills/browser-validate/SKILL.md",
         "plugins/hehehe/skills/doctor/SKILL.md",
         "plugins/hehehe/skills/doctor/scripts/doctor.mjs",
+        "plugins/hehehe/skills/experience-memory",
         "plugins/hehehe/skills/full-resolve/SKILL.md",
         "plugins/hehehe/skills/hehehe/SKILL.md",
         "plugins/hehehe/skills/maintain-codebase/SKILL.md",
@@ -33,10 +35,12 @@
         "plugins/hehehe/skills/resume/SKILL.md",
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
         "plugins/hehehe/skills/resume/references/isolation-policy.md",
+        "plugins/hehehe/skills/resume/references/release-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md",
         "plugins/hehehe/skills/resume/scripts/ci-verification.mjs",
         "plugins/hehehe/skills/resume/scripts/delivery-store.mjs",
         "plugins/hehehe/skills/resume/scripts/delivery.mjs",
+        "plugins/hehehe/skills/resume/scripts/memory-context.mjs",
         "plugins/hehehe/skills/resume/scripts/run-state.mjs",
         "plugins/hehehe/skills/resume/scripts/verification-baseline.mjs",
         "plugins/hehehe/skills/resume/scripts/verification-policy.mjs",
@@ -46,8 +50,8 @@
         "scripts",
         "tests"
       ],
-      "last_verified": "2026-10-30T06:09:59.849Z",
-      "source_fingerprint": "a04eee965ff65e9412e319bc8f1ce3e2f97ef13890a8497e2e7985c610451685"
+      "last_verified": "2026-11-03T06:43:19.589Z",
+      "source_fingerprint": "e8ca39ad0d4c451d144ab58a05eca008dc8c1b9662b6710518a20461c89f51e2"
     },
     {
       "path": "docs/README.md",
@@ -58,20 +62,45 @@
         "README.md",
         "USAGE.md",
         "docs/architecture/overview.md",
+        "docs/runbooks/releases.md",
         "docs/runbooks/solo-owner-delivery.md",
+        "plugins/hehehe/skills/experience-memory/SKILL.md",
+        "plugins/hehehe/skills/experience-memory/references/input-contracts.md",
+        "plugins/hehehe/skills/experience-memory/references/memory-format.md",
         "plugins/hehehe/skills/resume/references/integration-delivery.md",
+        "plugins/hehehe/skills/resume/references/release-delivery.md",
         "plugins/hehehe/skills/resume/references/verification-policy.md"
       ],
-      "last_verified": "2026-10-30T06:10:00.010Z",
-      "source_fingerprint": "7e758608c7a84996a7cda8f105b3176dc29ffac4b14dcf4409a6420a7706675a"
+      "last_verified": "2026-11-03T06:43:19.682Z",
+      "source_fingerprint": "067e62ea2d9d44f88f60246c6077c6a94e70ef84208cfa5999851be4976c01c7"
+    },
+    {
+      "path": "docs/runbooks/releases.md",
+      "kind": "runbook",
+      "source_paths": [
+        ".github/workflows/publish.yml",
+        ".hehehe/release-policy.json",
+        ".hehehe/verification-policy.json",
+        "package.json",
+        "plugins/hehehe/skills/resume/references/release-delivery.md",
+        "scripts/release-gateway.mjs",
+        "scripts/release-lifecycle.mjs",
+        "scripts/release-policy.mjs",
+        "scripts/release-store.mjs",
+        "scripts/release.mjs"
+      ],
+      "last_verified": "2026-11-02T08:33:20.836Z",
+      "source_fingerprint": "0a621f3737c95887c973f6176883df49f0f75837da91ccdd61b3da40acfb214a"
     },
     {
       "path": "docs/runbooks/solo-owner-delivery.md",
       "kind": "runbook",
       "source_paths": [
         ".github/workflows",
+        ".hehehe/release-policy.json",
         ".hehehe/verification-policy.json",
         "bin/hehehe.mjs",
+        "docs/runbooks/releases.md",
         "lib/confirmation.mjs",
         "lib/installer.mjs",
         "plugins/hehehe/skills/doctor/scripts/doctor.mjs",
@@ -81,8 +110,8 @@
         "plugins/hehehe/skills/resume/scripts",
         "scripts/repository-protection.mjs"
       ],
-      "last_verified": "2026-10-30T06:10:00.173Z",
-      "source_fingerprint": "0ca7f5e117093a41cbe9e22276cd8729dcd7a1f44de4ba822eee1bca25589bf5"
+      "last_verified": "2026-11-02T08:45:03.564Z",
+      "source_fingerprint": "d6c6382865f41f7ca63e96c6311a786b743093d32f53be61177d97641a754601"
     }
   ]
 }
