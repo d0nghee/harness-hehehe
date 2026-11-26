@@ -4,6 +4,8 @@
 
 ## 미배포 · 하네스 보강 및 배포 운영
 
+- Claude Code용 플러그인을 추가합니다. `node claude-plugin/build.mjs`가 Codex 원본(`plugins/hehehe`)에서 역할을 뒤집은 판(Claude가 주 실행자, Codex는 선택적 읽기 전용 리뷰어)을 `claude-plugin/hehehe`에 생성하며, 저장소 루트의 `.claude-plugin/marketplace.json`으로 로컬 마켓플레이스에 등록할 수 있습니다. 생성물은 커밋하지 않습니다. Codex 설치 진단용 `doctor` 스킬은 Claude 판에서 제외합니다.
+
 - 스킬 구성을 간소화합니다. 본문이 짧던 `team-resolve`·`team-review`·`team-design-ui`·`evaluate`·`product-spec`·`discover-product`·`recommend-features`를 각각 `subagent-resolve`·`review`·`design-ui`·`ideate`에 흡수해 스킬을 31개에서 24개로 줄입니다. `hehehe` 진입 스킬은 운영 원칙과 스킬 안내만 남기고, `full-resolve`는 16단계를 10단계로 묶습니다. 검증·전달 규칙은 `resume`에만 두고 다른 스킬은 이를 참조합니다. 스크립트와 완료 게이트의 동작은 바뀌지 않습니다. 삭제된 스킬 이름을 직접 호출하던 경우 흡수된 스킬을 사용하세요.
 
 - 경험 기억의 만료일이 실제 UTC 달력에 존재하는지 검증하고, 모든 공개·저장·SQLite·환경 입력의 정상·비정상·경계값 검증표를 추가합니다. 잘못된 문맥 옵션·검색어·식별자는 캐시를 만들기 전에 차단하며 기존 승인·검증 게이트는 유지합니다.
