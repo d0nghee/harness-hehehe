@@ -33,6 +33,12 @@ If the delivery receipt expires between steps 5 and 7, keep the original baselin
 
 The root baseline remains unchanged until step 6 is explicitly approved. The baseline plan includes complete old and proposed policies, so a changed command, threshold or protected path is visible to the owner. Tests of the workflow must demonstrate both that a later ordinary task works under the approved new baseline and that a new unreviewed protected edit still fails.
 
+## What this repository protects
+
+The committed policy protects only what the gate itself trusts: the verification and release policies, `scripts/**` (the syntax check and release tooling), the workflows, and `plugins/hehehe/skills/resume/scripts/**` (the gate implementation). A change to any of these needs exact-head approval through `HEHEHE_VERIFICATION_APPROVED_HEAD`.
+
+Tests and `package.json` are deliberately not protected, so an ordinary pull request that adds or edits tests is decided by the required checks alone. Two things stand in for path protection there: the owner reads the test diff before merging, and the `tests` check fails when fewer than 250 tests run, which catches wholesale deletion but not a single weakened assertion. Lowering that number is a policy change and therefore protected.
+
 ## Existing task migration
 
 New default task branches include a hash of the complete identity. Continue an older task by passing its existing `--branch` explicitly. For an existing branch, `base_commit` is its actual starting HEAD; `requested_base_commit` records the requested base separately. Selecting `--base main` does not reset an existing branch. Runtime identity is now computed from the canonical Git common directory and selected branch, so calling from another checkout does not change it. Before adopting a newly generated runtime label for an already running task, read its recorded port, database and Compose names; preserve existing resources until their task owner intentionally migrates them. The planner never starts services or renames databases.

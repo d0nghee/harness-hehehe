@@ -4,6 +4,8 @@
 
 ## 미배포 · 하네스 보강 및 배포 운영
 
+- 이 저장소의 검증 정책에서 보호 경로를 줄입니다. `tests/**`와 `package.json`을 보호 대상에서 빼서, 테스트를 추가·수정하는 일반 PR은 별도 승인 변수 없이 필수 검사만으로 판정됩니다. 검증·릴리스 정책, `scripts/**`, 워크플로우, 게이트 구현(`resume/scripts/**`)은 계속 보호합니다. 대신 `tests` 검사의 최소 실행 테스트 수를 1에서 250으로 올려 테스트 대량 삭제를 막습니다. 개별 단언을 약하게 고치는 변경은 이 숫자로 잡히지 않으므로 PR의 테스트 diff를 직접 확인해야 합니다.
+
 - `design-ui` 스킬에 포함된 브랜드 디자인 참고 문서를 224개에서 스킬이 직접 추천하는 16개(stripe, figma, apple, slack, airbnb, github, linear, vercel, notion, netflix, spotify, steam, paypal, coinbase, wise, revolut)로 줄입니다. 플러그인 크기가 약 3.1MB에서 0.8MB로 줄어 설치와 프로젝트별 복사가 가벼워집니다. 그 외 브랜드는 원본 저장소(`github.com/Khalidabdi1/design-ai`)에서 필요할 때 찾아 쓰거나, 가장 가까운 번들 참고 문서로 대체합니다.
 
 - 신뢰 완료 게이트를 저장소별 선택형으로 바꿉니다. 지금까지는 검증 정책이 없는 저장소에서 `complete`가 항상 실패했습니다. 이제 `.hehehe/verification-policy.json`을 도입했거나(작업 트리 또는 HEAD 이력) `HEHEHE_VERIFICATION_BASE`가 지정된 경우에만 게이트를 강제하고, 그 외에는 `verify`가 `ungated`를 보고하며 `complete`가 `verification.mode: "ungated"`로 완료를 기록합니다. 게이트가 적용되는 저장소의 동작은 그대로이며, 도입한 정책을 작업 트리나 커밋에서 삭제해도 게이트는 풀리지 않습니다. `resume` 스킬은 검증·통합 전달·릴리스 참고 문서를 해당 기능을 쓰는 저장소에서만 읽도록 안내합니다.
