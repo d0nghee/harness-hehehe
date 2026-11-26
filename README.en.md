@@ -33,18 +33,26 @@ See [USAGE.md](USAGE.md) for the complete skill list.
 ## Requirements
 
 - Node.js 20 or later
-- Codex CLI
-- Claude CLI is optional and is required only when you request an independent cross-review
+- For Codex: the Codex CLI. The Claude CLI is optional and is required only when you request an independent cross-review
+- For Claude Code: the Claude Code CLI (`claude`). The Codex CLI is optional and is required only when you request an independent cross-review
 
 ## Quick Start
 
-### Use in Every Project
+### Codex: Use in Every Project
 
 ```bash
 npx harness-hehehe install --global
 ```
 
-### Use Only in the Current Project
+### Claude Code: Use in Every Project
+
+```bash
+npx harness-hehehe install --claude
+```
+
+The Claude Code edition is the same set of skills with the roles inverted: Claude plans, implements and verifies, and Codex becomes the optional read-only reviewer. After installing, start a new Claude Code session and invoke a skill such as `/hehehe:full-resolve`. Remove it with `npx harness-hehehe uninstall --claude`.
+
+### Codex: Use Only in the Current Project
 
 ```bash
 npx harness-hehehe install --project .
@@ -56,7 +64,7 @@ After installation, restart Codex or start a new thread, then invoke a skill.
 $hehehe:full-resolve Implement and validate a user profile editing feature
 ```
 
-Installation does not approve verification criteria. Before a run can complete, a project maintainer must establish the initial baseline described under [Trusted Completion Gate](#trusted-completion-gate).
+A repository that has not adopted a verification policy completes runs with no further setup. To use the trusted verification gate, a project maintainer establishes the initial baseline described under [Trusted Completion Gate](#trusted-completion-gate).
 
 ## Installation Scope
 

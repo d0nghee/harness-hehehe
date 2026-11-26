@@ -15,7 +15,7 @@
 ### 새 기능
 
 - **세션 간 경험 기억**: `experience-memory` 스킬이 선별한 문제·원인·해결 경험을 출처와 함께 실행별 `experience.json`에 기록하고, 다음 실행의 `resume init`에서 관련 기록을 회상합니다. 별도 색인·DB·추가 런타임 없이 기록 파일을 직접 읽어 검색합니다. 완료된 실행의 기록만 대상이며, 내용 변경·만료·조상이 아닌 커밋·출처 불일치는 회상에서 제외합니다. 기억은 참고 자료이고 승인·검증 게이트를 대신하지 않습니다. 전체 대화나 로그는 수집하지 않습니다.
-- **Claude Code용 판**: `node claude-plugin/build.mjs`가 Codex 원본에서 역할을 뒤집은 판(Claude가 주 실행자, Codex는 선택적 읽기 전용 리뷰어)을 생성하며, 저장소 루트의 `.claude-plugin/marketplace.json`으로 로컬 마켓플레이스에 등록할 수 있습니다. Codex 설치 진단용 `doctor` 스킬은 Claude 판에서 제외합니다.
+- **Claude Code용 판**: `npx harness-hehehe install --claude` 한 줄로 Claude Code에 설치합니다. 같은 스킬에서 역할을 뒤집은 판으로, Claude가 주 실행자이고 Codex는 선택적 읽기 전용 리뷰어입니다. 설치기가 패키지의 Codex 원본에서 Claude 판을 생성해 `~/.claude/hehehe-marketplace`에 두고 Claude CLI로 등록하며, Claude Code 설정 파일을 직접 고치지 않습니다. 제거는 `npx harness-hehehe uninstall --claude`입니다. Codex 설치 진단용 `doctor` 스킬은 Claude 판에서 제외합니다.
 - **승인 기반 릴리스 절차**: main 푸시의 자동 배포를 분리하고, 검토된 릴리스 정책에 따른 계획·고정 패키지 준비·필수 검증·정확한 배포 승인을 연결합니다. npm 파일·버전 태그·GitHub Release를 확인한 뒤 완료하며, 일부 단계 실패는 같은 후보로 재개합니다.
 - **검증 기준 승격과 1인 운영 지침**: 별도 승인 후 검증 기준을 승격하는 절차와 원격 보호 점검·전달 지침을 추가합니다. 병합 후 만료된 검증은 기존 기준으로 재실행할 수 있습니다.
 

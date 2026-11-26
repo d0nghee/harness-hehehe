@@ -17,6 +17,8 @@ Codex에서 스킬 이름을 직접 호출합니다.
 $hehehe:<skill-name> 요청 내용
 ```
 
+Claude Code에서는 `npx harness-hehehe install --claude`로 설치한 뒤 `/hehehe:<skill-name> 요청 내용`으로 호출합니다. 이 판에서는 아래 설명의 역할이 뒤바뀌어 Claude가 주 실행자, Codex가 선택적 리뷰어이며, Codex 설치 진단용 `doctor` 스킬은 없습니다.
+
 예시:
 
 ```text
