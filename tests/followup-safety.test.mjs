@@ -92,6 +92,61 @@ test("registered legacy plugin payloads are recognized conservatively for upgrad
   }
 });
 
+// An unmarked installation made by an earlier release still holds files that
+// later releases removed. It has to remain upgradable and removable.
+function addRetiredPayload(target) {
+  const catalogPath = path.join(target, "skill-catalog.json");
+  const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+  for (const skill of ["team-review", "evaluate"]) {
+    write(path.join(target, "skills", skill, "SKILL.md"), `---\nname: ${skill}\ndescription: Retired skill from an earlier release.\n---\n\n# ${skill}\n`);
+    catalog.skills.push(skill);
+  }
+  catalog.skills.sort();
+  fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
+  write(path.join(target, "skills/design-ui/references/design-ai/design-md/zoom/DESIGN.md"), "# Zoom\n");
+  write(path.join(target, "skills/experience-memory/scripts/sqlite_worker.py"), "# retired worker\n");
+  write(path.join(target, "skills/experience-memory/references/input-contracts.md"), "# retired reference\n");
+}
+
+test("an unmarked installation from a release with since-removed files is still upgraded and removed", async (t) => {
+  for (const operation of ["upgrade", "uninstall"]) {
+    const homeDir = temporary(t);
+    const { target } = paths(homeDir);
+    fs.cpSync(plugin, target, { recursive: true });
+    addRetiredPayload(target);
+    register(homeDir);
+    if (operation === "upgrade") {
+      assert.equal((await installGlobal({ sourcePluginDir: plugin, homeDir, activate: false })).ownership, "legacy");
+      assert.equal(fs.existsSync(path.join(target, markerRelative)), true);
+      assert.equal(fs.existsSync(path.join(target, "skills/team-review")), false);
+      assert.equal(fs.existsSync(path.join(target, "skills/design-ui/references/design-ai/design-md/zoom")), false);
+      assert.equal(fs.existsSync(path.join(target, "skills/experience-memory/scripts/sqlite_worker.py")), false);
+    } else {
+      assert.equal((await uninstallGlobal({ homeDir, deactivate: false })).ownership, "legacy");
+      assert.equal(fs.existsSync(target), false);
+    }
+  }
+});
+
+test("retired paths do not extend to personal files placed beside them", async (t) => {
+  for (const personal of [
+    "skills/team-review/private-notes.txt",
+    "skills/design-ui/references/design-ai/design-md/zoom/notes.txt",
+    "skills/design-ui/references/design-ai/design-md/My Brand/DESIGN.md",
+    "skills/experience-memory/scripts/private.py",
+  ]) {
+    const homeDir = temporary(t);
+    const { target } = paths(homeDir);
+    fs.cpSync(plugin, target, { recursive: true });
+    addRetiredPayload(target);
+    register(homeDir);
+    write(path.join(target, personal), "keep");
+    await assert.rejects(installGlobal({ sourcePluginDir: plugin, homeDir, activate: false }), /unmanaged global plugin/, personal);
+    await assert.rejects(uninstallGlobal({ homeDir, deactivate: false }), /unmanaged global plugin/, personal);
+    assert.equal(fs.readFileSync(path.join(target, personal), "utf8"), "keep");
+  }
+});
+
 test("legacy registration cannot authorize deleting extra personal paths", async (t) => {
   const homeDir = temporary(t);
   const { target, marketplace } = paths(homeDir);
