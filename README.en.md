@@ -305,6 +305,6 @@ To apply the same rule to general Codex conversations, add the following to your
 
 ## Release Notes
 
-**Latest version v0.3.14** · [Browse releases](https://github.com/d0nghee/harness-hehehe/releases) · [Full changelog (Korean)](CHANGELOG.md)
+**Latest version v0.4.0** · [Browse releases](https://github.com/d0nghee/harness-hehehe/releases) · [Full changelog (Korean)](CHANGELOG.md)
 
 Changes on main and published versions have separate status. In this repository, `npm run release:plan` reports pending package changes and release preparation gaps. A main push runs validation and planning; npm and GitHub Release publication require approval of the exact candidate and package. Local-only work can remain release-pending. See the [release procedure](docs/runbooks/releases.md).
