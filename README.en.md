@@ -32,7 +32,6 @@ See [USAGE.md](USAGE.md) for the complete skill list.
 ## Requirements
 
 - Node.js 20 or later
-- Cross-session experience memory additionally needs Python 3.10+ with standard-library SQLite FTS5. No runtime is installed automatically.
 - Codex CLI
 - Claude CLI is optional and is required only when you request an independent cross-review
 
@@ -139,11 +138,11 @@ Task labels include a hash of the complete identity, and runtime IDs use the Git
 
 ## Cross-Session Work Experiences
 
-`hehehe:experience-memory` records selected problems, causes and resolutions with source references and retrieves them through a local SQLite index. `resume init` returns related context for a new goal; `status` recalls without writes. Deleted, edited, expired or current-source-mismatched experiences are excluded. Memory is advisory; existing gates still own approval, mandatory verification and completion.
+`hehehe:experience-memory` records selected problems, causes and resolutions with source references and retrieves them by reading the per-run notes directly. `resume init` returns related context for a new goal, and every command except recording is read-only. Deleted, edited, expired or current-source-mismatched experiences are excluded. Memory is advisory; existing gates still own approval, mandatory verification and completion.
 
-There is no automatic transcript or raw-log collection. Canonical notes stay in each run's `experience.json`; the cache is `hehehe-memory/experience.sqlite` inside the Git common directory. See the [experience-memory skill](plugins/hehehe/skills/experience-memory/SKILL.md) for usage and retention.
+There is no automatic transcript or raw-log collection. Notes live only in each run's `experience.json`; there is no separate index, database or extra runtime. See the [experience-memory skill](plugins/hehehe/skills/experience-memory/SKILL.md) for usage and retention.
 
-Long records return an explicitly marked compact projection with the original source reference; canonical notes remain intact. Index and query text share Unicode normalization, and a new database is published only after initialization completes so an interrupted first creation can be retried.
+Long records return an explicitly marked compact projection with the original source reference; canonical notes remain intact. Notes and queries share one Unicode normalization and word-boundary rule.
 
 ## Trusted Completion Gate
 

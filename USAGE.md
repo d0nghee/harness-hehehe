@@ -112,7 +112,7 @@ $hehehe:subagent-resolve
 - `hehehe:subagent-resolve`: 여러 독립 작업을 Codex 서브에이전트로 병렬 처리하고 메인 Codex가 통합·검증. 여러 모듈에 걸치거나 책임이 불분명한 버그도 담당
 - `hehehe:browser-validate`: 웹 UI 또는 로컬 앱 워크플로우를 브라우저로 검증
 - `hehehe:clean`: 구현 후 코드 위생 정리
-- `hehehe:experience-memory`: 출처가 있는 작업 경험을 로컬 SQLite에 색인하고 다음 작업에서 관련 기억을 회상. Python 3.10+와 SQLite FTS5 필요
+- `hehehe:experience-memory`: 출처가 있는 작업 경험을 실행별 기록으로 남기고 다음 작업에서 관련 기억을 회상. 별도 DB나 추가 런타임 없음
 - `hehehe:maintain-codebase`: 주기적 저장소 드리프트 감사, 삭제 근거 검증, 한 가지 대상의 제한된 리팩터링과 유지보수 PR 준비
 - `hehehe:pr-loop`: 정확한 PR head SHA를 기준으로 리뷰·CI 실패를 수정하고 허용된 ready 또는 merge 상태까지 반복
 - `hehehe:update-docs`: 완료된 코드 변경과 관련 문서 동기화
@@ -147,9 +147,9 @@ hehehe 워크플로우는 프로젝트 안에 `.hehehe/` 폴더를 사용할 수
 
 유지 대상 저장소의 장기 지식은 루트 `AGENTS.md`, `docs/README.md`, `docs/architecture/overview.md`를 공통 기준으로 사용합니다. 실제로 존재하는 관심사만 세부 문서로 추가하며 빈 문서를 기계적으로 만들지 않습니다.
 
-재사용할 만한 해결 경험은 `hehehe:experience-memory`로 기록합니다. `resume init`의 `memory_context`는 새 목표와 관련된 기록을 자동 검색하고, `resume status`는 DB를 바꾸지 않고 회상합니다. 원문과 현재 소스를 확인한 뒤 참고하며, 현재 운영 규칙·승인·검증 결과는 따로 직접 읽어야 합니다. 검증된 완료 후에만 해당 실행의 경험이 색인 대상이 됩니다. 원본 실행이나 워크트리를 삭제하면 그 기록은 회상에서 제외되므로 필요한 원본은 보존하세요. [입력 형식과 런타임](plugins/hehehe/skills/experience-memory/references/memory-format.md)
+재사용할 만한 해결 경험은 `hehehe:experience-memory`로 기록합니다. `resume init`과 `resume status`의 `memory_context`는 목표와 관련된 기록을 자동 검색하며 아무것도 쓰지 않습니다. 원문과 현재 소스를 확인한 뒤 참고하며, 현재 운영 규칙·승인·검증 결과는 따로 직접 읽어야 합니다. 검증된 완료 후에만 해당 실행의 경험이 회상 대상이 됩니다. 원본 실행이나 워크트리를 삭제하면 그 기록은 회상에서 제외되므로 필요한 원본은 보존하세요. [입력 형식과 검색 방식](plugins/hehehe/skills/experience-memory/references/memory-format.md)
 
-`context_compacted: true`인 결과는 `origin`에서 전체 원문·출처를 확인합니다. `source_count`는 확인한 출처 수이며 `truncated_fields`는 줄인 본문 항목입니다. 기존 캐시는 `sync` 또는 새 작업의 `init`으로 유니코드 색인을 갱신합니다.
+`context_compacted: true`인 결과는 `origin`에서 전체 원문·출처를 확인합니다. `source_count`는 확인한 출처 수이며 `truncated_fields`는 줄인 본문 항목입니다.
 
 템플릿은 플러그인 번들에 들어 있습니다.
 

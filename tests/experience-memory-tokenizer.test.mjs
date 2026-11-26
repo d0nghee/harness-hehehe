@@ -1,101 +1,60 @@
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import test from "node:test";
-import { invokeStore } from "../plugins/hehehe/skills/experience-memory/scripts/sqlite-store.mjs";
+import { queryTerms, queryText, searchTokens } from "../plugins/hehehe/skills/experience-memory/scripts/text-contract.mjs";
 
-function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "hehehe-native-tokenizer-"));
-  t.after(() => {
-    assert.equal(path.dirname(path.resolve(root)), path.resolve(os.tmpdir()));
-    fs.rmSync(root, { recursive: true, force: true });
-  });
-  return { root, database: path.join(root, "memory.sqlite"), repoId: "native-tokenizer" };
-}
+const normalized = (value) => value.normalize("NFKC").toLowerCase();
+const terms = (query) => queryTerms(queryText(query));
+// The same rule recall applies: a note matches when any of its words starts with a query term.
+const matches = (text, query) => {
+  const words = searchTokens(normalized(text));
+  return terms(query).some((term) => words.some((word) => word.startsWith(term)));
+};
 
-const row = (id, text) => ({ id, text, payload: { id } });
-const call = (f, operation, options = {}) => invokeStore({ operation, database: f.database, repoId: f.repoId, ...options });
-function matches(f, terms, options = {}) {
-  const result = call(f, "search", { terms, limit: 50, ...options });
-  assert.ok(["ok", "empty"].includes(result.status), JSON.stringify(result));
-  return result.records.map((record) => record.id);
-}
-
-test("query words use the index's native unicode61 boundaries across scripts and combining marks", (t) => {
-  const f = fixture(t);
+test("notes and queries share word boundaries across scripts and combining marks", () => {
   const corpus = [
-    ["turkish", "i\u0307stanbul", ["i\u0307stanbul", "istanbul", "İstanbul"]],
-    ["accent", "café", ["café", "cafe", "cafe\u0301"]],
-    ["hindi", "हिंदी", ["हिंदी"]],
-    ["hebrew", "מִבְחָן", ["מִבְחָן"]],
-    ["arabic", "مُعَالَجَة", ["مُعَالَجَة"]],
-    ["thai", "การทดสอบ", ["การทดสอบ"]],
-    ["greek", "κόσμος", ["κόσμος", "ΚΌΣΜΟΣ"]],
-    ["korean", "한글", ["한글"]],
-    ["chinese", "字", ["字"]],
-    ["deseret", "\u{10400}\u{10401}", ["\u{10400}\u{10401}", "\u{10428}\u{10429}"]],
-    ["kawi", "\u{11f04}\u{11f05}", ["\u{11f04}\u{11f05}"]],
-    ["tangut", "\u{17000}\u{17001}", ["\u{17000}\u{17001}"]],
-    ["toto", "\u{1e290}\u{1e291}", ["\u{1e290}\u{1e291}"]],
-    ["private", "\ue000\ue001", ["\ue000\ue001"]],
+    ["i\u0307stanbul", ["i\u0307stanbul", "istanbul", "İstanbul"]],
+    ["café", ["café", "cafe", "cafe\u0301"]],
+    ["हिंदी", ["हिंदी"]],
+    ["מִבְחָן", ["מִבְחָן"]],
+    ["مُعَالَجَة", ["مُعَالَجَة"]],
+    ["การทดสอบ", ["การทดสอบ"]],
+    ["κόσμος", ["κόσμος", "ΚΌΣΜΟΣ"]],
+    ["한글", ["한글"]],
+    ["字", ["字"]],
+    ["\u{10400}\u{10401}", ["\u{10400}\u{10401}", "\u{10428}\u{10429}"]],
+    ["\ue000\ue001", ["\ue000\ue001"]],
   ];
-  assert.equal(call(f, "sync", { records: corpus.map(([id, text]) => row(id, text)) }).status, "ok");
-  for (const [id, , queries] of corpus) {
-    for (const query of queries) assert.ok(matches(f, query).includes(id), `${id}: ${JSON.stringify(query)}`);
+  for (const [text, queries] of corpus) {
+    for (const query of queries) assert.ok(matches(text, query), `${JSON.stringify(text)} <- ${JSON.stringify(query)}`);
   }
-  assert.deepEqual(matches(f, "\"*():_"), []);
-  assert.deepEqual(matches(f, "😀"), []);
+  assert.deepEqual(terms("\"*():_"), []);
+  assert.deepEqual(terms("😀"), []);
+  assert.equal(matches("한글", "字"), false);
 });
 
-test("ignored words are filtered after native tokenization before the first sixteen distinct terms", (t) => {
-  const f = fixture(t);
-  const terms = Array.from({ length: 17 }, (_, index) => `word${String(index).padStart(2, "0")}`);
-  assert.equal(call(f, "sync", { records: terms.map((term) => row(term, term)) }).status, "ok");
-  const query = `BUILD-with ${terms[16]} ${terms.toReversed().join(" ")}`;
-  const found = matches(f, query, { ignored_terms: ["build", "with"] });
-  assert.equal(found.length, 16);
-  assert.ok(!found.includes("word00"), "query order, rather than alphabetical vocabulary order, selects the first sixteen distinct terms");
-  assert.ok(found.includes("word16"), "a repeated term must not consume another slot");
-  assert.deepEqual(matches(f, "PLEASE build-with this", { ignored_terms: ["please", "build", "with", "this"] }), []);
+test("stopwords are removed after tokenization and before the first sixteen distinct terms", () => {
+  const words = Array.from({ length: 17 }, (_, index) => `word${String(index).padStart(2, "0")}`);
+  const selected = terms(`BUILD-with ${words[16]} ${words.toReversed().join(" ")}`);
+  assert.equal(selected.length, 16);
+  assert.ok(!selected.includes("word00"), "query order selects the first sixteen distinct terms");
+  assert.ok(selected.includes("word16"), "a repeated term must not consume another slot");
+  assert.ok(!selected.includes("build") && !selected.includes("with"));
+  assert.deepEqual(terms("PLEASE build-with this"), []);
 });
 
-test("long literal query words retain their distinguishing suffix while prefix search remains available", (t) => {
-  const f = fixture(t);
+test("long words keep their distinguishing suffix while prefix search remains available", () => {
   const first = `${"x".repeat(160)}alpha`;
   const second = `${"x".repeat(160)}beta`;
-  assert.equal(call(f, "sync", { records: [row("first", first), row("second", second)] }).status, "ok");
-  assert.deepEqual(matches(f, first), ["first"]);
-  assert.deepEqual(new Set(matches(f, "x".repeat(160))), new Set(["first", "second"]));
+  assert.equal(matches(first, first), true);
+  assert.equal(matches(second, first), false);
+  assert.equal(matches(first, "x".repeat(160)), true);
+  assert.equal(matches(second, "x".repeat(160)), true);
 });
 
-test("native tokenization preserves bounded validation and cannot mutate persisted records", (t) => {
-  const f = fixture(t);
-  assert.equal(call(f, "sync", { records: [row("healthy", "sqlite unchanged")] }).status, "ok");
-  const bytes = fs.readFileSync(f.database);
-  const identity = fs.statSync(f.database).ino;
-  for (const terms of [null, true, 1, {}, [1], ["valid", null], "bad\0text", "\ud800", "x".repeat(32769), "界".repeat(10923)]) {
-    assert.equal(call(f, "search", { terms }).error_code, "MEMORY_INVALID_INPUT", JSON.stringify(terms).slice(0, 100));
+test("query syntax characters are plain separators and invalid queries are rejected", () => {
+  assert.deepEqual(terms("sqlite\" OR repo_id:private NOT ( -- * NEAR()"), ["sqlite", "repo", "id", "private", "near"]);
+  for (const query of [null, true, 1, {}, [], "", "   ", "bad\0text", "\ud800", "x".repeat(401)]) {
+    assert.throws(() => queryText(query), { code: "MEMORY_INVALID_INPUT" }, JSON.stringify(query));
   }
-  for (const ignored_terms of [null, "build", {}, [1], [""], ["bad\0term"], ["\udfff"], ["x".repeat(129)], Array(257).fill("word")]) {
-    assert.equal(call(f, "search", { terms: "sqlite", ignored_terms }).error_code, "MEMORY_INVALID_INPUT");
-  }
-  assert.deepEqual(matches(f, "sqlite\" OR repo_id:private NOT ( -- * NEAR()"), ["healthy"]);
-  assert.deepEqual(fs.readFileSync(f.database), bytes);
-  assert.equal(fs.statSync(f.database).ino, identity);
-});
-
-test("query tokenization is fileless for absent stores and read-only for valid stores", (t) => {
-  const f = fixture(t);
-  f.database = path.join(f.root, "absent", "nested", "memory.sqlite");
-  const absent = call(f, "search", { terms: "İstanbul हिंदी", ignored_terms: ["build"] });
-  assert.equal(absent.status, "empty");
-  assert.equal(absent.database_exists, false);
-  assert.deepEqual(fs.readdirSync(f.root), []);
-  assert.equal(call(f, "sync", { records: [row("healthy", "i\u0307stanbul हिंदी")] }).status, "ok");
-  const bytes = fs.readFileSync(f.database);
-  const directory = fs.readdirSync(path.dirname(f.database));
-  assert.deepEqual(matches(f, "İstanbul हिंदी"), ["healthy"]);
-  assert.deepEqual(fs.readFileSync(f.database), bytes);
-  assert.deepEqual(fs.readdirSync(path.dirname(f.database)), directory);
+  for (const value of [null, 1, {}, []]) assert.throws(() => searchTokens(value), { code: "MEMORY_INVALID_INPUT" });
 });

@@ -201,8 +201,8 @@ test("project and current-run inputs fail safely without note or cache mutations
   for (const project of [null, 1, {}, f.root, path.join(f.root, "missing"), path.join(f.project, "src"), path.join(f.project, f.sourcePaths[0])]) {
     rejected(f, () => memoryStatus(project));
   }
-  assert.equal(memoryStatus(path.relative(process.cwd(), f.project)).database_exists, false);
-  assert.equal(memoryStatus(f.project + path.sep).database_exists, false);
+  assert.equal(memoryStatus(path.relative(process.cwd(), f.project)).search_engine, "file-scan");
+  assert.equal(memoryStatus(f.project + path.sep).search_engine, "file-scan");
   const alias = path.join(f.root, "project-alias");
   fs.symlinkSync(f.project, alias, process.platform === "win32" ? "junction" : "dir");
   try { rejected(f, () => memoryStatus(alias), "MEMORY_UNSAFE_PATH"); }

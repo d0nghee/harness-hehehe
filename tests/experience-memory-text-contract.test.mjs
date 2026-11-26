@@ -198,7 +198,6 @@ test("the exact normalized UTF-8 index budget is accepted end-to-end and one ext
   const good = await f.seed("contract-exact-byte-budget", fields);
   assert.equal(syncExperiences(f.project).indexed, 1);
   recallOne(f.project, "\ufdfa", good.note.id);
-  const cache = await readFile(f.database);
 
   const overBudget = { ...fields, resolution: fields.resolution + "a" };
   const overBody = [overBudget.title, overBudget.problem, overBudget.cause, overBudget.resolution, overBudget.outcome]
@@ -206,7 +205,7 @@ test("the exact normalized UTF-8 index budget is accepted end-to-end and one ext
   assert.equal(Buffer.byteLength(overBody, "utf8"), 32769);
   assert.throws(() => recordExperience(f.project, input(overBudget)), { code: "MEMORY_LIMIT_EXCEEDED" });
   assert.equal(await readFile(good.notePath, "utf8"), good.original);
-  assert.deepEqual(await readFile(f.database), cache);
+  assert.equal(existsSync(f.database), false);
   recallOne(f.project, "\ufdfa", good.note.id);
 });
 });

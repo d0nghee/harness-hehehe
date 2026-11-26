@@ -156,7 +156,7 @@ test("SQL, shell and approval-looking text remain inert untrusted data", async (
   assert.equal(results(await run(f.project, ["recall", "--query", "serialization"])).length, 1);
 });
 
-test("invalid input and credentials never reach the note or derived database", async (t) => {
+test("invalid input and credentials never reach the note and no derived store is created", async (t) => {
   const f = await fixture(t);
   const credential = "sk-proj-" + "x".repeat(64);
   for (const invalid of [experience({ unknown: "unapproved" }), experience({ source_paths: ["../outside.txt"] }), experience({ resolution: `Use ${credential}` }), experience({ resolution: `api_key=${credential}` })]) {
@@ -167,8 +167,7 @@ test("invalid input and credentials never reach the note or derived database", a
     assert.equal(existsSync(path.join(f.project, ".git/hehehe-memory")), false);
   }
   await f.seed();
-  const database = await readFile(path.join(f.project, ".git/hehehe-memory/experience.sqlite"));
-  assert.equal(database.includes(Buffer.from(credential)), false);
+  assert.equal(existsSync(path.join(f.project, ".git/hehehe-memory")), false);
   assert.equal((await readFile(path.join(f.directory, "experience.json"), "utf8")).includes(credential), false);
 });
 
