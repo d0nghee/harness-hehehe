@@ -117,7 +117,7 @@ $hehehe:preflight 출시 가능한 상태인지 최종 확인해줘
 $hehehe:resolve 로그인 후 리다이렉트가 반복되는 원인을 찾아서 고쳐줘
 $hehehe:subagent-resolve 여러 모듈에 걸친 인증 변경을 서브에이전트로 나눠 구현하고 통합해줘
 $hehehe:review 현재 변경을 버그와 회귀 위험 중심으로 검토해줘
-$hehehe:team-review 인증 변경을 독립 관점까지 포함해 검토해줘
+$hehehe:review 인증 변경을 여러 독립 관점까지 포함해 검토해줘
 $hehehe:maintain-codebase check 저장소 드리프트와 정리 대상을 점검해줘
 $hehehe:pr-loop ready PR 42의 리뷰와 CI 실패를 처리해서 병합 준비 상태로 만들어줘
 ```

@@ -111,7 +111,7 @@ $hehehe:preflight Perform a final check that this is ready to release
 $hehehe:resolve Find and fix the cause of a redirect loop after login
 $hehehe:subagent-resolve Split a cross-module authentication change among subagents, then implement and integrate it
 $hehehe:review Review the current changes with a focus on bugs and regression risks
-$hehehe:team-review Review the authentication changes from independent perspectives as well
+$hehehe:review Review the authentication changes from several independent perspectives as well
 $hehehe:maintain-codebase check Audit repository drift and rank cleanup targets
 $hehehe:pr-loop ready Fix review and CI failures on PR 42 until it is ready to merge
 ```

@@ -58,7 +58,6 @@ $hehehe:preflight
 
 ```text
 $hehehe:review
-$hehehe:evaluate
 $hehehe:browser-validate
 $hehehe:update-docs
 ```
@@ -84,7 +83,7 @@ $hehehe:implement-ui
 
 ```text
 $hehehe:resolve
-$hehehe:team-resolve
+$hehehe:subagent-resolve
 ```
 
 ## 포함된 스킬
@@ -99,11 +98,8 @@ $hehehe:team-resolve
 
 ### 기획과 스펙
 
-- `hehehe:discover-product`: 새 앱, 기능, 워크플로우를 제품 요구사항으로 정리
-- `hehehe:product-spec`: 제품 수준 스펙 작성 또는 업데이트
 - `hehehe:feature-spec`: 기능 수준 구현 스펙과 검증 기준 작성
-- `hehehe:ideate`: 거친 아이디어를 로드맵, done criteria, 구현 스펙으로 변환
-- `hehehe:recommend-features`: 코드와 스펙 상태를 보고 다음 고가치 기능 추천
+- `hehehe:ideate`: 거친 아이디어를 로드맵, done criteria, 구현 스펙으로 변환. 문제가 모호할 때의 제품 탐색, 제품 수준 스펙, 다음에 만들 기능 추천도 담당
 - `hehehe:repository-knowledge`: 모드 생략 시 저장소 지식 시스템을 자동 초기화·동기화·검증하고, `init`·`sync`·`check`·`status` 모드도 제공
 
 ### 구현과 검증
@@ -113,9 +109,7 @@ $hehehe:team-resolve
 - `hehehe:backend-architecture`: 백엔드 책임 경계, 프로필별 결합도 기준, ORM과 SQL 사용 위치를 설계·검토
 - `hehehe:observability`: 별도 관측 스택 없이 브라우저·API·백엔드 실행 근거와 구조화 오류·로그·`request_id` 연결을 적용·검증하며, 명시적 `full` 모드에서만 Docker 관측 스택 사용
 - `hehehe:resolve`: 단일 버그·회귀·실패 체크를 재현하고 원인을 추적해 최소 범위를 수정하고 집중 검증
-- `hehehe:subagent-resolve`: 여러 독립 작업을 Codex 서브에이전트로 병렬 처리하고 메인 Codex가 통합·검증
-- `hehehe:team-resolve`: 복잡한 버그를 Codex 주도와 선택적 Claude 비평으로 해결
-- `hehehe:evaluate`: 명시 기준에 따라 구현을 평가
+- `hehehe:subagent-resolve`: 여러 독립 작업을 Codex 서브에이전트로 병렬 처리하고 메인 Codex가 통합·검증. 여러 모듈에 걸치거나 책임이 불분명한 버그도 담당
 - `hehehe:browser-validate`: 웹 UI 또는 로컬 앱 워크플로우를 브라우저로 검증
 - `hehehe:clean`: 구현 후 코드 위생 정리
 - `hehehe:experience-memory`: 출처가 있는 작업 경험을 로컬 SQLite에 색인하고 다음 작업에서 관련 기억을 회상. Python 3.10+와 SQLite FTS5 필요
@@ -125,13 +119,11 @@ $hehehe:team-resolve
 
 ### 리뷰
 
-- `hehehe:review`: 버그, 회귀, 보안, 테스트 누락 중심의 집중 리뷰
-- `hehehe:team-review`: Codex 주도 리뷰와 선택적 Claude 독립 리뷰를 결합
+- `hehehe:review`: 버그, 회귀, 보안, 테스트 누락 중심의 집중 리뷰. 여러 관점의 리뷰와 완료된 구현의 평가도 담당
 
 ### UI/UX
 
-- `hehehe:design-ui`: 제품 화면이나 워크플로우의 UI 방향 생성
-- `hehehe:team-design-ui`: 여러 디자인 관점으로 UI 콘셉트 생성 후 Codex가 통합
+- `hehehe:design-ui`: 제품 화면이나 워크플로우의 UI 방향 생성. 중요한 UI는 여러 디자인 관점으로 콘셉트를 만든 뒤 Codex가 통합
 - `hehehe:design-system`: 선택된 UI 방향을 구현 가능한 디자인 시스템으로 정리
 - `hehehe:implement-ui`: 기존 프론트엔드 스택으로 UI 구현
 

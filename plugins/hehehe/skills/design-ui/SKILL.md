@@ -34,4 +34,6 @@ If the requested brand is not available, choose the closest reference by product
 
 Do not claim affiliation with referenced brands. Do not reproduce protected logos, exact copy, or trademarked identity as the product's own brand unless the user owns that brand or explicitly asks for an internal mockup. Use the references as design-language input: structure, density, interaction feel, palette roles, and component behavior.
 
+For high-stakes UI/UX work, develop the directions from several design perspectives before consolidating them into the five candidates. Claude may critique accessibility, workflow gaps, or visual coherence. Deliver concrete screen-level guidance, not marketing copy.
+
 Do not implement until the user chooses a direction or asks Codex to proceed.
