@@ -29,4 +29,4 @@ Implementation completion never implies that anything was committed, pushed, mer
 - **Pull request**: only when the user requests PR delivery, use `hehehe:pr-loop` in `ready` or explicitly authorized `merge` mode.
 - **Integrated local delivery and release**: when the user requests it or the repository has it configured, follow `hehehe:resume`. It owns the candidate, approval, and main-update rules and the release handoff.
 
-Completion authority, the verification policy, and what blocks completion are defined in `hehehe:resume`. Codex owns final judgment; do not ship solely because Claude approved.
+Completion authority, the gated and ungated completion modes, and what blocks completion are defined in `hehehe:resume`. Codex owns final judgment; do not ship solely because Claude approved.

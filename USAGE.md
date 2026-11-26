@@ -168,6 +168,8 @@ plugins/hehehe/templates/implementation-spec.md
 
 ## 완료 게이트와 검증 정책
 
+신뢰 검증 게이트는 저장소별 선택 사항입니다. `.hehehe/verification-policy.json`을 도입했거나(작업 트리 또는 HEAD 이력에 존재) 외부에서 `HEHEHE_VERIFICATION_BASE`를 지정한 저장소만 게이트가 적용됩니다. 그 외 저장소에서는 `verify`가 `ungated`를 보고하고 `complete`가 `verification.mode: "ungated"`로 완료를 기록하며, 프로젝트 자체 검사(타입 검사·린트·테스트·빌드)를 실제로 실행해 `checks.md`에 남기는 것이 검증입니다. 도입한 정책 파일을 삭제해도 게이트는 풀리지 않습니다. 아래 내용은 게이트가 적용되는 저장소에 해당합니다.
+
 통합 전달을 요청했거나 저장소에 설정한 경우에는 메인 에이전트가 변경을 합치고 `resume`의 `delivery.mjs prepare`로 고정된 확인 경로에서 전체 검증합니다. `awaiting_approval`은 main 반영 전이며, 사용자 승인 후 정확한 후보·main·요청 ID를 대조해 `merge`하고 같은 폴더가 main인지 확인합니다. 서브에이전트별 테스트나 병합을 사용자에게 떠넘기지 않습니다. 설정·첫 도입·복구는 [통합 전달 안내](plugins/hehehe/skills/resume/references/integration-delivery.md)를 참고하세요.
 
 `hehehe:resume`의 `verify`는 사람이 검토한 커밋의 `.hehehe/verification-policy.json`에서 필수 검사를 읽습니다. 외부 실행 환경에서 `HEHEHE_VERIFICATION_BASE`에 해당 커밋의 전체 SHA를 지정해야 합니다. AI가 작성한 완료 기준이나 `PASS` 문구는 승인 근거가 아닙니다.

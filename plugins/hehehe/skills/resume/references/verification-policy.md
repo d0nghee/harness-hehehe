@@ -1,5 +1,7 @@
 # Trusted completion verification
 
+This reference applies only to a gated repository: one that has adopted `.hehehe/verification-policy.json` (in the working tree or anywhere in the history of HEAD) or runs under an operator-supplied `HEHEHE_VERIFICATION_BASE`. A repository that never adopted a policy completes in `ungated` mode, where `verify` runs nothing and the completed run records `verification.mode: "ungated"`. Deleting an adopted policy, in the working tree or in a commit, does not return a repository to ungated mode; removing the gate from a repository that adopted it is an owner decision that requires rewriting that history.
+
 The run-state `complete` command is fail-closed. It accepts evidence only from `verify`, bound to an externally supplied reviewed Git commit. `checks.md`, `done-criteria.md`, and the workspace copy of `verification.json` are explanatory artifacts, not approval or pass signals.
 
 ## Authority and first adoption

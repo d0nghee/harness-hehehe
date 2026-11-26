@@ -19,6 +19,7 @@ It connects everything from shaping an idea through implementation, browser test
 - **One review location and approval-bound main delivery**: The lead integrates and verifies changes in a fixed checkout, then switches that same location to main only after exact user approval
 - **Parallel resolution with subagents**: Distribute independent tasks to Codex subagents, then have the lead Codex agent integrate and verify their work
 - **Real browser testing**: Use the in-app browser to click, type, check network and console errors, and inspect responsive layouts
+- **Opt-in completion gate**: The trusted verification gate is enforced only in repositories that adopted a verification policy; others complete after recording the project's own check results
 - **Run-state recovery**: Preserve progress in `.hehehe/runs/` and resume from the point of interruption
 - **Completion gate**: Execute a reviewed commit's mandatory checks and block completion for failed, missing, expired, or source-stale evidence
 - **Repository knowledge system**: Automatically initialize, synchronize, and verify a short `AGENTS.md`, indexed project docs, architecture maps, and source fingerprints

@@ -45,7 +45,7 @@ A small one-off fix needs no pipeline: make the change, run the check that cover
 
 Pipeline state lives in `.hehehe/`. Run artifacts (`state.json`, `done-criteria.md`, `build-log.md`, `checks.md`, `claude-review.md`, `final-report.md`) belong to the active run directory. Keep them concise; they are coordination artifacts, not documentation dumps. Preserve legacy singleton `.hehehe/*.md` files as history and do not append new runs to them.
 
-Never relax, delete, or skip a required check to make a task pass, and never treat AI-authored pass claims as completion evidence.
+Never relax, delete, or skip a required check to make a task pass, and never treat AI-authored pass claims as completion evidence. The trusted completion gate applies only where a repository has adopted a verification policy; elsewhere the project's own checks, actually run and recorded, are the verification.
 
 Local delivery does not authorize remote push, release, or deployment. Each needs its own explicit authority.
 

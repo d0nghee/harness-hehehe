@@ -82,7 +82,9 @@ New default labels include the complete task string's hash to avoid mixed-langua
 
 When continuing an existing branch, planner `base_ref`/`base_commit` describe its actual HEAD; `requested_base_ref`/`requested_base_commit` retain the caller's requested starting point separately. Worktree creation confirms that its registered HEAD matches the planned start and never resets an existing branch to a newer main.
 
-Completion now has a deterministic verification boundary:
+The verification boundary is opt-in per repository. `run-state.mjs` treats a repository as gated when `.hehehe/verification-policy.json` exists in the working tree or anywhere in the history of HEAD, or when an operator supplies `HEHEHE_VERIFICATION_BASE`; a run pinned to a base stays gated. Otherwise `verify` reports `ungated`, `complete` records `verification.mode: "ungated"`, and the project's own recorded checks are the only verification. Deleting an adopted policy does not leave gated mode.
+
+In a gated repository completion has a deterministic verification boundary:
 
 ```text
 Externally supplied reviewed commit

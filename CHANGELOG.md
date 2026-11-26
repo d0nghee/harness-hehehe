@@ -4,6 +4,8 @@
 
 ## 미배포 · 하네스 보강 및 배포 운영
 
+- 신뢰 완료 게이트를 저장소별 선택형으로 바꿉니다. 지금까지는 검증 정책이 없는 저장소에서 `complete`가 항상 실패했습니다. 이제 `.hehehe/verification-policy.json`을 도입했거나(작업 트리 또는 HEAD 이력) `HEHEHE_VERIFICATION_BASE`가 지정된 경우에만 게이트를 강제하고, 그 외에는 `verify`가 `ungated`를 보고하며 `complete`가 `verification.mode: "ungated"`로 완료를 기록합니다. 게이트가 적용되는 저장소의 동작은 그대로이며, 도입한 정책을 작업 트리나 커밋에서 삭제해도 게이트는 풀리지 않습니다. `resume` 스킬은 검증·통합 전달·릴리스 참고 문서를 해당 기능을 쓰는 저장소에서만 읽도록 안내합니다.
+
 - 경험 기억에서 SQLite 캐시와 Python 워커를 제거합니다. 회상은 실행별 `experience.json`을 직접 읽어 검색하므로 Python·FTS5가 필요 없고, 별도 색인이 없어 손상·잠금·마이그레이션 문제가 사라집니다. 기록 형식·자격 조건(완료된 실행, 미변경, 미만료, 조상 커밋, 출처 일치)·반환 한도·승인/검증 게이트는 그대로입니다. 검색은 접두사 키워드 일치와 빈도 기반 순위를 유지하되 순위 계산식은 달라질 수 있습니다. 결과의 `search_engine`은 `file-scan`이며 `database_exists` 필드와 `HEHEHE_MEMORY_PYTHON` 설정은 없어집니다. Git 공통 디렉터리에 남은 `hehehe-memory/experience.sqlite`는 더 이상 쓰지 않으므로 지워도 됩니다.
 
 - Claude Code용 플러그인을 추가합니다. `node claude-plugin/build.mjs`가 Codex 원본(`plugins/hehehe`)에서 역할을 뒤집은 판(Claude가 주 실행자, Codex는 선택적 읽기 전용 리뷰어)을 `claude-plugin/hehehe`에 생성하며, 저장소 루트의 `.claude-plugin/marketplace.json`으로 로컬 마켓플레이스에 등록할 수 있습니다. 생성물은 커밋하지 않습니다. Codex 설치 진단용 `doctor` 스킬은 Claude 판에서 제외합니다.
