@@ -11,23 +11,32 @@ import {
 } from "../lib/installer.mjs";
 import { runProfileCli } from "../plugins/hehehe/skills/architecture-metrics/scripts/project-profile.mjs";
 import { confirmLegacyRemoval } from "../lib/confirmation.mjs";
+import { installClaude, uninstallClaude } from "../lib/claude-installer.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePluginDir = path.join(packageRoot, "plugins", "hehehe");
 
 function usage() {
-  return `harness-hehehe Codex plugin installer
+  return `harness-hehehe plugin installer for Codex and Claude Code
 
 Usage:
   harness-hehehe install --global [--dry-run]
+  harness-hehehe install --claude [--dry-run]
   harness-hehehe install --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
   harness-hehehe uninstall --global [--dry-run]
+  harness-hehehe uninstall --claude [--dry-run]
   harness-hehehe uninstall --project [path] [--dry-run] [--confirm-legacy-removal <absolute-path>]
   harness-hehehe profile [path] [--json] [--write]
     [--config path] [--allow-downgrade]
 
+Scopes:
+  --global   Codex, for every project of this user
+  --project  Codex, for one project
+  --claude   Claude Code, for this user (Claude leads, Codex reviews)
+
 Examples:
   npx harness-hehehe install --global
+  npx harness-hehehe install --claude
   npx harness-hehehe install --project .
   npx harness-hehehe install --project "D:\\work\\my-app"
   npx harness-hehehe profile . --write
@@ -56,10 +65,13 @@ function parseArguments(args) {
   for (let index = 1; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === "--global") {
-      if (scope) throw new Error("Choose exactly one scope: --global or --project.");
+      if (scope) throw new Error("Choose exactly one scope: --global, --project or --claude.");
       scope = "global";
+    } else if (argument === "--claude") {
+      if (scope) throw new Error("Choose exactly one scope: --global, --project or --claude.");
+      scope = "claude";
     } else if (argument === "--project") {
-      if (scope) throw new Error("Choose exactly one scope: --global or --project.");
+      if (scope) throw new Error("Choose exactly one scope: --global, --project or --claude.");
       scope = "project";
       const candidate = args[index + 1];
       if (candidate && !candidate.startsWith("-")) {
@@ -67,7 +79,7 @@ function parseArguments(args) {
         index += 1;
       }
     } else if (argument.startsWith("--project=")) {
-      if (scope) throw new Error("Choose exactly one scope: --global or --project.");
+      if (scope) throw new Error("Choose exactly one scope: --global, --project or --claude.");
       scope = "project";
       projectDir = argument.slice("--project=".length);
       if (!projectDir) throw new Error("--project requires a non-empty path.");
@@ -85,7 +97,7 @@ function parseArguments(args) {
   }
 
   if (!scope) {
-    throw new Error("Choose an installation scope with --global or --project.\n\n" + usage());
+    throw new Error("Choose an installation scope with --global, --project or --claude.\n\n" + usage());
   }
   if (legacyRemovalApprovedPath !== undefined && (scope !== "project" || !path.isAbsolute(legacyRemovalApprovedPath))) {
     throw new Error("--confirm-legacy-removal requires --project and an absolute target path.");
@@ -141,6 +153,22 @@ function printUninstallResult(result) {
   console.log("Restart Codex or start a new thread to refresh the available skills.");
 }
 
+function printClaudeResult(result, removing) {
+  console.log(`${result.dryRun ? "[dry-run] " : ""}hehehe ${removing ? "Claude Code uninstall" : `${result.version} Claude Code installation`}`);
+  console.log(`Marketplace directory: ${result.marketplaceDir}`);
+  console.log(`Plugin: ${result.pluginId}`);
+  if (!removing) console.log(`Skills: ${result.skills} (/hehehe:*)`);
+  if (result.dryRun) {
+    console.log("No files were changed.");
+    return;
+  }
+  for (const other of result.otherEditions ?? []) {
+    console.log(`Note: another hehehe plugin is also installed (${other}). Remove it to avoid duplicate skills: claude plugin uninstall ${other}`);
+  }
+  console.log(removing ? "Removed the hehehe plugin and its local marketplace from Claude Code."
+    : "Start a new Claude Code session to load the plugin.");
+}
+
 async function main() {
   const parsed = parseArguments(process.argv.slice(2));
   if (parsed.help) {
@@ -154,6 +182,16 @@ async function main() {
   }
   if (parsed.command === "profile") {
     await runProfileCli(parsed.profileArgs);
+    return;
+  }
+
+  if (parsed.scope === "claude") {
+    if (parsed.command === "install") {
+      const { version } = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
+      printClaudeResult(installClaude({ sourcePluginDir, version, dryRun: parsed.dryRun }), false);
+    } else {
+      printClaudeResult(uninstallClaude({ dryRun: parsed.dryRun }), true);
+    }
     return;
   }
 

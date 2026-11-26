@@ -33,18 +33,26 @@ Codex가 계획·구현·검증·수정을 끝까지 맡고, Claude는 필요할
 ## 요구 사항
 
 - Node.js 20 이상
-- Codex CLI
-- Claude CLI는 선택 사항이며 독립 교차 리뷰를 요청할 때만 필요
+- Codex에서 쓸 때: Codex CLI. Claude CLI는 선택 사항이며 독립 교차 리뷰를 요청할 때만 필요
+- Claude Code에서 쓸 때: Claude Code CLI(`claude`). Codex CLI는 선택 사항이며 독립 교차 리뷰를 요청할 때만 필요
 
 ## 빠른 시작
 
-### 모든 프로젝트에서 사용
+### Codex: 모든 프로젝트에서 사용
 
 ```bash
 npx harness-hehehe install --global
 ```
 
-### 현재 프로젝트에서만 사용
+### Claude Code: 모든 프로젝트에서 사용
+
+```bash
+npx harness-hehehe install --claude
+```
+
+Claude Code용 판은 같은 스킬에서 역할만 뒤집은 것입니다. Claude가 계획·구현·검증을 맡고 Codex는 선택적 읽기 전용 리뷰어가 됩니다. 설치 후 새 Claude Code 세션에서 `/hehehe:full-resolve`처럼 호출합니다. 제거는 `npx harness-hehehe uninstall --claude`입니다.
+
+### Codex: 현재 프로젝트에서만 사용
 
 ```bash
 npx harness-hehehe install --project .
@@ -56,7 +64,7 @@ npx harness-hehehe install --project .
 $hehehe:full-resolve 사용자 프로필 편집 기능을 구현하고 검증해줘
 ```
 
-설치만으로 검증 기준이 승인되지는 않습니다. 실행을 완료하려면 프로젝트 관리자가 [완료 게이트](#완료-게이트)의 최초 기준을 등록해야 합니다.
+검증 정책을 도입하지 않은 저장소에서는 별도 설정 없이 실행을 완료할 수 있습니다. 신뢰 검증 게이트를 쓰려면 프로젝트 관리자가 [완료 게이트](#완료-게이트)의 최초 기준을 등록합니다.
 
 ## 설치 범위
 

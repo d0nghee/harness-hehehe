@@ -10,6 +10,8 @@ hehehe is a dependency-free Node.js ESM package that distributes a Codex workflo
 | --- | --- |
 | [`bin/hehehe.mjs`](../../bin/hehehe.mjs) | CLI parsing for installation, uninstallation, and project-profile reporting |
 | [`lib/installer.mjs`](../../lib/installer.mjs) | Safe global/plugin and project/skill installation transactions |
+| [`lib/claude-edition.mjs`](../../lib/claude-edition.mjs) | Builds the Claude Code edition from `plugins/hehehe`: role inversion, the few sentences a plain swap gets wrong, and exclusion of Codex-only parts. A missing source sentence fails the build |
+| [`lib/claude-installer.mjs`](../../lib/claude-installer.mjs) | `install --claude` / `uninstall --claude`: writes the built edition to an owned marketplace directory under `~/.claude/hehehe-marketplace` and registers it through the Claude CLI, never by editing Claude Code settings directly |
 | [`lib/confirmation.mjs`](../../lib/confirmation.mjs) | Default-No terminal confirmation and exact-path operator approval for legacy project folder deletion |
 | [`plugins/hehehe/`](../../plugins/hehehe/) | Plugin manifest, sorted skill catalog, skills, bundled scripts, references, and workflow templates |
 | [`tests/`](../../tests/) | Node test fixtures for installer safety and deterministic bundled scripts |
