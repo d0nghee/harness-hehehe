@@ -2,14 +2,15 @@
 
 [한국어](README.md) | English
 
-hehehe is a development workflow plugin in which Codex owns planning, implementation, verification, and fixes from start to finish, while Claude participates only as an independent reviewer when needed.
+hehehe is a development workflow plugin in which a lead agent owns planning, implementation, verification, and fixes from start to finish, while another model participates only as an independent reviewer when needed. It installs into both Codex and Claude Code. In Codex, Codex leads and Claude reviews; in Claude Code the roles are reversed.
 
 It connects everything from shaping an idea through implementation, browser testing, and pre-release checks into a single workflow. Interrupted work can be resumed by recording its run state.
 
 ## Key Features
 
-- **Codex-first execution**: Codex handles planning, implementation, debugging, testing, and final decisions
-- **Optional Claude review**: Read-only cross-checks for high-risk changes involving code, security, or migrations
+- **Codex and Claude Code**: Install the same skills into either tool with one command each; the agent of the tool you install into becomes the lead
+- **Lead-agent execution**: The lead agent handles planning, implementation, debugging, testing, and final decisions
+- **Optional cross-review**: Read-only cross-checks by the other model for high-risk changes involving code, security, or migrations
 - **End-to-end automation**: Specification → implementation → build gate → browser validation → cleanup → documentation
 - **Adaptive architecture gate**: Automatically select Lite, Standard, or Strict from a separate 0-10 project score, then apply profile-specific coupling thresholds
 - **Frontend defaults**: Use FSD and Tailwind CSS for new frontend work unless the user explicitly requests another approach
@@ -17,15 +18,14 @@ It connects everything from shaping an idea through implementation, browser test
 - **Zero-install observability baseline**: Reuse browser, application, and test output while verifying backend error codes, structured logs, and `request_id` correlation
 - **Task-scoped isolation**: Reuse or create task branches and Git worktrees with separate port, log, Compose, and development-database identities
 - **One review location and approval-bound main delivery**: The lead integrates and verifies changes in a fixed checkout, then switches that same location to main only after exact user approval
-- **Parallel resolution with subagents**: Distribute independent tasks to Codex subagents, then have the lead Codex agent integrate and verify their work
+- **Parallel resolution with subagents**: Distribute independent tasks to subagents, then have the lead agent integrate and verify their work
 - **Real browser testing**: Use the in-app browser to click, type, check network and console errors, and inspect responsive layouts
-- **Opt-in completion gate**: The trusted verification gate is enforced only in repositories that adopted a verification policy; others complete after recording the project's own check results
+- **Opt-in completion gate**: In repositories that adopted a verification policy, execute a reviewed commit's mandatory checks and block completion for failed, missing, expired, or source-stale evidence. Other repositories complete after recording the project's own check results
 - **Run-state recovery**: Preserve progress in `.hehehe/runs/` and resume from the point of interruption
-- **Completion gate**: Execute a reviewed commit's mandatory checks and block completion for failed, missing, expired, or source-stale evidence
 - **Repository knowledge system**: Automatically initialize, synchronize, and verify a short `AGENTS.md`, indexed project docs, architecture maps, and source fingerprints
 - **Drift and garbage collection**: Periodically audit churn, size, and structural drift, prove deletion candidates, and prepare one focused maintenance change or PR
 - **Autonomous CI and PR loop**: Reconcile review feedback and CI failures against the exact PR head SHA until the authorized ready or merged state
-- **Installation diagnostics**: Inspect the hehehe installation, Codex, optional Claude, and project state without modifying files
+- **Installation diagnostics**: Inspect the hehehe installation, Codex, optional Claude, and project state without modifying files (Codex edition)
 - **UI design support**: Provide UI directions, design systems, and implementation workflows suited to the product
 
 See [USAGE.md](USAGE.md) for the complete skill list.
@@ -155,7 +155,9 @@ Long records return an explicitly marked compact projection with the original so
 
 ## Trusted Completion Gate
 
-AI-authored acceptance criteria and handwritten `PASS` reports cannot authorize completion. The `resume` `verify` command reads mandatory checks, changed-path rules, protected inputs, and result expiry from a reviewed commit's `.hehehe/verification-policy.json`. The `complete` command validates actual execution evidence.
+The completion gate is opt-in per repository. It applies only where `.hehehe/verification-policy.json` has been adopted (present in the working tree or in the history of HEAD) or where `HEHEHE_VERIFICATION_BASE` is supplied externally. Elsewhere `verify` reports `ungated`, `complete` records `verification.mode: "ungated"`, and running and recording the project's own checks is the verification. Deleting an adopted policy does not release the gate. The rest of this section describes a gated repository.
+
+In a gated repository, AI-authored acceptance criteria and handwritten `PASS` reports cannot authorize completion. The `resume` `verify` command reads mandatory checks, changed-path rules, protected inputs, and result expiry from a reviewed commit's `.hehehe/verification-policy.json`. The `complete` command validates actual execution evidence.
 
 ### Establish the Initial Baseline
 
