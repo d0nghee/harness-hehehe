@@ -8,8 +8,8 @@ export const NOTE_READ_BYTES = 20000;
 export const MAX_RETENTION_MS = 90 * 86400000;
 const invalidText = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ud800-\udfff]/u;
 
-// Filter only after SQLite has produced its actual keyword tokens. A second
-// word regex would disagree on combining marks and single-letter script tokens.
+// Applied to query tokens only, after tokenization. Notes are never filtered,
+// so a stopword inside a note cannot make it unreachable by other words.
 export const queryStopwords = Object.freeze(("a an the and or but if then else as at by for from in into of on onto out over to under up with without "
   + "about after before between during through this that these those it its is are was were be been being am do does did done "
   + "have has had can could may might must shall should will would not no so than too very there here how what when where which who why "
@@ -61,6 +61,27 @@ export function indexText(content) {
 export function queryText(query) {
   if (typeof query !== "string" || !query.trim() || query.length > QUERY_CHARACTERS) fail();
   return normalizedSearchText(query.trim());
+}
+
+// One tokenizer owns both the note text and the query, so they cannot disagree
+// about word boundaries. Marks stay inside a word: scripts that write vowels as
+// combining marks would otherwise split into single consonants.
+export function searchTokens(normalized) {
+  if (typeof normalized !== "string") fail();
+  // Latin, Greek and Cyrillic accents are dropped so "cafe" finds "café"; marks
+  // from other blocks are part of the spelling and stay.
+  const folded = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC");
+  return folded.match(/[\p{L}\p{N}\p{M}\p{Co}]+/gu) ?? [];
+}
+
+export function queryTerms(normalizedQuery) {
+  const terms = [];
+  for (const token of searchTokens(normalizedQuery)) {
+    if (queryStopwords.includes(token) || terms.includes(token)) continue;
+    terms.push(token);
+    if (terms.length === 16) break;
+  }
+  return terms;
 }
 
 export function utcDate(value) {

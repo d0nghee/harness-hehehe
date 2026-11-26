@@ -15,10 +15,21 @@ Resolve both scripts relative to this `SKILL.md`:
 - `scripts/delivery.mjs`: one fixed integrated review checkout, verification, exact user approval and local main delivery
 - `scripts/verification-baseline.mjs`: explicit old/new baseline review and separately approved post-delivery promotion; never automatic HEAD trust
 
-Read [references/isolation-policy.md](references/isolation-policy.md) before creating or retiring a worktree.
-Read [references/verification-policy.md](references/verification-policy.md) before verification or completion. The operator/CI must supply a reviewed `HEHEHE_VERIFICATION_BASE`; never select a weaker base, approve a policy change yourself, or substitute a handwritten pass report.
-Read [references/integration-delivery.md](references/integration-delivery.md) for requested/configured integrated delivery. The lead prepares one frozen, tested candidate and one stable review path; main is updated only after the user approves that exact result.
-Read [references/release-delivery.md](references/release-delivery.md) when a configured project release lifecycle or a publication request is in scope. A local delivery can leave a release pending; it never authorizes publication.
+Read a reference only when its condition holds; none of them is needed for ordinary work in a repository that has not adopted these features.
+
+- [references/isolation-policy.md](references/isolation-policy.md): before creating or retiring a worktree.
+- [references/verification-policy.md](references/verification-policy.md): only in a gated repository (see Completion Modes), before verification or completion.
+- [references/integration-delivery.md](references/integration-delivery.md): only when integrated delivery is requested or configured.
+- [references/release-delivery.md](references/release-delivery.md): only when a configured release lifecycle or a publication request is in scope.
+
+## Completion Modes
+
+The trusted completion gate is opt-in per repository. `run-state.mjs` decides the mode; do not choose it yourself.
+
+- **Gated**: the repository has adopted `.hehehe/verification-policy.json` (in the working tree or anywhere in the history of HEAD), or the operator/CI supplied `HEHEHE_VERIFICATION_BASE`. `verify` runs every policy-required check against the pinned base and `complete` succeeds only with passing, complete, fresh evidence. Never select a weaker base, approve a policy change yourself, substitute a handwritten pass report, or delete the policy to leave this mode; deletion does not release the gate.
+- **Ungated**: no policy was ever adopted and no base is supplied. `verify` reports `ungated` and runs nothing, and `complete` records `verification.mode: "ungated"`. The project's own checks are then the only verification: run the typecheck, lint, tests and build that apply, record their real outcomes in `checks.md`, and complete only when they pass or each gap is disclosed to the user. Say in the final report that the trusted gate was not applied.
+
+Adopting the gate is an owner decision made outside a task, by committing a reviewed policy. Do not add a policy as part of unrelated work.
 
 ## Modes
 
@@ -29,8 +40,8 @@ Infer the first explicit mode; use `auto` when none is supplied.
 - `resume`: confirm task/workspace identity and continue from the recorded next step.
 - `status`: report Git/worktree/runtime identity plus active run state without mutation.
 - `advance`: record a verified phase transition or actionable blocker.
-- `verify`: run every policy-required check and generate code-bound evidence; failed, missing, skipped, expired, or stale evidence cannot authorize completion.
-- `complete`: complete the run only after required evidence passes; preserve its worktree.
+- `verify`: in a gated repository, run every policy-required check and generate code-bound evidence; failed, missing, skipped, expired, or stale evidence cannot authorize completion. In an ungated repository it only reports that mode.
+- `complete`: complete the run only after required evidence passes (gated) or the project's own checks are run and recorded (ungated); preserve its worktree.
 - `retire`: after explicit user intent, verify clean and integrated state before removing a worktree; never delete its branch automatically.
 
 `status` is read-only. `auto` does not require a new worktree for a small continuation in the current matching workspace.
@@ -55,7 +66,7 @@ node scripts/run-state.mjs advance --project <selected-worktree> --phase blocked
 node scripts/run-state.mjs complete --project <selected-worktree>
 ```
 
-Before `complete`, run `node scripts/run-state.mjs verify --project <selected-worktree> --json`. Required checks come from the externally pinned baseline, never from AI-authored done criteria. Existing protected tests, commands, policy and gate changes require a separately reviewed baseline update. Keep proposals in the diff and report the blocked completion; do not weaken checks to make it green.
+Before `complete`, run `node scripts/run-state.mjs verify --project <selected-worktree> --json` and read the mode it reports. In a gated repository, required checks come from the externally pinned baseline, never from AI-authored done criteria; existing protected tests, commands, policy and gate changes require a separately reviewed baseline update. Keep proposals in the diff and report the blocked completion; do not weaken checks to make it green.
 
 Allowed phases are `intake`, `plan`, `architecture`, `build`, `verify`, `review`, `cleanup`, `docs`, `preflight`, and `blocked`; blocked phase and status must agree. Resolve a blocker before returning to an active phase. No force-complete or legacy exemption is available.
 

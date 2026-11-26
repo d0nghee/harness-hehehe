@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createExperienceService } from "./experience.mjs";
-import { invokeStore } from "./sqlite-store.mjs";
+import { recordExperience, syncExperiences, recallExperiences, memoryContext, memoryStatus } from "./experience.mjs";
 import { MemoryError, readJson } from "./source-evidence.mjs";
 
-export const { recordExperience, syncExperiences, recallExperiences, memoryContext, memoryStatus } = createExperienceService(invokeStore);
+export { recordExperience, syncExperiences, recallExperiences, memoryContext, memoryStatus };
 
 export function main(argv = process.argv.slice(2)) {
   const options = { project: process.cwd(), json: false };

@@ -1,6 +1,6 @@
 ---
 name: review
-description: Perform a focused code review with findings first, prioritizing bugs, regressions, security issues, and missing tests.
+description: Perform a focused code review with findings first, prioritizing bugs, regressions, security issues, and missing tests. Also use for a multi-perspective review of an important PR or broad change, and for evaluating or scoring completed work against requested behavior.
 ---
 
 # hehehe:review
@@ -39,3 +39,13 @@ For frontend work, also use `hehehe:frontend-architecture` and include:
 Treat structural hard failures as blocking in every profile. Apply the selected profile's coupling thresholds; for its improve range, recommend the smallest boundary improvement or document why the scoped exception is safer. Do not demand classes, slices, interfaces, repositories, or file splitting mechanically.
 
 For high-risk diffs, ask Claude for an independent challenge review, then verify each finding locally.
+
+## Multi-perspective review
+
+For an important PR or broad change, review from each perspective that applies: correctness, architecture, security, tests, UX, and operational readiness. If sub-agents are available, bounded read-only perspectives may run in parallel. Codex consolidates the findings and removes duplicates.
+
+## Evaluating completed work
+
+When asked to evaluate or score finished work, also judge correctness against the requested behavior, missing edge cases, test and build coverage, maintainability, and UI workflow quality when relevant.
+
+Every finding leads with severity and a file reference. Do not include speculative issues that are not grounded in code. Claude findings are advisory until Codex checks the code.

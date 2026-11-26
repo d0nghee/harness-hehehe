@@ -95,8 +95,7 @@ export function repository(project) {
   checkedPath(common);
   const head = git(root, ["rev-parse", "--verify", "HEAD^{commit}"]).trim();
   if (!/^[a-f0-9]{40,64}$/.test(head)) fail("MEMORY_INVALID_PROJECT");
-  return { root, common, head, repoId: hash(process.platform === "win32" ? common.toLowerCase() : common),
-    database: path.join(common, "hehehe-memory", "experience.sqlite") };
+  return { root, common, head, repoId: hash(process.platform === "win32" ? common.toLowerCase() : common) };
 }
 
 export function registeredRoots(repo) {

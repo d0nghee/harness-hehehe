@@ -19,6 +19,7 @@ It connects everything from shaping an idea through implementation, browser test
 - **One review location and approval-bound main delivery**: The lead integrates and verifies changes in a fixed checkout, then switches that same location to main only after exact user approval
 - **Parallel resolution with subagents**: Distribute independent tasks to Codex subagents, then have the lead Codex agent integrate and verify their work
 - **Real browser testing**: Use the in-app browser to click, type, check network and console errors, and inspect responsive layouts
+- **Opt-in completion gate**: The trusted verification gate is enforced only in repositories that adopted a verification policy; others complete after recording the project's own check results
 - **Run-state recovery**: Preserve progress in `.hehehe/runs/` and resume from the point of interruption
 - **Completion gate**: Execute a reviewed commit's mandatory checks and block completion for failed, missing, expired, or source-stale evidence
 - **Repository knowledge system**: Automatically initialize, synchronize, and verify a short `AGENTS.md`, indexed project docs, architecture maps, and source fingerprints
@@ -32,7 +33,6 @@ See [USAGE.md](USAGE.md) for the complete skill list.
 ## Requirements
 
 - Node.js 20 or later
-- Cross-session experience memory additionally needs Python 3.10+ with standard-library SQLite FTS5. No runtime is installed automatically.
 - Codex CLI
 - Claude CLI is optional and is required only when you request an independent cross-review
 
@@ -111,7 +111,7 @@ $hehehe:preflight Perform a final check that this is ready to release
 $hehehe:resolve Find and fix the cause of a redirect loop after login
 $hehehe:subagent-resolve Split a cross-module authentication change among subagents, then implement and integrate it
 $hehehe:review Review the current changes with a focus on bugs and regression risks
-$hehehe:team-review Review the authentication changes from independent perspectives as well
+$hehehe:review Review the authentication changes from several independent perspectives as well
 $hehehe:maintain-codebase check Audit repository drift and rank cleanup targets
 $hehehe:pr-loop ready Fix review and CI failures on PR 42 until it is ready to merge
 ```
@@ -139,11 +139,11 @@ Task labels include a hash of the complete identity, and runtime IDs use the Git
 
 ## Cross-Session Work Experiences
 
-`hehehe:experience-memory` records selected problems, causes and resolutions with source references and retrieves them through a local SQLite index. `resume init` returns related context for a new goal; `status` recalls without writes. Deleted, edited, expired or current-source-mismatched experiences are excluded. Memory is advisory; existing gates still own approval, mandatory verification and completion.
+`hehehe:experience-memory` records selected problems, causes and resolutions with source references and retrieves them by reading the per-run notes directly. `resume init` returns related context for a new goal, and every command except recording is read-only. Deleted, edited, expired or current-source-mismatched experiences are excluded. Memory is advisory; existing gates still own approval, mandatory verification and completion.
 
-There is no automatic transcript or raw-log collection. Canonical notes stay in each run's `experience.json`; the cache is `hehehe-memory/experience.sqlite` inside the Git common directory. See the [experience-memory skill](plugins/hehehe/skills/experience-memory/SKILL.md) for usage and retention.
+There is no automatic transcript or raw-log collection. Notes live only in each run's `experience.json`; there is no separate index, database or extra runtime. See the [experience-memory skill](plugins/hehehe/skills/experience-memory/SKILL.md) for usage and retention.
 
-Long records return an explicitly marked compact projection with the original source reference; canonical notes remain intact. Index and query text share Unicode normalization, and a new database is published only after initialization completes so an interrupted first creation can be retried.
+Long records return an explicitly marked compact projection with the original source reference; canonical notes remain intact. Notes and queries share one Unicode normalization and word-boundary rule.
 
 ## Trusted Completion Gate
 

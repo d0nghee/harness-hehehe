@@ -1,6 +1,6 @@
 ---
 name: subagent-resolve
-description: Resolve and implement a decision-ready hehehe task by decomposing it into bounded parallel Codex sub-agent workstreams, integrating shared-workspace changes, and running end-to-end verification. Use after hehehe:ideate or when .hehehe specs and done criteria exist and the user asks for subagents, parallel resolution, parallel implementation, or multiple implementation workstreams.
+description: Resolve and implement a decision-ready hehehe task by decomposing it into bounded parallel Codex sub-agent workstreams, integrating shared-workspace changes, and running end-to-end verification. Use after hehehe:ideate or when .hehehe specs and done criteria exist and the user asks for subagents, parallel resolution, parallel implementation, or multiple implementation workstreams. Also use for a bug that spans multiple modules or has unclear ownership.
 ---
 
 # hehehe:subagent-resolve
@@ -9,7 +9,9 @@ Use this for implementation or resolution work with multiple independent workstr
 
 Codex remains the lead engineer and owns task partitioning, the critical path, integration, verification, and the final result.
 
-For integrated delivery, the lead also owns the handoff and approval-bound main update through `hehehe:resume`'s `delivery.mjs`. Workers do not hand separate review worktrees to the user. Use the one repository-pinned review path, test the integrated candidate there, freeze it for user review, and update main only after exact user approval. Preserve source task workspaces; never label a worker's passing tests as integrated readiness or a review candidate as already merged.
+For integrated delivery, the lead owns the handoff and follows `hehehe:resume`, which defines the candidate, approval, and main-update rules. Workers never hand separate review worktrees to the user, and a worker's passing tests are not integrated readiness.
+
+For a bug with unclear ownership, delegate bounded read-only exploration of competing hypotheses, keep the fix on the critical path with the lead, and report a short root-cause note with the patch, verification result, and residual risk.
 
 ## Preconditions
 

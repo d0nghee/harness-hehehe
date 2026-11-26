@@ -8,9 +8,7 @@
     "clean",
     "design-system",
     "design-ui",
-    "discover-product",
     "doctor",
-    "evaluate",
     "experience-memory",
     "feature-spec",
     "frontend-architecture",
@@ -22,16 +20,11 @@
     "observability",
     "pr-loop",
     "preflight",
-    "product-spec",
-    "recommend-features",
     "repository-knowledge",
     "resolve",
     "resume",
     "review",
     "subagent-resolve",
-    "team-design-ui",
-    "team-resolve",
-    "team-review",
     "update-docs"
   ]
 }

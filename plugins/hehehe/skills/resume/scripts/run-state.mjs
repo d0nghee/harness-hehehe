@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { trustedContext } from "./verification-policy.mjs";
+import { git, policyPath, trustedContext } from "./verification-policy.mjs";
 import { assertVerified, runChecks } from "./verification-runner.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -242,9 +242,33 @@ function advance(project, options) {
   return state;
 }
 
+// The trusted gate is opt-in per repository. A repository opts in by adopting a
+// verification policy or by running under an operator-supplied base. Adoption is
+// read from Git history as well as the working tree, so a task cannot leave the
+// gate by deleting the policy, in the working tree or in a commit of its own.
+function gateRequired(project, state) {
+  if (state.verification_base || process.env.HEHEHE_VERIFICATION_BASE) return true;
+  if (fs.existsSync(path.join(project, policyPath))) return true;
+  try {
+    return git(project, ["rev-list", "-1", "HEAD", "--", policyPath]).trim() !== "";
+  } catch {
+    return false; // Not a Git repository, or no commit yet: nothing was ever adopted.
+  }
+}
+
+const ungated = Object.freeze({ mode: "ungated", reason: "no verification policy adopted in this repository" });
+
 function complete(project) {
   const loaded = loadCurrent(project);
   if (loaded.state.status !== "active") throw new Error("only active runs can complete; resolve blocked state first");
+  if (!gateRequired(project, loaded.state)) {
+    const timestamp = now();
+    const state = { ...loaded.state, status: "complete", phase: "complete", next_step: null,
+      updated_at: timestamp, completed_at: timestamp, verification: { ...ungated } };
+    writeJsonAtomic(loaded.statePath, state);
+    writeJsonAtomic(loaded.paths.current, { ...loaded.current, updated_at: timestamp });
+    return state;
+  }
   if (!loaded.state.verification_base) throw new Error("required verification has not run; use verify before complete");
   const context = trustedContext(project, loaded.state.verification_base);
   const receipt = assertVerified(project, loaded.state.run_id, context, path.dirname(loaded.statePath));
@@ -267,6 +291,13 @@ function complete(project) {
 function verify(project) {
   const loaded = loadCurrent(project);
   if (loaded.state.status !== "active") throw new Error("only active runs can be verified");
+  if (!gateRequired(project, loaded.state)) {
+    // Nothing is pinned to verify against. The project's own checks still have to
+    // be run and recorded by the workflow; this command only reports the mode.
+    const state = { ...loaded.state, phase: "verify", updated_at: now() };
+    writeJsonAtomic(loaded.statePath, state);
+    return { ...state, verification_result: { status: "ungated", reason: ungated.reason, results: [] } };
+  }
   const context = trustedContext(project, loaded.state.verification_base);
   const state = { ...loaded.state, verification_base: context.base, phase: "verify", updated_at: now() };
   writeJsonAtomic(loaded.statePath, state);
@@ -287,6 +318,9 @@ function printResult(value, asJson) {
   process.stdout.write(`${value.run_id}: ${value.status} / ${value.phase}\n`);
   process.stdout.write(`Goal: ${value.goal}\n`);
   process.stdout.write(`Next: ${value.next_step ?? "none"}\n`);
+  if ((value.verification ?? value.verification_result)?.mode === "ungated" || value.verification_result?.status === "ungated") {
+    process.stdout.write("Verification gate: not applied (no verification policy adopted)\n");
+  }
   if (value.memory_context) {
     process.stdout.write(`Experience memory: ${value.memory_context.status} (advisory only)\n`);
     for (const record of value.memory_context.records ?? []) {

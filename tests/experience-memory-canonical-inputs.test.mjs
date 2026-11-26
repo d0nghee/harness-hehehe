@@ -5,7 +5,6 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { recordExperience, syncExperiences, recallExperiences } from "../plugins/hehehe/skills/experience-memory/scripts/memory.mjs";
-import { createExperienceService } from "../plugins/hehehe/skills/experience-memory/scripts/experience.mjs";
 import { canonical, hash } from "../plugins/hehehe/skills/experience-memory/scripts/source-evidence.mjs";
 
 function fixture(t) {
@@ -87,31 +86,6 @@ test("canonical notes require all sixteen known keys and valid derived source me
   assert.equal(recalled.count, 1);
   assert.equal(recalled.records[0].id, f.note.id);
   assert.deepEqual(fs.readFileSync(f.notePath), original);
-});
-
-test("cached note, origin and digest inputs are checked against the real canonical source", (t) => {
-  const f = fixture(t);
-  const healthy = { note: f.note, origin: { root: f.project, path: `.hehehe/runs/${f.run}/experience.json` },
-    digest: hash(canonical(f.note)) };
-  const variants = [null, [], 1];
-  for (const key of ["note", "origin", "digest"]) {
-    const missing = structuredClone(healthy); delete missing[key]; variants.push(missing);
-    variants.push({ ...structuredClone(healthy), [key]: null });
-  }
-  variants.push({ ...structuredClone(healthy), approval: true });
-  variants.push({ ...structuredClone(healthy), digest: "0".repeat(64) });
-  variants.push({ ...structuredClone(healthy), note: { ...f.note, problem: "Forged cached content" } });
-  for (const origin of [null, [], {}, { path: healthy.origin.path }, { root: f.project },
-    { root: 1, path: healthy.origin.path }, { root: path.join(f.root, "foreign"), path: healthy.origin.path },
-    { root: f.project, path: "../experience.json" }, { root: f.project, path: `.hehehe/runs/missing-run/experience.json` },
-    { ...healthy.origin, approval: true }]) variants.push({ ...structuredClone(healthy), origin });
-  const service = createExperienceService(() => ({ status: "ok", records: [...variants, healthy], database_exists: true, search_engine: "sqlite-fts5" }));
-  const result = service.recallExperiences(f.project, "canonicalproof");
-  assert.equal(result.count, 1);
-  assert.equal(result.omitted, variants.length);
-  assert.equal(result.records[0].id, f.note.id);
-  assert.equal(result.authority, "advisory-only");
-  assert.equal(fs.existsSync(path.join(f.project, ".git/hehehe-memory")), false);
 });
 
 test("retained run schema, identity and completed eligibility remain independent of note contents", (t) => {

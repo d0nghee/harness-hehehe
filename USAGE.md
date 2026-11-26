@@ -58,7 +58,6 @@ $hehehe:preflight
 
 ```text
 $hehehe:review
-$hehehe:evaluate
 $hehehe:browser-validate
 $hehehe:update-docs
 ```
@@ -84,7 +83,7 @@ $hehehe:implement-ui
 
 ```text
 $hehehe:resolve
-$hehehe:team-resolve
+$hehehe:subagent-resolve
 ```
 
 ## 포함된 스킬
@@ -99,11 +98,8 @@ $hehehe:team-resolve
 
 ### 기획과 스펙
 
-- `hehehe:discover-product`: 새 앱, 기능, 워크플로우를 제품 요구사항으로 정리
-- `hehehe:product-spec`: 제품 수준 스펙 작성 또는 업데이트
 - `hehehe:feature-spec`: 기능 수준 구현 스펙과 검증 기준 작성
-- `hehehe:ideate`: 거친 아이디어를 로드맵, done criteria, 구현 스펙으로 변환
-- `hehehe:recommend-features`: 코드와 스펙 상태를 보고 다음 고가치 기능 추천
+- `hehehe:ideate`: 거친 아이디어를 로드맵, done criteria, 구현 스펙으로 변환. 문제가 모호할 때의 제품 탐색, 제품 수준 스펙, 다음에 만들 기능 추천도 담당
 - `hehehe:repository-knowledge`: 모드 생략 시 저장소 지식 시스템을 자동 초기화·동기화·검증하고, `init`·`sync`·`check`·`status` 모드도 제공
 
 ### 구현과 검증
@@ -113,25 +109,21 @@ $hehehe:team-resolve
 - `hehehe:backend-architecture`: 백엔드 책임 경계, 프로필별 결합도 기준, ORM과 SQL 사용 위치를 설계·검토
 - `hehehe:observability`: 별도 관측 스택 없이 브라우저·API·백엔드 실행 근거와 구조화 오류·로그·`request_id` 연결을 적용·검증하며, 명시적 `full` 모드에서만 Docker 관측 스택 사용
 - `hehehe:resolve`: 단일 버그·회귀·실패 체크를 재현하고 원인을 추적해 최소 범위를 수정하고 집중 검증
-- `hehehe:subagent-resolve`: 여러 독립 작업을 Codex 서브에이전트로 병렬 처리하고 메인 Codex가 통합·검증
-- `hehehe:team-resolve`: 복잡한 버그를 Codex 주도와 선택적 Claude 비평으로 해결
-- `hehehe:evaluate`: 명시 기준에 따라 구현을 평가
+- `hehehe:subagent-resolve`: 여러 독립 작업을 Codex 서브에이전트로 병렬 처리하고 메인 Codex가 통합·검증. 여러 모듈에 걸치거나 책임이 불분명한 버그도 담당
 - `hehehe:browser-validate`: 웹 UI 또는 로컬 앱 워크플로우를 브라우저로 검증
 - `hehehe:clean`: 구현 후 코드 위생 정리
-- `hehehe:experience-memory`: 출처가 있는 작업 경험을 로컬 SQLite에 색인하고 다음 작업에서 관련 기억을 회상. Python 3.10+와 SQLite FTS5 필요
+- `hehehe:experience-memory`: 출처가 있는 작업 경험을 실행별 기록으로 남기고 다음 작업에서 관련 기억을 회상. 별도 DB나 추가 런타임 없음
 - `hehehe:maintain-codebase`: 주기적 저장소 드리프트 감사, 삭제 근거 검증, 한 가지 대상의 제한된 리팩터링과 유지보수 PR 준비
 - `hehehe:pr-loop`: 정확한 PR head SHA를 기준으로 리뷰·CI 실패를 수정하고 허용된 ready 또는 merge 상태까지 반복
 - `hehehe:update-docs`: 완료된 코드 변경과 관련 문서 동기화
 
 ### 리뷰
 
-- `hehehe:review`: 버그, 회귀, 보안, 테스트 누락 중심의 집중 리뷰
-- `hehehe:team-review`: Codex 주도 리뷰와 선택적 Claude 독립 리뷰를 결합
+- `hehehe:review`: 버그, 회귀, 보안, 테스트 누락 중심의 집중 리뷰. 여러 관점의 리뷰와 완료된 구현의 평가도 담당
 
 ### UI/UX
 
-- `hehehe:design-ui`: 제품 화면이나 워크플로우의 UI 방향 생성
-- `hehehe:team-design-ui`: 여러 디자인 관점으로 UI 콘셉트 생성 후 Codex가 통합
+- `hehehe:design-ui`: 제품 화면이나 워크플로우의 UI 방향 생성. 중요한 UI는 여러 디자인 관점으로 콘셉트를 만든 뒤 Codex가 통합
 - `hehehe:design-system`: 선택된 UI 방향을 구현 가능한 디자인 시스템으로 정리
 - `hehehe:implement-ui`: 기존 프론트엔드 스택으로 UI 구현
 
@@ -155,9 +147,9 @@ hehehe 워크플로우는 프로젝트 안에 `.hehehe/` 폴더를 사용할 수
 
 유지 대상 저장소의 장기 지식은 루트 `AGENTS.md`, `docs/README.md`, `docs/architecture/overview.md`를 공통 기준으로 사용합니다. 실제로 존재하는 관심사만 세부 문서로 추가하며 빈 문서를 기계적으로 만들지 않습니다.
 
-재사용할 만한 해결 경험은 `hehehe:experience-memory`로 기록합니다. `resume init`의 `memory_context`는 새 목표와 관련된 기록을 자동 검색하고, `resume status`는 DB를 바꾸지 않고 회상합니다. 원문과 현재 소스를 확인한 뒤 참고하며, 현재 운영 규칙·승인·검증 결과는 따로 직접 읽어야 합니다. 검증된 완료 후에만 해당 실행의 경험이 색인 대상이 됩니다. 원본 실행이나 워크트리를 삭제하면 그 기록은 회상에서 제외되므로 필요한 원본은 보존하세요. [입력 형식과 런타임](plugins/hehehe/skills/experience-memory/references/memory-format.md)
+재사용할 만한 해결 경험은 `hehehe:experience-memory`로 기록합니다. `resume init`과 `resume status`의 `memory_context`는 목표와 관련된 기록을 자동 검색하며 아무것도 쓰지 않습니다. 원문과 현재 소스를 확인한 뒤 참고하며, 현재 운영 규칙·승인·검증 결과는 따로 직접 읽어야 합니다. 검증된 완료 후에만 해당 실행의 경험이 회상 대상이 됩니다. 원본 실행이나 워크트리를 삭제하면 그 기록은 회상에서 제외되므로 필요한 원본은 보존하세요. [입력 형식과 검색 방식](plugins/hehehe/skills/experience-memory/references/memory-format.md)
 
-`context_compacted: true`인 결과는 `origin`에서 전체 원문·출처를 확인합니다. `source_count`는 확인한 출처 수이며 `truncated_fields`는 줄인 본문 항목입니다. 기존 캐시는 `sync` 또는 새 작업의 `init`으로 유니코드 색인을 갱신합니다.
+`context_compacted: true`인 결과는 `origin`에서 전체 원문·출처를 확인합니다. `source_count`는 확인한 출처 수이며 `truncated_fields`는 줄인 본문 항목입니다.
 
 템플릿은 플러그인 번들에 들어 있습니다.
 
@@ -175,6 +167,8 @@ plugins/hehehe/templates/implementation-spec.md
 - 작은 작업은 Claude를 호출하지 않고 Codex만으로 처리할 수 있습니다.
 
 ## 완료 게이트와 검증 정책
+
+신뢰 검증 게이트는 저장소별 선택 사항입니다. `.hehehe/verification-policy.json`을 도입했거나(작업 트리 또는 HEAD 이력에 존재) 외부에서 `HEHEHE_VERIFICATION_BASE`를 지정한 저장소만 게이트가 적용됩니다. 그 외 저장소에서는 `verify`가 `ungated`를 보고하고 `complete`가 `verification.mode: "ungated"`로 완료를 기록하며, 프로젝트 자체 검사(타입 검사·린트·테스트·빌드)를 실제로 실행해 `checks.md`에 남기는 것이 검증입니다. 도입한 정책 파일을 삭제해도 게이트는 풀리지 않습니다. 아래 내용은 게이트가 적용되는 저장소에 해당합니다.
 
 통합 전달을 요청했거나 저장소에 설정한 경우에는 메인 에이전트가 변경을 합치고 `resume`의 `delivery.mjs prepare`로 고정된 확인 경로에서 전체 검증합니다. `awaiting_approval`은 main 반영 전이며, 사용자 승인 후 정확한 후보·main·요청 ID를 대조해 `merge`하고 같은 폴더가 main인지 확인합니다. 서브에이전트별 테스트나 병합을 사용자에게 떠넘기지 않습니다. 설정·첫 도입·복구는 [통합 전달 안내](plugins/hehehe/skills/resume/references/integration-delivery.md)를 참고하세요.
 
